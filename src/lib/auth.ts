@@ -20,9 +20,23 @@ function resolveJwtSecret(): string {
   return secret;
 }
 
+function resolveAdminPassword(): string {
+  const password = process.env.ADMIN_PASSWORD;
+  if (!password) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "ADMIN_PASSWORD is not set. Refusing to run the admin gate with a default password in production."
+      );
+    }
+    return "admin";
+  }
+  return password;
+}
+
 const JWT_SECRET = new TextEncoder().encode(resolveJwtSecret());
 const SESSION_COOKIE = "cp_session";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
+const ADMIN_MAX_AGE = 60 * 60 * 24; // 1 day
 
 // ─── Password Hashing ────────────────────────────────────────────
 
@@ -72,6 +86,32 @@ export async function verifySession(token: string): Promise<SessionPayload | nul
     return payload as unknown as SessionPayload;
   } catch {
     return null;
+  }
+}
+
+// ─── Admin Session ───────────────────────────────────────────────
+
+// Constant-time check of a supplied admin password against the configured
+// one. Never compares the raw password against a cookie value.
+export function checkAdminPassword(supplied: string): boolean {
+  return safeEqual(supplied, resolveAdminPassword());
+}
+
+// Signed, opaque admin token — the cookie no longer carries the password.
+export async function createAdminSession(): Promise<string> {
+  return new SignJWT({ role: "admin" })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime(`${ADMIN_MAX_AGE}s`)
+    .sign(JWT_SECRET);
+}
+
+export async function verifyAdminSession(token: string): Promise<boolean> {
+  try {
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    return payload.role === "admin";
+  } catch {
+    return false;
   }
 }
 
