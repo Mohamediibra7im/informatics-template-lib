@@ -70,6 +70,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, liked: !isUnlike });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error(err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

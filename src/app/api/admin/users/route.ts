@@ -27,7 +27,8 @@ export async function GET() {
 
     return NextResponse.json(list);
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error(err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -43,6 +44,7 @@ export async function DELETE(request: Request) {
     await db.delete(users).where(eq(users.id, Number(id)));
     return NextResponse.json({ success: true });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error(err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
