@@ -14,7 +14,6 @@ interface CommandLog {
 export function CliConsole() {
   const router = useRouter();
   const {
-    theme,
     setTheme,
     scanlines,
     setScanlines,
@@ -26,7 +25,6 @@ export function CliConsole() {
     setMatrix,
     playClick,
     playBeep,
-    playSuccess
   } = useTerminalTheme();
 
   const [isOpen, setIsOpen] = useState(false);

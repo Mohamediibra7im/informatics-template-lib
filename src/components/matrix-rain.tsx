@@ -103,7 +103,6 @@ export function MatrixRain() {
 
     const drops: Drop[] = Array.from({ length: columns }, (_, i) => initDrop(i));
 
-    const colors = getThemeColor();
     ctx.font = `${fontSize}px monospace`;
 
     let lastTime = 0;

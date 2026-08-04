@@ -1,6 +1,6 @@
 import { getDb, schema } from "@/db";
 import { eq, sql, and } from "drizzle-orm";
-import { Braces, Terminal, Code2, Calendar, Trophy, ArrowRight, Zap, Play, TerminalSquare, Compass } from "lucide-react";
+import { Terminal, Code2, Calendar, Trophy, ArrowRight, Play, TerminalSquare, Compass } from "lucide-react";
 import Link from "next/link";
 import { ContestCalendar } from "@/components/contest-calendar";
 import { AnimateOnMount } from "@/components/animate-on-mount";

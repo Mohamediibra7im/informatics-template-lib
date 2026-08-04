@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, X, FolderPlus, Check } from "lucide-react";
+import { Plus, X, FolderPlus } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 
 const ICON_OPTIONS = [

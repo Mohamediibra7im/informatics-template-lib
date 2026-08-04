@@ -182,7 +182,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.03);
       osc.start();
       osc.stop(ctx.currentTime + 0.03);
-    } catch (_) {}
+    } catch {}
   };
 
   const playBeepSound = (ctx: AudioContext, freq: number, duration: number) => {
@@ -197,7 +197,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
       osc.start();
       osc.stop(ctx.currentTime + duration);
-    } catch (_) {}
+    } catch {}
   };
 
   const playSuccessSound = (ctx: AudioContext) => {
@@ -215,7 +215,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         osc.start(time + idx * 0.05);
         osc.stop(time + idx * 0.05 + 0.12);
       });
-    } catch (_) {}
+    } catch {}
   };
 
   const playBootSound = (ctx: AudioContext) => {
@@ -237,7 +237,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         osc.start(time + idx * step);
         osc.stop(time + idx * step + 0.3);
       });
-    } catch (_) {}
+    } catch {}
   };
 
   if (!mounted) {

@@ -71,7 +71,7 @@ export function AdminCodeEditor({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] text-muted-foreground/50 select-none">FILE_{i + 1}:</span>
-                <Select value={entry.language} onValueChange={(v) => { onSound(); v && onUpdateCode(i, "language", v); }}>
+                <Select value={entry.language} onValueChange={(v) => { onSound(); if (v) onUpdateCode(i, "language", v); }}>
                   <SelectTrigger className="w-32 bg-background/50 border-border text-xs font-mono h-7 rounded-none">
                     <SelectValue />
                   </SelectTrigger>

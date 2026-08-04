@@ -62,7 +62,6 @@ export default async function TemplateOpengraphImage({
   // Fetch template data
   let templateTitle = slug.replace(/-/g, " ");
   let templateDesc = "";
-  let templateComplexity = "";
   let templateTags: string[] = [];
   let categoryName = "";
   let categoryColor = "#22c55e";
@@ -77,7 +76,6 @@ export default async function TemplateOpengraphImage({
       if (tmpl) {
         templateTitle = tmpl.title;
         templateDesc = tmpl.description || "";
-        templateComplexity = tmpl.complexity || "";
         templateTags = tmpl.tags || [];
 
         const [cat] = await db

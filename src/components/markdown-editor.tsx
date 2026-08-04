@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 import {
   Bold, Italic, Code, Code2, List, ListOrdered, Link as LinkIcon,
   Heading1, Heading2, Quote, Minus, Eye, Pencil, Sigma,

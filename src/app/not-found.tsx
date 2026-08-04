@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { AlertCircle, ArrowLeft, Home, RefreshCw } from "lucide-react";
+import { AlertCircle, ArrowLeft, Home } from "lucide-react";
 
 export default function NotFound() {
   const router = useRouter();
