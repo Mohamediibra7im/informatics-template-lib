@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDb, schema } from "@/db";
 import { getSessionFromCookie } from "@/lib/auth";
+import { sendNewContributionNotification } from "@/lib/email";
 import { eq, desc } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
@@ -125,6 +126,14 @@ export async function POST(request: Request) {
       })
       .returning();
 
+    // Best-effort admin notification; never block the submission on email.
+    await sendNewContributionNotification(
+      contributorName,
+      "new",
+      body.title.trim(),
+      contributorCfHandle
+    ).catch((err) => console.error("New contribution email failed:", err));
+
     return NextResponse.json({ id: row.id, message: "Submission received" }, { status: 201 });
   }
 
@@ -150,6 +159,20 @@ export async function POST(request: Request) {
         editNotes: body.editNotes?.trim() || null,
       })
       .returning();
+
+    // Best-effort admin notification; never block the submission on email.
+    const [tmpl] = await db
+      .select({ title: schema.templates.title })
+      .from(schema.templates)
+      .where(eq(schema.templates.id, Number(body.templateId)))
+      .limit(1);
+    await sendNewContributionNotification(
+      contributorName,
+      "edit",
+      tmpl?.title || `Template #${body.templateId}`,
+      contributorCfHandle,
+      body.editReason.trim()
+    ).catch((err) => console.error("New contribution email failed:", err));
 
     return NextResponse.json({ id: row.id, message: "Edit request received" }, { status: 201 });
   }
