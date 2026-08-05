@@ -1,23 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { useTerminalTheme, type TerminalThemeType } from "./theme-provider";
-import { Settings, Sliders, Volume2, VolumeX, Eye, EyeOff, Monitor } from "lucide-react";
+import { useTerminalTheme } from "./theme-provider";
+import { Settings, Volume2, VolumeX, Zap, Rows3, Hash } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 export function RetroSettings() {
   const [open, setOpen] = useState(false);
   const {
-    theme,
-    setTheme,
-    scanlines,
-    setScanlines,
-    flicker,
-    setFlicker,
     sound,
     setSound,
-    matrix,
-    setMatrix,
+    reduceMotion,
+    setReduceMotion,
+    compact,
+    setCompact,
+    lineNumbers,
+    setLineNumbers,
     playClick
   } = useTerminalTheme();
 
@@ -25,15 +23,6 @@ export function RetroSettings() {
     playClick();
     setter(!val);
   };
-
-  const themesList: { id: TerminalThemeType; name: string; color: string }[] = [
-    { id: "green", name: "PHOSPHOR", color: "#22c55e" },
-    { id: "amber", name: "AMBER", color: "#f59e0b" },
-    { id: "cyan", name: "CYAN", color: "#06b6d4" },
-    { id: "red", name: "V-BOY", color: "#ef4444" },
-    { id: "purple", name: "SYNTH", color: "#a855f7" },
-    { id: "mono", name: "MONO", color: "#ffffff" }
-  ];
 
   return (
     <div className="fixed bottom-4 right-4 z-50 font-mono">
@@ -80,81 +69,67 @@ export function RetroSettings() {
 
             {/* Content */}
             <div className="p-4 space-y-4 text-xs text-foreground">
-              {/* Theme selection */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] text-muted-foreground/50 uppercase tracking-widest font-bold">
-                  $ select --color
-                </label>
-                <div className="grid grid-cols-2 gap-1.5">
-                  {themesList.map((t) => {
-                    const isSelected = theme === t.id;
-                    return (
-                      <button
-                        key={t.id}
-                        onClick={() => setTheme(t.id)}
-                        className={`flex items-center justify-between p-1.5 border text-left cursor-pointer transition-all ${
-                          isSelected
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border bg-muted/10 text-muted-foreground/40 hover:border-border/80 hover:text-foreground"
-                        }`}
-                      >
-                        <span className="text-[10px] tracking-wide font-bold">{t.name}</span>
-                        <span
-                          className="h-2 w-2 border"
-                          style={{
-                            backgroundColor: t.color,
-                            borderColor: isSelected ? "var(--primary)" : "transparent"
-                          }}
-                        />
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Toggles */}
-              <div className="space-y-2 border-t border-border/50 pt-3">
+              {/* Interface toggles */}
+              <div className="space-y-2">
                 <label className="text-[10px] text-muted-foreground/50 uppercase tracking-widest font-bold block mb-1">
-                  $ configure --screen-effects
+                  $ configure --interface
                 </label>
 
-                {/* Scanlines toggle */}
+                {/* Reduce Motion */}
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-2 text-muted-foreground/60">
-                    <Monitor className="h-3.5 w-3.5" />
-                    CRT Scanlines
+                    <Zap className="h-3.5 w-3.5" />
+                    Reduce Motion
                   </span>
                   <button
-                    onClick={() => handleToggle(setScanlines, scanlines)}
+                    onClick={() => handleToggle(setReduceMotion, reduceMotion)}
                     className={`px-2 py-0.5 border text-[10px] font-bold uppercase transition-all ${
-                      scanlines
+                      reduceMotion
                         ? "border-primary bg-primary/10 text-primary"
                         : "border-border text-muted-foreground/30 hover:border-border/80"
                     }`}
                   >
-                    {scanlines ? "ENABLED" : "DISABLED"}
+                    {reduceMotion ? "ENABLED" : "DISABLED"}
                   </button>
                 </div>
 
-                {/* Flicker toggle */}
+                {/* Compact Density */}
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-2 text-muted-foreground/60">
-                    <Sliders className="h-3.5 w-3.5" />
-                    Monitor Flicker
+                    <Rows3 className="h-3.5 w-3.5" />
+                    Compact Density
                   </span>
                   <button
-                    onClick={() => handleToggle(setFlicker, flicker)}
+                    onClick={() => handleToggle(setCompact, compact)}
                     className={`px-2 py-0.5 border text-[10px] font-bold uppercase transition-all ${
-                      flicker
+                      compact
                         ? "border-primary bg-primary/10 text-primary"
                         : "border-border text-muted-foreground/30 hover:border-border/80"
                     }`}
                   >
-                    {flicker ? "ENABLED" : "DISABLED"}
+                    {compact ? "ENABLED" : "DISABLED"}
                   </button>
                 </div>
 
-                {/* Sound FX toggle */}
+                {/* Code Line Numbers */}
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-2 text-muted-foreground/60">
+                    <Hash className="h-3.5 w-3.5" />
+                    Line Numbers
+                  </span>
+                  <button
+                    onClick={() => handleToggle(setLineNumbers, lineNumbers)}
+                    className={`px-2 py-0.5 border text-[10px] font-bold uppercase transition-all ${
+                      lineNumbers
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground/30 hover:border-border/80"
+                    }`}
+                  >
+                    {lineNumbers ? "ENABLED" : "DISABLED"}
+                  </button>
+                </div>
+
+                {/* Retro Sounds */}
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-2 text-muted-foreground/60">
                     {sound ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
@@ -172,24 +147,6 @@ export function RetroSettings() {
                     }`}
                   >
                     {sound ? "ENABLED" : "DISABLED"}
-                  </button>
-                </div>
-
-                {/* Matrix Rain toggle */}
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-muted-foreground/60">
-                    {matrix ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-                    Falling Code
-                  </span>
-                  <button
-                    onClick={() => handleToggle(setMatrix, matrix)}
-                    className={`px-2 py-0.5 border text-[10px] font-bold uppercase transition-all ${
-                      matrix
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border text-muted-foreground/30 hover:border-border/80"
-                    }`}
-                  >
-                    {matrix ? "ENABLED" : "DISABLED"}
                   </button>
                 </div>
               </div>

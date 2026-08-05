@@ -32,8 +32,7 @@ export function ParticleField({ className = "" }: { className?: string }) {
     resize();
     window.addEventListener("resize", resize);
 
-    const isDark = document.documentElement.classList.contains("dark");
-    const hue = isDark ? 150 : 150;
+    const hue = 150;
     const count = Math.min(60, Math.floor((canvas.offsetWidth * canvas.offsetHeight) / 15000));
 
     particles.current = Array.from({ length: count }, () => ({
