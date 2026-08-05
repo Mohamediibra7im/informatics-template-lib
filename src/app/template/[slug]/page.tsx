@@ -25,17 +25,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 
   try {
-    const [template] = await db.select().from(templates).where(eq(templates.slug, slug));
-    if (!template || template.hidden) {
-      return {
-        title: "Template Not Found | CP-Base",
-        openGraph: { images: ["/opengraph-image"] },
-        twitter: { card: "summary_large_image" },
-      };
-    }
+    // Single joined query so metadata generation makes one DB round-trip, not two.
+    const [row] = await db
+      .select({ template: templates, category: categories })
+      .from(templates)
+      .leftJoin(categories, eq(categories.id, templates.categoryId))
+      .where(eq(templates.slug, slug));
 
-    const [category] = await db.select().from(categories).where(eq(categories.id, template.categoryId));
-    if (!category || category.hidden) {
+    const template = row?.template;
+    const category = row?.category;
+    if (!template || template.hidden || !category || category.hidden) {
       return {
         title: "Template Not Found | CP-Base",
         openGraph: { images: ["/opengraph-image"] },
