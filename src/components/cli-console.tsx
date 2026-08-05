@@ -247,29 +247,18 @@ export function CliConsole() {
 
   return (
     <>
-      {/* Small floating toggle button for the terminal */}
+      {/* Small floating toggle button for the terminal - only on large screens */}
       {!isOpen && (
-        <>
         <button
           onClick={() => {
             playClick();
             setIsOpen(true);
           }}
-          className="fixed bottom-4 left-4 sm:flex items-center gap-2 px-3 h-9 border border-primary bg-card/90 text-primary shadow-[0_0_10px_var(--primary-glow-weak)] hover:shadow-[0_0_15px_var(--primary-glow)] transition-all hover:bg-primary/10 rounded-none cursor-pointer text-xs font-mono z-50 hidden"
+          className="fixed bottom-4 left-4 hidden lg:flex items-center gap-2 px-3 h-9 border border-primary bg-card/90 text-primary shadow-[0_0_10px_var(--primary-glow-weak)] hover:shadow-[0_0_15px_var(--primary-glow)] transition-all hover:bg-primary/10 rounded-none cursor-pointer text-xs font-mono z-50"
         >
           <TerminalIcon className="h-4 w-4" />
           <span>CON: CLOSED</span>
         </button>
-        <button
-          onClick={() => {
-            playClick();
-            setIsOpen(true);
-          }}
-          className="fixed bottom-16 right-4 flex sm:hidden items-center justify-center h-9 w-9 border border-primary bg-card/90 text-primary shadow-[0_0_10px_var(--primary-glow-weak)] hover:shadow-[0_0_15px_var(--primary-glow)] transition-all hover:bg-primary/10 rounded-none cursor-pointer z-50"
-        >
-          <TerminalIcon className="h-4.5 w-4.5" />
-        </button>
-        </>
       )}
 
       <AnimatePresence>
@@ -279,7 +268,7 @@ export function CliConsole() {
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "tween", duration: 0.2 }}
-            className={`fixed left-0 right-0 bottom-0 z-50 border-t border-primary bg-background/95 backdrop-blur-md shadow-[0_-10px_30px_rgba(0,0,0,0.8)] font-mono flex flex-col ${
+            className={`fixed left-0 right-0 bottom-0 z-50 border-t border-primary bg-background/95 backdrop-blur-md shadow-[0_-10px_30px_rgba(0,0,0,0.8)] font-mono hidden lg:flex flex-col ${
               isMaximized ? "h-[85vh]" : "h-[32vh]"
             }`}
           >
