@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/components/auth-provider";
 import { useTerminalTheme } from "@/components/theme-provider";
@@ -158,9 +159,12 @@ const getRatingStyle = (platform: string, rating: number | null) => {
   }
 };
 
-export default function DashboardPage() {
+function DashboardContent() {
   const { user } = useAuth();
   const { playClick, playSuccess, playBeep } = useTerminalTheme();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [activeTab, setActiveTab] = useState<Tab>("overview");
 
   // Search & Filter State
@@ -208,17 +212,30 @@ export default function DashboardPage() {
 
   const isLocalhost = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
 
+  // Decoupled background fetch for Codeforces stats (never blocks dashboard render)
+  const fetchHandlesStats = useCallback(async (forceRefresh = false) => {
+    try {
+      const res = await fetch(`/api/users/handles-stats${forceRefresh ? "?refresh=true" : ""}`);
+      if (res.ok) {
+        const d = await res.json();
+        setStats(d);
+      }
+    } catch {
+      // Non-blocking
+    }
+  }, []);
+
+  // Fast initial fetch of local database items
   const fetchData = useCallback(async (forceRefresh = false) => {
     setLoading(true);
     try {
-      const [progRes, templRes, collRes, contribRes, likesRes, profRes, statsRes] = await Promise.all([
+      const [progRes, templRes, collRes, contribRes, likesRes, profRes] = await Promise.all([
         fetch("/api/users/progress"),
         fetch("/api/users/templates"),
         fetch("/api/users/collections"),
         fetch("/api/users/contributions"),
         fetch("/api/users/likes"),
         fetch("/api/users/profiles"),
-        fetch(`/api/users/handles-stats${forceRefresh ? "?refresh=true" : ""}`),
       ]);
 
       if (progRes.ok) {
@@ -251,22 +268,35 @@ export default function DashboardPage() {
           setCcHandle(d.profile.codechefHandle || "");
         }
       }
-      if (statsRes.ok) {
-        const d = await statsRes.json();
-        setStats(d);
-      }
     } catch {
       toast.error("Failed to load dashboard data");
     } finally {
       setLoading(false);
     }
-  }, []);
+
+    // Trigger external stats fetch in background asynchronously
+    fetchHandlesStats(forceRefresh);
+  }, [fetchHandlesStats]);
 
   useEffect(() => {
-    // Mount-time data fetch; setLoading inside fetchData is intentional.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
   }, [fetchData]);
+
+  // Sync active tab with URL query parameter ?tab=...
+  useEffect(() => {
+    const tabParam = searchParams.get("tab") as Tab | null;
+    if (tabParam && ["overview", "templates", "contributions", "liked", "collections", "progress", "settings"].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
+
+  const changeTab = (tabId: Tab) => {
+    playClick();
+    setActiveTab(tabId);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", tabId);
+    router.push(`/dashboard?${params.toString()}`, { scroll: false });
+  };
 
   const saveProfile = async () => {
     setSaving(true);
@@ -593,10 +623,7 @@ export default function DashboardPage() {
               return (
                 <button
                   key={tab.id}
-                  onClick={() => {
-                    playClick();
-                    setActiveTab(tab.id);
-                  }}
+                  onClick={() => changeTab(tab.id)}
                   className={`w-full text-left px-3 py-2 border text-[11px] font-bold uppercase transition-all flex items-center gap-2 select-none ${
                     isActive
                       ? "border-primary/50 bg-primary/5 text-primary shadow-[0_0_12px_rgba(var(--primary-rgb),0.08)]"
@@ -617,10 +644,7 @@ export default function DashboardPage() {
               return (
                 <button
                   key={tab.id}
-                  onClick={() => {
-                    playClick();
-                    setActiveTab(tab.id);
-                  }}
+                  onClick={() => changeTab(tab.id)}
                   className={`flex items-center gap-1.5 px-3 py-2 border text-[10px] tracking-wide uppercase transition-all whitespace-nowrap ${
                     isActive
                       ? "border-primary/30 bg-primary/10 text-primary"
@@ -1816,5 +1840,22 @@ export default function DashboardPage() {
       </div>
 
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="relative z-10 mx-auto max-w-7xl px-4 py-16 font-mono min-h-screen text-foreground select-none flex items-center justify-center">
+          <div className="text-xs text-muted-foreground/40 animate-pulse flex items-center gap-2">
+            <Terminal className="h-4 w-4 text-primary animate-spin" />
+            <span>Loading dashboard...</span>
+          </div>
+        </div>
+      }
+    >
+      <DashboardContent />
+    </Suspense>
   );
 }
