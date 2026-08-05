@@ -53,7 +53,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Sign in to contribute" }, { status: 401 });
   }
 
-  const body = await request.json();
+  const body = await request.json().catch(() => null);
+  if (!body || typeof body !== "object") {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
   const { type } = body;
 
   if (!type || !["new", "edit"].includes(type)) {

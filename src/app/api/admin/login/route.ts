@@ -10,9 +10,14 @@ const MAX_ATTEMPTS = 5;
 const attempts = new Map<string, { count: number; resetAt: number }>();
 
 function clientIp(request: Request): string {
+  // Prefer x-real-ip: on Vercel the platform sets it to the true client IP.
+  // x-forwarded-for is client-appendable, so its first hop can be spoofed to
+  // rotate past the throttle — use it only as a fallback.
+  const realIp = request.headers.get("x-real-ip");
+  if (realIp) return realIp.trim();
   const fwd = request.headers.get("x-forwarded-for");
   if (fwd) return fwd.split(",")[0].trim();
-  return request.headers.get("x-real-ip") ?? "unknown";
+  return "unknown";
 }
 
 function checkThrottle(ip: string): { limited: boolean; retryAfter: number } {

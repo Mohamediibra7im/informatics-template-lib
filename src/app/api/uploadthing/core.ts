@@ -49,7 +49,27 @@ export const ourFileRouter = {
       return { userId: session.userId, customFileName: `${usernameStr}_avatar`, oldFileKey };
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      // Automatically delete previous UploadThing avatar file if present
+      const url = file.ufsUrl || file.url;
+
+      // Persist the new URL server-side so it's the source of truth — no
+      // reliance on a follow-up client PUT that could fail and leave the DB
+      // pointing at the old (now-deleted) file.
+      const db = getDb();
+      if (db) {
+        try {
+          await db
+            .insert(userProfiles)
+            .values({ userId: metadata.userId, avatarUrl: url })
+            .onConflictDoUpdate({
+              target: userProfiles.userId,
+              set: { avatarUrl: url, updatedAt: new Date() },
+            });
+        } catch {
+          // Non-blocking persist catch
+        }
+      }
+
+      // Delete previous UploadThing avatar file only after the new URL is saved.
       if (metadata.oldFileKey) {
         try {
           await utapi.deleteFiles(metadata.oldFileKey);
@@ -61,7 +81,7 @@ export const ourFileRouter = {
       return {
         uploadedBy: metadata.userId,
         customName: metadata.customFileName,
-        url: file.ufsUrl || file.url,
+        url,
       };
     }),
 } satisfies FileRouter;

@@ -4,6 +4,18 @@ import { userProfiles, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { getSessionFromCookie, getVerificationToken } from "@/lib/auth";
 
+// Only accept avatar URLs that point at our UploadThing storage, so a user
+// can't store an arbitrary external URL that then renders in an <img> on their
+// public profile (tracking beacon / open image relay).
+function isAllowedAvatar(url: string): boolean {
+  try {
+    const h = new URL(url).hostname;
+    return h === "utfs.io" || h === "ufs.sh" || h.endsWith(".ufs.sh");
+  } catch {
+    return false;
+  }
+}
+
 export async function GET() {
   const session = await getSessionFromCookie();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -66,9 +78,17 @@ export async function PUT(request: Request) {
   const session = await getSessionFromCookie();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const body = await request.json();
+  const body = await request.json().catch(() => null);
+  if (!body || typeof body !== "object") {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
   const db = getDb();
   if (!db) return NextResponse.json({ error: "Database unavailable" }, { status: 500 });
+
+  const avatar = body.avatarUrl !== undefined ? body.avatarUrl?.trim() || null : undefined;
+  if (avatar && !isAllowedAvatar(avatar)) {
+    return NextResponse.json({ error: "avatarUrl must be an UploadThing URL" }, { status: 400 });
+  }
 
   // Ensure row exists
   await db.insert(userProfiles).values({ userId: session.userId }).onConflictDoNothing();
@@ -78,7 +98,7 @@ export async function PUT(request: Request) {
     .set({
       name: body.name !== undefined ? body.name?.trim() || null : undefined,
       bio: body.bio !== undefined ? body.bio?.trim() || null : undefined,
-      avatarUrl: body.avatarUrl !== undefined ? body.avatarUrl?.trim() || null : undefined,
+      avatarUrl: avatar,
       codeforcesHandle: body.codeforcesHandle !== undefined ? body.codeforcesHandle?.trim() || null : undefined,
       atcoderHandle: body.atcoderHandle !== undefined ? body.atcoderHandle?.trim() || null : undefined,
       leetcodeHandle: body.leetcodeHandle !== undefined ? body.leetcodeHandle?.trim() || null : undefined,

@@ -23,7 +23,6 @@ export async function GET(request: Request) {
   try {
     const [res] = await db
       .select({
-        id: users.id,
         username: users.username,
         name: userProfiles.name,
         bio: userProfiles.bio,
@@ -36,13 +35,15 @@ export async function GET(request: Request) {
       })
       .from(users)
       .leftJoin(userProfiles, eq(users.id, userProfiles.userId))
+      // Match by username or CF handle only — display name isn't unique, so it's
+      // an ambiguous key. When both match, prefer the exact username.
       .where(
         or(
           sql`LOWER(${users.username}) = LOWER(${term})`,
-          sql`LOWER(${userProfiles.name}) = LOWER(${term})`,
           sql`LOWER(${userProfiles.codeforcesHandle}) = LOWER(${term})`
         )
       )
+      .orderBy(sql`CASE WHEN LOWER(${users.username}) = LOWER(${term}) THEN 0 ELSE 1 END`)
       .limit(1);
 
     if (!res) {

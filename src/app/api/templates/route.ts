@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { templates, templateCodes } from "@/db/schema";
-import { asc } from "drizzle-orm";
+import { asc, inArray } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
@@ -22,19 +22,24 @@ export async function GET(request: Request) {
         notes: templates.notes,
       })
       .from(templates)
-      .orderBy(asc(templates.title));
+      .orderBy(asc(templates.title))
+      .limit(500);
 
     if (!includeCodes) {
       return NextResponse.json(allTemplates);
     }
 
-    const allCodes = await db
-      .select({
-        templateId: templateCodes.templateId,
-        language: templateCodes.language,
-        code: templateCodes.code,
-      })
-      .from(templateCodes);
+    const ids = allTemplates.map((t) => t.id);
+    const allCodes = ids.length
+      ? await db
+          .select({
+            templateId: templateCodes.templateId,
+            language: templateCodes.language,
+            code: templateCodes.code,
+          })
+          .from(templateCodes)
+          .where(inArray(templateCodes.templateId, ids))
+      : [];
 
     const codesMap = new Map<number, { language: string; code: string }[]>();
     for (const c of allCodes) {
