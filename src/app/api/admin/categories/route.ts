@@ -17,6 +17,10 @@ export async function POST(request: Request) {
   if (!db) return NextResponse.json({ error: "Database not configured" }, { status: 500 });
 
   const body = await request.json();
+  if (typeof body.name !== "string" || !body.name.trim() ||
+      typeof body.slug !== "string" || !body.slug.trim()) {
+    return NextResponse.json({ error: "name and slug are required" }, { status: 400 });
+  }
   const [category] = await db.insert(categories).values({
     name: body.name,
     slug: body.slug,
@@ -38,6 +42,13 @@ export async function PUT(request: Request) {
   if (!db) return NextResponse.json({ error: "Database not configured" }, { status: 500 });
 
   const body = await request.json();
+  if (!Number.isFinite(Number(body.id))) {
+    return NextResponse.json({ error: "Valid id is required" }, { status: 400 });
+  }
+  if (typeof body.name !== "string" || !body.name.trim() ||
+      typeof body.slug !== "string" || !body.slug.trim()) {
+    return NextResponse.json({ error: "name and slug are required" }, { status: 400 });
+  }
   await db.update(categories)
     .set({
       name: body.name,
@@ -62,7 +73,9 @@ export async function DELETE(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
-  if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+  if (!id || !Number.isFinite(Number(id))) {
+    return NextResponse.json({ error: "Valid id is required" }, { status: 400 });
+  }
   await db.delete(categories).where(eq(categories.id, Number(id)));
   return NextResponse.json({ success: true });
 }
