@@ -2,7 +2,7 @@
 
 # CP-Base
 
-**A terminal-themed competitive programming template library**
+**A competitive programming template library**
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)](https://typescriptlang.org)
@@ -19,32 +19,37 @@ Copy, paste, and ace your next contest.
 
 ## Overview
 
-CP-Base is a modern, terminal-inspired web application for organizing and sharing competitive programming templates. Built for speed and accessibility — find the right algorithm template in seconds, copy it, and focus on solving problems.
+CP-Base is a modern web application for organizing and sharing competitive programming templates. Built for speed — find the right algorithm template in seconds, copy it, and focus on solving problems. It ships with user accounts, a public contribution + review workflow, a live contest calendar, and a password-gated admin dashboard. Slate dark theme throughout.
 
 ## Features
 
 | Feature | Description |
 |---------|-------------|
-| **Terminal UI** | CRT scanlines, green-on-black aesthetic, monospace everything |
-| **Fuzzy Search** | Find templates instantly with intelligent fuzzy matching |
-| **Multi-language** | Templates in C++, Python, Java, Rust, Go, and JavaScript |
-| **Math Support** | Write LaTeX formulas in notes using `$$` syntax |
+| **Fuzzy Search** | Find templates instantly with intelligent fuzzy matching (Fuse.js) |
+| **Multi-language** | Templates in C++, Python, Java, Rust, Go, and more |
 | **Syntax Highlighting** | Beautiful code blocks powered by Shiki |
-| **Markdown Notes** | Rich editor with live preview for algorithm explanations |
-| **Admin Panel** | Full CRUD for managing templates and categories |
-| **Responsive** | Works seamlessly on desktop and mobile |
+| **Markdown + Math Notes** | Rich algorithm explanations with LaTeX via `$$` (KaTeX) |
+| **User Accounts** | Register, verify email, save/customize templates, collections, progress, CP handles |
+| **Contribute** | Logged-in users submit new templates or edit requests for admin review |
+| **Contest Calendar** | Live upcoming contests from Codeforces, AtCoder, LeetCode, CodeChef |
+| **CP Profiles** | Codeforces stats widget |
+| **Admin Panel** | Full CRUD for templates/categories, contribution review, version history + revert |
+| **Responsive** | Works on desktop and mobile |
 
 ## Tech Stack
 
 ```
 ├── Framework     Next.js 16 (App Router + Turbopack)
 ├── Language      TypeScript 5
+├── Runtime       Bun
 ├── Database      Neon Postgres (Serverless)
 ├── ORM           Drizzle ORM
-├── UI            Radix UI + Tailwind CSS 4
+├── UI            Radix UI + Tailwind CSS 4 (dark slate)
+├── Auth          jose (JWT sessions) + scrypt hashing
 ├── Search        Fuse.js (Fuzzy Search)
 ├── Math          KaTeX (LaTeX Rendering)
-├── Code          Shiki (Syntax Highlighting)
+├── Code          Shiki (highlighting) + Monaco (admin editor)
+├── Email         Nodemailer (SMTP)
 └── Font          JetBrains Mono
 ```
 
@@ -52,37 +57,40 @@ CP-Base is a modern, terminal-inspired web application for organizing and sharin
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) 18+ or [Bun](https://bun.sh/) 1+
+- [Bun](https://bun.sh/) 1+ (or Node.js 18+)
 - A [Neon](https://neon.tech) Postgres database (free tier works)
 
 ### Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/midoriya01/cp-templates-hub.git
-cd cp-templates-hub
+git clone https://github.com/Mohamediibra7im/cp-base.git
+cd cp-base
 
 # Install dependencies
 bun install
 
 # Set up environment variables
-cp .env.example .env.local
+cp .env.example .env
 ```
 
-Edit `.env.local` with your database URL:
+Edit `.env` (see `.env.example` for the full list):
 
 ```env
-DATABASE_URL=postgresql://username:password@ep-xxx.us-east-2.aws.neon.tech/dbname?sslmode=require
+DATABASE_URL=postgresql://username:password@ep-xxx.aws.neon.tech/dbname?sslmode=require
+JWT_SECRET=your-long-random-secret          # signs user + admin sessions
+ADMIN_PASSWORD=your-secure-admin-password
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+# SMTP_* for account verification + contribution emails (optional in dev)
 ```
+
+> `JWT_SECRET` and `ADMIN_PASSWORD` are required in production — the app refuses to start without them.
 
 ### Database Setup
 
 ```bash
-# Run migrations
-bun run db:migrate
-
-# Seed with sample templates (optional)
-bun run db:seed
+bun run db:generate   # generate migrations from src/db/schema.ts (reads .env)
+bun run db:migrate    # apply migrations to Neon
 ```
 
 ### Development
@@ -97,39 +105,32 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 
 ```
 src/
-├── app/                    # Next.js App Router pages
-│   ├── admin/              # Admin panel pages
-│   ├── api/                # API routes
-│   ├── category/           # Category pages
-│   ├── template/           # Template detail pages
-│   └── templates/          # All templates page
-├── components/             # React components
-│   ├── ui/                 # Shadcn UI components
-│   ├── nav-bar.tsx         # Navigation bar
-│   ├── footer.tsx          # Footer
-│   ├── template-card.tsx   # Template card component
-│   ├── category-card.tsx   # Category card component
-│   ├── code-block.tsx      # Syntax highlighted code
-│   ├── markdown-editor.tsx # Markdown editor with math
-│   └── math-renderer.tsx   # KaTeX math rendering
-├── db/                     # Database layer
-│   ├── schema.ts           # Drizzle schema
-│   ├── index.ts            # Database connection
-│   └── seed.ts             # Sample data
-└── lib/                    # Utilities
+├── proxy.ts                # middleware (auth gate) — NOT middleware.ts
+├── app/                    # Next.js App Router
+│   ├── (auth)/             # login / register / verify
+│   ├── dashboard/          # logged-in user area
+│   ├── admin/              # admin panel (password-gated)
+│   ├── api/                # API routes (auth, users, admin, contests, ...)
+│   ├── category/ · categories/
+│   ├── template/ · templates/
+│   └── contribute/         # contribution flow (login required)
+├── components/             # React components (+ ui/, forms/, terminal/)
+├── db/                     # schema.ts (source of truth) + index.ts (getDb)
+└── lib/                    # auth, email, contests, codeforces, history, utils
 ```
+
+See [`PROJECT_GUIDE.md`](PROJECT_GUIDE.md) for architecture, data model, API surface, and gotchas.
 
 ## Scripts
 
 | Command | Description |
 |---------|-------------|
 | `bun run dev` | Start development server |
-| `bun run build` | Create production build |
+| `bun run build` | Production build (also full typecheck) |
 | `bun run start` | Start production server |
 | `bun run lint` | Run ESLint |
 | `bun run db:generate` | Generate migrations |
 | `bun run db:migrate` | Run migrations |
-| `bun run db:seed` | Seed sample data |
 
 ## Contributing
 
