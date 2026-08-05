@@ -60,11 +60,14 @@ export interface LikedTemplate {
 export interface Profile {
   id: number;
   userId: number;
+  name?: string | null;
+  bio?: string | null;
+  avatarUrl?: string | null;
   codeforcesHandle: string | null;
   atcoderHandle: string | null;
   leetcodeHandle: string | null;
   codechefHandle: string | null;
-  ratingGoal: number | null;
+  ratingGoal: string | number | null;
   verificationToken: string;
   isVerified: boolean;
   calendarToken?: string | null;

@@ -1,13 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Settings, Calendar, Copy, Terminal } from "lucide-react";
+import { Settings, Calendar, Copy, Terminal, User, Lock, Sparkles, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Profile } from "./types";
 
 interface SettingsTabProps {
+  displayName: string;
+  bio: string;
+  avatarUrl: string;
   cfHandle: string;
   acHandle: string;
   lcHandle: string;
@@ -21,13 +24,27 @@ interface SettingsTabProps {
   onSaveProfile: () => void;
   onCheckHandleVerification: (platform: string, handle: string) => Promise<void>;
   onCopyCalendarLink: () => void;
+  setDisplayName: (val: string) => void;
+  setBio: (val: string) => void;
+  setAvatarUrl: (val: string) => void;
   setCfHandle: (val: string) => void;
   setAcHandle: (val: string) => void;
   setLcHandle: (val: string) => void;
   setCcHandle: (val: string) => void;
 }
 
+const PRESET_AVATARS = [
+  { name: "Cyber Bot", url: "https://api.dicebear.com/7.x/bottts/svg?seed=Midoriya" },
+  { name: "Quantum Dev", url: "https://api.dicebear.com/7.x/identicon/svg?seed=CPBase" },
+  { name: "Neon Hacker", url: "https://api.dicebear.com/7.x/adventurer/svg?seed=Hacker" },
+  { name: "Algo Master", url: "https://api.dicebear.com/7.x/thumbs/svg?seed=AlgoMaster" },
+  { name: "Pixel Knight", url: "https://api.dicebear.com/7.x/bottts/svg?seed=CyberNinja" },
+];
+
 export function SettingsTab({
+  displayName,
+  bio,
+  avatarUrl,
   cfHandle,
   acHandle,
   lcHandle,
@@ -41,6 +58,9 @@ export function SettingsTab({
   onSaveProfile,
   onCheckHandleVerification,
   onCopyCalendarLink,
+  setDisplayName,
+  setBio,
+  setAvatarUrl,
 }: SettingsTabProps) {
   const [verifyingPlatform, setVerifyingPlatform] = useState<string | null>(null);
   const [verifyInputVal, setVerifyInputVal] = useState("");
@@ -57,6 +77,120 @@ export function SettingsTab({
 
   return (
     <div className="space-y-6 animate-fade-in font-mono">
+      
+      {/* Profile & Account Preferences Panel */}
+      <div className="border border-border bg-card/40 backdrop-blur-md shadow-2xl">
+        <div className="px-4 py-3 border-b border-border/40 bg-muted/20 text-[10px] uppercase tracking-widest text-muted-foreground/50 font-bold flex items-center gap-2 select-none">
+          <User className="h-4 w-4 text-primary" />
+          <span>Profile & Public Identity Settings</span>
+        </div>
+
+        <div className="p-5 space-y-5">
+          {/* Avatar Section */}
+          <div className="space-y-3">
+            <Label className="text-[10.5px] uppercase tracking-widest text-foreground font-extrabold flex items-center gap-1.5">
+              <ImageIcon className="h-3.5 w-3.5 text-primary" />
+              <span>Profile Avatar</span>
+            </Label>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="relative h-16 w-16 border-2 border-primary/40 bg-primary/10 overflow-hidden shrink-0 flex items-center justify-center">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+                ) : (
+                  <User className="h-8 w-8 text-primary" />
+                )}
+              </div>
+              <div className="space-y-2 flex-1 w-full">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[9.5px] text-muted-foreground/50 uppercase font-bold">Presets:</span>
+                  {PRESET_AVATARS.map((preset) => (
+                    <button
+                      key={preset.name}
+                      onClick={() => {
+                        playClick();
+                        setAvatarUrl(preset.url);
+                      }}
+                      className={`px-2 py-0.5 text-[9px] border uppercase font-bold transition-colors cursor-pointer ${
+                        avatarUrl === preset.url
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border/40 text-muted-foreground/50 hover:text-foreground"
+                      }`}
+                    >
+                      {preset.name}
+                    </button>
+                  ))}
+                </div>
+                <Input
+                  value={avatarUrl}
+                  onChange={(e) => setAvatarUrl(e.target.value)}
+                  placeholder="Or enter custom image URL (https://...)..."
+                  className="font-mono text-xs bg-background/40 border-primary/20 focus:border-primary/50 placeholder:text-muted-foreground/30 h-9"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Display Name Input */}
+          <div className="space-y-1.5">
+            <Label className="text-[10.5px] uppercase tracking-widest text-foreground font-extrabold">
+              Display Name
+            </Label>
+            <Input
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="Enter your full name or public alias (e.g. Mohamed Ibrahim)..."
+              className="font-mono text-xs bg-background/40 border-primary/20 focus:border-primary/50 placeholder:text-muted-foreground/30 h-9"
+            />
+          </div>
+
+          {/* Bio Input */}
+          <div className="space-y-1.5">
+            <Label className="text-[10.5px] uppercase tracking-widest text-foreground font-extrabold">
+              Personal Bio / Summary
+            </Label>
+            <Input
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="Short bio (e.g. Candidate Master on CF | Graph & DP Specialist)..."
+              className="font-mono text-xs bg-background/40 border-primary/20 focus:border-primary/50 placeholder:text-muted-foreground/30 h-9"
+            />
+          </div>
+
+          {/* System Account Identifiers (Read-only Username & Email) */}
+          <div className="pt-2 border-t border-border/30 space-y-3">
+            <div className="text-[9.5px] uppercase tracking-widest text-muted-foreground/45 font-bold flex items-center gap-1.5">
+              <Lock className="h-3 w-3" />
+              <span>Account Credentials (Read-Only)</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono">
+              <div className="bg-background/20 p-2.5 border border-border/40 space-y-0.5">
+                <span className="text-[9px] text-muted-foreground/40 uppercase block">Username</span>
+                <span className="font-extrabold text-foreground">{username}</span>
+              </div>
+              <div className="bg-background/20 p-2.5 border border-border/40 space-y-0.5">
+                <span className="text-[9px] text-muted-foreground/40 uppercase block">Email Address</span>
+                <span className="font-extrabold text-foreground">{email}</span>
+              </div>
+            </div>
+          </div>
+
+          <Button
+            onClick={onSaveProfile}
+            disabled={saving}
+            className="font-mono text-xs uppercase font-extrabold tracking-wider h-9.5 border border-primary/30 hover:border-primary bg-primary/10 text-primary cursor-pointer w-full"
+          >
+            {saving ? (
+              <span className="flex items-center justify-center gap-2">
+                <Terminal className="h-4 w-4 animate-spin" />
+                Saving Profile Settings...
+              </span>
+            ) : (
+              "Save Profile Settings"
+            )}
+          </Button>
+        </div>
+      </div>
+
       {/* Platform Verification Settings panel */}
       <div className="border border-border bg-card/40 backdrop-blur-md shadow-2xl">
         <div className="px-4 py-3 border-b border-border/40 bg-muted/20 text-[10px] uppercase tracking-widest text-muted-foreground/50 font-bold flex items-center gap-2 select-none">
@@ -216,21 +350,6 @@ export function SettingsTab({
               </div>
             );
           })}
-
-          <Button
-            onClick={onSaveProfile}
-            disabled={saving}
-            className="font-mono text-xs uppercase font-extrabold tracking-wider h-9.5 border border-primary/30 hover:border-primary bg-primary/10 text-primary cursor-pointer w-full"
-          >
-            {saving ? (
-              <span className="flex items-center justify-center gap-2">
-                <Terminal className="h-4 w-4 animate-spin" />
-                Saving Preferences...
-              </span>
-            ) : (
-              "Save Profile Handles"
-            )}
-          </Button>
         </div>
       </div>
 
@@ -286,24 +405,6 @@ export function SettingsTab({
                 Cloud web services (Google Calendar, Outlook Web) cannot reach <code className="bg-warning/20 px-1 py-0.5 font-bold">localhost</code> URLs directly. Test with local client apps (Apple Calendar / Windows Calendar) during development. Sync works seamlessly once deployed to public hosting.
               </div>
             )}
-          </div>
-        </div>
-      </div>
-
-      {/* Standard metadata fields */}
-      <div className="border border-border bg-card/40 backdrop-blur-md shadow-2xl select-none">
-        <div className="px-4 py-3 border-b border-border/40 bg-muted/20 text-[10px] uppercase tracking-widest text-muted-foreground/50 font-bold flex items-center gap-2">
-          <Terminal className="h-4 w-4 text-primary" />
-          <span>Account Information</span>
-        </div>
-        <div className="p-5 space-y-3 text-xs text-muted-foreground/60 font-mono">
-          <div className="flex items-center gap-3">
-            <span className="w-24 text-muted-foreground/35 uppercase font-bold">Username:</span>
-            <span className="text-foreground font-extrabold">{username}</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="w-24 text-muted-foreground/35 uppercase font-bold">Email:</span>
-            <span className="text-foreground font-extrabold">{email}</span>
           </div>
         </div>
       </div>

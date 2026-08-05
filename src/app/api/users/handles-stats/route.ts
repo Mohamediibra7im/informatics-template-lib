@@ -26,7 +26,12 @@ export async function GET(request: Request) {
   if (!db) return NextResponse.json({ error: "Database unavailable" }, { status: 500 });
 
   const [profile] = await db
-    .select()
+    .select({
+      codeforcesHandle: userProfiles.codeforcesHandle,
+      atcoderHandle: userProfiles.atcoderHandle,
+      leetcodeHandle: userProfiles.leetcodeHandle,
+      codechefHandle: userProfiles.codechefHandle,
+    })
     .from(userProfiles)
     .where(eq(userProfiles.userId, session.userId))
     .limit(1);

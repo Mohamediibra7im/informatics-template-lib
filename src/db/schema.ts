@@ -136,6 +136,9 @@ export const users = pgTable("users", {
 export const userProfiles = pgTable("user_profiles", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }).unique(),
+  name: text("name"),
+  bio: text("bio"),
+  avatarUrl: text("avatar_url"),
   codeforcesHandle: text("codeforces_handle"),
   atcoderHandle: text("atcoder_handle"),
   leetcodeHandle: text("leetcode_handle"),

@@ -11,10 +11,13 @@ export async function GET() {
   const db = getDb();
   if (!db) return NextResponse.json({ error: "Database unavailable" }, { status: 500 });
 
-  const [profile] = await db
+  let [profile] = await db
     .select({
       id: userProfiles.id,
       userId: userProfiles.userId,
+      name: userProfiles.name,
+      bio: userProfiles.bio,
+      avatarUrl: userProfiles.avatarUrl,
       codeforcesHandle: userProfiles.codeforcesHandle,
       atcoderHandle: userProfiles.atcoderHandle,
       leetcodeHandle: userProfiles.leetcodeHandle,
@@ -27,6 +30,30 @@ export async function GET() {
     .innerJoin(users, eq(userProfiles.userId, users.id))
     .where(eq(userProfiles.userId, session.userId))
     .limit(1);
+
+  if (!profile) {
+    // Upsert default profile row if missing
+    await db.insert(userProfiles).values({ userId: session.userId }).onConflictDoNothing();
+    [profile] = await db
+      .select({
+        id: userProfiles.id,
+        userId: userProfiles.userId,
+        name: userProfiles.name,
+        bio: userProfiles.bio,
+        avatarUrl: userProfiles.avatarUrl,
+        codeforcesHandle: userProfiles.codeforcesHandle,
+        atcoderHandle: userProfiles.atcoderHandle,
+        leetcodeHandle: userProfiles.leetcodeHandle,
+        codechefHandle: userProfiles.codechefHandle,
+        ratingGoal: userProfiles.ratingGoal,
+        updatedAt: userProfiles.updatedAt,
+        calendarToken: users.calendarToken,
+      })
+      .from(userProfiles)
+      .innerJoin(users, eq(userProfiles.userId, users.id))
+      .where(eq(userProfiles.userId, session.userId))
+      .limit(1);
+  }
 
   return NextResponse.json({
     profile: profile
@@ -43,14 +70,20 @@ export async function PUT(request: Request) {
   const db = getDb();
   if (!db) return NextResponse.json({ error: "Database unavailable" }, { status: 500 });
 
+  // Ensure row exists
+  await db.insert(userProfiles).values({ userId: session.userId }).onConflictDoNothing();
+
   await db
     .update(userProfiles)
     .set({
-      codeforcesHandle: body.codeforcesHandle?.trim() || null,
-      atcoderHandle: body.atcoderHandle?.trim() || null,
-      leetcodeHandle: body.leetcodeHandle?.trim() || null,
-      codechefHandle: body.codechefHandle?.trim() || null,
-      ratingGoal: body.ratingGoal?.trim() || null,
+      name: body.name !== undefined ? body.name?.trim() || null : undefined,
+      bio: body.bio !== undefined ? body.bio?.trim() || null : undefined,
+      avatarUrl: body.avatarUrl !== undefined ? body.avatarUrl?.trim() || null : undefined,
+      codeforcesHandle: body.codeforcesHandle !== undefined ? body.codeforcesHandle?.trim() || null : undefined,
+      atcoderHandle: body.atcoderHandle !== undefined ? body.atcoderHandle?.trim() || null : undefined,
+      leetcodeHandle: body.leetcodeHandle !== undefined ? body.leetcodeHandle?.trim() || null : undefined,
+      codechefHandle: body.codechefHandle !== undefined ? body.codechefHandle?.trim() || null : undefined,
+      ratingGoal: body.ratingGoal !== undefined ? body.ratingGoal?.trim() || null : undefined,
       updatedAt: new Date(),
     })
     .where(eq(userProfiles.userId, session.userId));

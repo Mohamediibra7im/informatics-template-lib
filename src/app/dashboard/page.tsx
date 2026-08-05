@@ -95,7 +95,10 @@ function DashboardContent() {
   const [stats, setStats] = useState<HandlesStats | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Settings form
+  // Profile Settings form
+  const [displayName, setDisplayName] = useState("");
+  const [bio, setBio] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
   const [cfHandle, setCfHandle] = useState("");
   const [acHandle, setAcHandle] = useState("");
   const [lcHandle, setLcHandle] = useState("");
@@ -171,6 +174,9 @@ function DashboardContent() {
           const d = await profRes.json();
           if (d.profile) {
             setProfile(d.profile);
+            setDisplayName(d.profile.name || "");
+            setBio(d.profile.bio || "");
+            setAvatarUrl(d.profile.avatarUrl || "");
             setCfHandle(d.profile.codeforcesHandle || "");
             setAcHandle(d.profile.atcoderHandle || "");
             setLcHandle(d.profile.leetcodeHandle || "");
@@ -214,6 +220,9 @@ function DashboardContent() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          name: displayName,
+          bio: bio,
+          avatarUrl: avatarUrl,
           codeforcesHandle: cfHandle,
           atcoderHandle: acHandle,
           leetcodeHandle: lcHandle,
@@ -229,9 +238,32 @@ function DashboardContent() {
         playBeep(220, 0.3);
       }
     } catch {
-      toast.error("Network error");
+      toast.error("Failed to update profile");
+      playBeep(220, 0.3);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const updateRatingGoal = async (newGoal: string | null) => {
+    const goalValue = newGoal?.trim() || null;
+    try {
+      const res = await fetch("/api/users/profiles", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ratingGoal: goalValue,
+        }),
+      });
+      if (res.ok) {
+        setProfile((prev) => (prev ? { ...prev, ratingGoal: goalValue } : prev));
+        toast.success(goalValue ? "Goal updated" : "Goal cleared");
+        playSuccess();
+      } else {
+        toast.error("Failed to update goal");
+      }
+    } catch {
+      toast.error("Failed to update goal");
     }
   };
 
@@ -469,10 +501,14 @@ function DashboardContent() {
       <div className="relative z-10 flex flex-col lg:flex-row gap-6">
         <DashboardSidebar
           username={user.username}
-          hasCalendarToken={!!profile?.calendarToken}
+          displayName={displayName}
+          avatarUrl={avatarUrl}
+          bio={bio}
+          ratingGoal={profile?.ratingGoal}
           activeTab={activeTab}
           tabs={tabs}
           onChangeTab={changeTab}
+          onUpdateRatingGoal={updateRatingGoal}
         />
 
         <main className="flex-1 min-w-0 space-y-6">
@@ -573,6 +609,9 @@ function DashboardContent() {
 
               {activeTab === "settings" && (
                 <SettingsTab
+                  displayName={displayName}
+                  bio={bio}
+                  avatarUrl={avatarUrl}
                   cfHandle={cfHandle}
                   acHandle={acHandle}
                   lcHandle={lcHandle}
@@ -586,6 +625,9 @@ function DashboardContent() {
                   onSaveProfile={saveProfile}
                   onCheckHandleVerification={checkHandleVerification}
                   onCopyCalendarLink={copyCalendarLink}
+                  setDisplayName={setDisplayName}
+                  setBio={setBio}
+                  setAvatarUrl={setAvatarUrl}
                   setCfHandle={setCfHandle}
                   setAcHandle={setAcHandle}
                   setLcHandle={setLcHandle}

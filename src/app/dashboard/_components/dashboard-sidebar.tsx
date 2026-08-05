@@ -1,36 +1,76 @@
 "use client";
 
-import { ReactNode } from "react";
-import { User, ShieldCheck, Zap, Cpu } from "lucide-react";
+import { useState, ReactNode } from "react";
+import { User, ShieldCheck, Cpu, Target, Check, X } from "lucide-react";
 import { Tab } from "./types";
 
 interface SidebarProps {
   username: string;
-  hasCalendarToken: boolean;
+  displayName?: string;
+  avatarUrl?: string;
+  bio?: string;
+  ratingGoal?: number | string | null;
   activeTab: Tab;
   tabs: { id: Tab; label: string; icon: ReactNode; count?: number }[];
   onChangeTab: (tabId: Tab) => void;
+  onUpdateRatingGoal?: (goal: string | null) => Promise<void>;
 }
 
 export function DashboardSidebar({
   username,
-  hasCalendarToken,
+  displayName,
+  avatarUrl,
+  bio,
+  ratingGoal,
   activeTab,
   tabs,
   onChangeTab,
+  onUpdateRatingGoal,
 }: SidebarProps) {
+  const [isEditingGoal, setIsEditingGoal] = useState(false);
+  const [goalVal, setGoalVal] = useState(ratingGoal ? String(ratingGoal) : "");
+  const [savingGoal, setSavingGoal] = useState(false);
+
+  const handleSaveGoal = async () => {
+    setSavingGoal(true);
+    try {
+      if (onUpdateRatingGoal) {
+        await onUpdateRatingGoal(goalVal.trim() || null);
+      }
+    } finally {
+      setSavingGoal(false);
+      setIsEditingGoal(false);
+    }
+  };
+
   return (
     <aside className="w-full lg:w-64 shrink-0 space-y-5 font-mono">
       {/* User console session overview widget */}
       <div className="border border-border bg-card/40 backdrop-blur-md p-4 shadow-2xl relative overflow-hidden group">
         <div className="absolute -top-10 -right-10 w-24 h-24 rounded-full bg-primary/10 blur-2xl pointer-events-none group-hover:bg-primary/20 transition-all duration-500" />
-        <div className="flex items-center gap-3 mb-3.5 border-b border-border/40 pb-3">
-          <div className="relative flex items-center justify-center h-10 w-10 border border-primary/40 bg-primary/10 text-primary shrink-0 shadow-[0_0_12px_rgba(var(--primary-rgb),0.15)]">
-            <User className="h-5 w-5" />
-            <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-success border-2 border-card" />
+        
+        {/* User Identity Header */}
+        <div className="flex items-center gap-3">
+          {/* Avatar with glowing green online dot indicator on the side */}
+          <div className="relative flex items-center justify-center h-11 w-11 border border-primary/40 bg-primary/10 text-primary shrink-0 shadow-[0_0_12px_rgba(var(--primary-rgb),0.15)]">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+            ) : (
+              <User className="h-5.5 w-5.5" />
+            )}
+            <span
+              className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-success border-2 border-card shadow-[0_0_8px_#22c55e]"
+              title="Status: Online"
+            />
           </div>
-          <div className="min-w-0">
-            <div className="text-xs font-extrabold text-foreground truncate tracking-wide">{username}</div>
+
+          <div className="min-w-0 flex-1">
+            <div className="text-xs font-extrabold text-foreground truncate tracking-wide">
+              {displayName || username}
+            </div>
+            <div className="text-[10px] text-muted-foreground/60 truncate font-mono">
+              @{username}
+            </div>
             <div className="text-[9px] text-muted-foreground/50 uppercase tracking-widest flex items-center gap-1 mt-0.5 font-bold">
               <ShieldCheck className="h-3 w-3 text-success" />
               <span>SESSION_ACTIVE</span>
@@ -38,29 +78,82 @@ export function DashboardSidebar({
           </div>
         </div>
 
-        <div className="space-y-2 text-[9.5px] text-muted-foreground/60 leading-relaxed font-mono">
-          <div className="flex justify-between items-center bg-background/30 px-2 py-1 border border-border/30">
-            <span className="text-muted-foreground/45">$ USER</span>
-            <span className="text-primary font-bold">{username}</span>
-          </div>
-          <div className="flex justify-between items-center bg-background/30 px-2 py-1 border border-border/30">
-            <span className="text-muted-foreground/45">$ STATUS</span>
-            <span className="text-success font-bold flex items-center gap-1">
-              <Zap className="h-2.5 w-2.5" /> 100% ONLINE
-            </span>
-          </div>
-          <div className="flex justify-between items-center bg-background/30 px-2 py-1 border border-border/30">
-            <span className="text-muted-foreground/45">$ CALENDAR</span>
-            <span className={hasCalendarToken ? "text-success font-bold" : "text-warning font-bold"}>
-              {hasCalendarToken ? "LINKED" : "UNLINKED"}
-            </span>
-          </div>
+        {/* Bio */}
+        {bio && (
+          <p className="text-[10px] text-muted-foreground/60 leading-relaxed font-mono mt-3 italic border-t border-border/30 pt-2 break-words break-all whitespace-pre-wrap">
+            &ldquo;{bio}&rdquo;
+          </p>
+        )}
+
+        {/* Optional Custom Goal Chip with Dotted Line & Checkmark button */}
+        <div className="mt-3 pt-2.5 border-t border-border/30">
+          {!isEditingGoal ? (
+            <div
+              onClick={() => {
+                setGoalVal(ratingGoal ? String(ratingGoal) : "");
+                setIsEditingGoal(true);
+              }}
+              className="flex items-start justify-between text-[10px] font-mono cursor-pointer group py-1.5 px-2 border-b border-dashed border-border/60 hover:border-warning/60 bg-background/20 hover:bg-warning/5 transition-all select-none gap-2 min-w-0"
+              title={ratingGoal ? `Goal: ${ratingGoal}` : "Click to set or edit optional custom goal"}
+            >
+              <span className="text-muted-foreground/60 flex items-center gap-1.5 group-hover:text-foreground shrink-0 select-none pt-0.5">
+                <Target className="h-3 w-3 text-warning group-hover:scale-110 transition-transform shrink-0" />
+                <span className="uppercase font-bold whitespace-nowrap">GOAL:</span>
+              </span>
+              <span
+                className={`font-mono text-right break-words break-all min-w-0 flex-1 ${
+                  ratingGoal ? "text-warning font-extrabold tracking-wide" : "text-muted-foreground/40 italic font-medium"
+                }`}
+              >
+                {ratingGoal ? ratingGoal : "+ Set Goal"}
+              </span>
+            </div>
+          ) : (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSaveGoal();
+              }}
+              className="flex items-center gap-1.5 py-1 px-1 border-b border-dashed border-warning bg-warning/5 font-mono select-none"
+            >
+              <Target className="h-3.5 w-3.5 text-warning shrink-0" />
+              <input
+                type="text"
+                value={goalVal}
+                maxLength={40}
+                onChange={(e) => setGoalVal(e.target.value)}
+                placeholder="Goal (e.g. Reach Master)..."
+                autoFocus
+                className="bg-transparent text-[10.5px] font-extrabold text-warning outline-none w-full min-w-0 p-0 placeholder:text-muted-foreground/30 font-mono tracking-wide"
+              />
+              <button
+                type="submit"
+                disabled={savingGoal}
+                className="h-6 w-6 flex items-center justify-center text-success hover:bg-success/20 border border-success/40 bg-success/10 transition-colors cursor-pointer shrink-0"
+                title="Save Goal"
+              >
+                {savingGoal ? (
+                  <span className="animate-spin text-[9px]">...</span>
+                ) : (
+                  <Check className="h-3.5 w-3.5" />
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsEditingGoal(false)}
+                className="h-6 w-6 flex items-center justify-center text-muted-foreground/60 hover:text-foreground hover:bg-card/60 border border-border/40 transition-colors cursor-pointer shrink-0"
+                title="Cancel"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </form>
+          )}
         </div>
       </div>
 
       {/* Desktop Sidebar Tab Selectors */}
       <nav className="hidden lg:flex flex-col gap-1.5 border border-border bg-card/40 backdrop-blur-md p-3 shadow-2xl">
-        <div className="text-[9px] text-muted-foreground/40 uppercase tracking-widest font-bold px-2.5 mb-1.5 flex items-center justify-between">
+        <div className="text-[9px] text-muted-foreground/40 uppercase tracking-widest font-bold px-2.5 mb-1.5 flex items-center justify-between select-none">
           <span>SYSTEM MENU</span>
           <Cpu className="h-3 w-3 text-primary/60" />
         </div>
