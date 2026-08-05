@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { createHighlighter, type Highlighter } from "shiki";
-import { Check, Clipboard } from "lucide-react";
+import { Check, Clipboard, Wand2 } from "lucide-react";
+import { formatCode } from "@/lib/format-code";
 
 const langMap: Record<string, string> = {
   cpp: "cpp",
@@ -26,15 +27,21 @@ function getHighlighter() {
 }
 
 export function CodeBlock({ code: originalCode, language, templateId }: { code: string; language: string; templateId?: number }) {
-  const code = useMemo(() => {
+  const trimmed = useMemo(() => {
     const lines = originalCode.trimEnd().split("\n");
     while (lines.length > 1 && lines[lines.length - 1].trim() === "") {
       lines.pop();
     }
     return lines.join("\n");
   }, [originalCode]);
+  // Ephemeral in-place formatting. The override auto-resets when the source
+  // changes (language switch / new template), since its src no longer matches.
+  const [override, setOverride] = useState<{ src: string; code: string } | null>(null);
+  const code = override && override.src === trimmed ? override.code : trimmed;
+
   const [html, setHtml] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [formatting, setFormatting] = useState(false);
 
   const lineCount = useMemo(() => code.split("\n").length, [code]);
 
@@ -49,6 +56,15 @@ export function CodeBlock({ code: originalCode, language, templateId }: { code: 
       setHtml(themed);
     });
   }, [code, language]);
+
+  const format = async () => {
+    setFormatting(true);
+    try {
+      setOverride({ src: trimmed, code: await formatCode(code, language) });
+    } finally {
+      setFormatting(false);
+    }
+  };
 
   const copy = async () => {
     await navigator.clipboard.writeText(code);
@@ -78,22 +94,32 @@ export function CodeBlock({ code: originalCode, language, templateId }: { code: 
             {language}
           </span>
         </div>
-        <button
-          onClick={copy}
-          className="flex items-center gap-1.5 text-[10px] text-muted-foreground/40 hover:text-primary transition-colors uppercase tracking-wider"
-        >
-          {copied ? (
-            <>
-              <Check className="h-3 w-3 text-success" />
-              <span className="text-success">copied</span>
-            </>
-          ) : (
-            <>
-              <Clipboard className="h-3 w-3" />
-              <span>copy</span>
-            </>
-          )}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={format}
+            disabled={formatting}
+            className="flex items-center gap-1.5 text-[10px] text-muted-foreground/40 hover:text-primary transition-colors uppercase tracking-wider disabled:opacity-40"
+          >
+            <Wand2 className={`h-3 w-3 ${formatting ? "animate-spin" : ""}`} />
+            <span>{formatting ? "formatting" : "format"}</span>
+          </button>
+          <button
+            onClick={copy}
+            className="flex items-center gap-1.5 text-[10px] text-muted-foreground/40 hover:text-primary transition-colors uppercase tracking-wider"
+          >
+            {copied ? (
+              <>
+                <Check className="h-3 w-3 text-success" />
+                <span className="text-success">copied</span>
+              </>
+            ) : (
+              <>
+                <Clipboard className="h-3 w-3" />
+                <span>copy</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Code area — line numbers ride shiki's own .line spans via CSS
