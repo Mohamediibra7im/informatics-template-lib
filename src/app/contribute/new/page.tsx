@@ -40,7 +40,7 @@ export default function ContributeNewPage() {
   const [codes, setCodes] = useState<CodeBlock[]>([{ language: "cpp", code: "" }]);
 
   useEffect(() => {
-    fetch("/api/admin/categories")
+    fetch("/api/categories")
       .then((r) => (r.ok ? r.json() : []))
       .then(setCategories)
       .catch(() => {});

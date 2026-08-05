@@ -23,6 +23,7 @@ interface TemplateOption {
   id: number;
   title: string;
   slug: string;
+  categoryId?: number | null;
   notes?: string | null;
   codes?: { language: string; code: string }[];
 }
@@ -31,6 +32,8 @@ export default function ContributeEditPage() {
   const { playClick, playBeep, playSuccess } = useTerminalTheme();
   const { user } = useAuth();
 
+  const [categories, setCategories] = useState<{ id: number; name: string; slug: string }[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | "">("");
   const [templates, setTemplates] = useState<TemplateOption[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateOption | null>(null);
@@ -46,19 +49,27 @@ export default function ContributeEditPage() {
   const [editCodes, setEditCodes] = useState<CodeBlock[]>([]);
 
   useEffect(() => {
-    fetch("/api/admin/templates?includeCodes=true")
-      .then((r) => (r.ok ? r.json() : []))
-      .then(setTemplates)
+    Promise.all([
+      fetch("/api/categories").then((r) => (r.ok ? r.json() : [])),
+      fetch("/api/templates?includeCodes=true").then((r) => (r.ok ? r.json() : [])),
+    ])
+      .then(([cats, tpls]) => {
+        setCategories(cats);
+        setTemplates(tpls);
+      })
       .catch(() => {});
   }, []);
 
-  const filteredTemplates = searchQuery.trim()
-    ? templates.filter(
-        (t) =>
-          t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          t.slug.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : templates;
+  const filteredTemplates = templates.filter((t) => {
+    if (selectedCategoryId !== "" && t.categoryId !== Number(selectedCategoryId)) {
+      return false;
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      return t.title.toLowerCase().includes(q) || t.slug.toLowerCase().includes(q);
+    }
+    return true;
+  });
 
   const selectTemplate = (t: TemplateOption) => {
     playClick();
@@ -155,53 +166,87 @@ export default function ContributeEditPage() {
       <form onSubmit={handleSubmit} className="space-y-6">
         <ContributorFields value={contributor} onChange={(patch) => { if (patch.cfHandle !== undefined) setCfHandle(patch.cfHandle); }} />
 
-        {/* Template Selection */}
-        <RetroFieldset legend="Select Template">
-          {selectedTemplate ? (
-            <div className="flex items-center justify-between border border-primary/30 bg-primary/5 p-3">
-              <div>
-                <div className="text-xs font-bold text-primary">{selectedTemplate.title}</div>
-                <div className="text-[10px] text-muted-foreground/50">{selectedTemplate.slug}</div>
-              </div>
-              <button
-                type="button"
-                onClick={() => { playClick(); setSelectedTemplate(null); setEditCodes([]); setEditNotes(""); }}
-                className="text-muted-foreground/40 hover:text-destructive transition-colors"
+        {/* Step 1: Select Category & Step 2: Select Template */}
+        <RetroFieldset legend="Select Target Template">
+          <div className="space-y-4">
+            {/* Step 1: Category Selector */}
+            <div className="space-y-1.5">
+              <label className={TERMINAL_LABEL_CLS}>1. Select Category *</label>
+              <select
+                value={selectedCategoryId}
+                onChange={(e) => {
+                  playClick();
+                  setSelectedCategoryId(e.target.value ? Number(e.target.value) : "");
+                  setSelectedTemplate(null);
+                }}
+                className={`${TERMINAL_INPUT_CLS} cursor-pointer`}
               >
-                <X className="h-3.5 w-3.5" />
-              </button>
+                <option value="">-- Select a Category --</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
             </div>
-          ) : (
-            <div className="space-y-2">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground/30" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search templates..."
-                  className={`${TERMINAL_INPUT_CLS} pl-8 pr-2.5`}
-                />
-              </div>
-              <div className="max-h-48 overflow-y-auto border border-border/50 bg-background/30 scrollbar-thin">
-                {filteredTemplates.length === 0 ? (
-                  <div className="p-3 text-[10px] text-muted-foreground/40 text-center">No templates found</div>
-                ) : (
-                  filteredTemplates.slice(0, 20).map((t) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() => selectTemplate(t)}
-                      className="w-full text-left px-3 py-2 text-xs hover:bg-primary/5 transition-colors border-b border-border/20 last:border-0 cursor-pointer"
-                    >
-                      <span className="font-bold text-foreground">{t.title}</span>
-                      <span className="text-muted-foreground/40 ml-2 text-[10px]">{t.slug}</span>
-                    </button>
-                  ))
-                )}
-              </div>
+
+            {/* Step 2: Template Selector */}
+            <div className="space-y-1.5 pt-2 border-t border-border/30">
+              <label className={TERMINAL_LABEL_CLS}>2. Select Template *</label>
+
+              {selectedTemplate ? (
+                <div className="flex items-center justify-between border border-primary/30 bg-primary/5 p-3">
+                  <div>
+                    <div className="text-xs font-bold text-primary">{selectedTemplate.title}</div>
+                    <div className="text-[10px] text-muted-foreground/50">{selectedTemplate.slug}</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { playClick(); setSelectedTemplate(null); setEditCodes([]); setEditNotes(""); }}
+                    className="text-muted-foreground/40 hover:text-destructive transition-colors cursor-pointer"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ) : selectedCategoryId === "" ? (
+                <div className="p-4 border border-dashed border-border/40 bg-background/20 text-[10.5px] text-muted-foreground/40 text-center italic select-none">
+                  Please select a category above to view its templates.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground/30" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search templates in this category..."
+                      className={`${TERMINAL_INPUT_CLS} pl-8 pr-2.5`}
+                    />
+                  </div>
+                  <div className="max-h-48 overflow-y-auto border border-border/50 bg-background/30 scrollbar-thin">
+                    {filteredTemplates.length === 0 ? (
+                      <div className="p-3 text-[10px] text-muted-foreground/40 text-center">
+                        No templates found in this category
+                      </div>
+                    ) : (
+                      filteredTemplates.map((t) => (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => selectTemplate(t)}
+                          className="w-full text-left px-3 py-2 text-xs hover:bg-primary/5 transition-colors border-b border-border/20 last:border-0 cursor-pointer"
+                        >
+                          <span className="font-bold text-foreground">{t.title}</span>
+                          <span className="text-muted-foreground/40 ml-2 text-[10px]">{t.slug}</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </RetroFieldset>
 
         {/* Edit Details */}

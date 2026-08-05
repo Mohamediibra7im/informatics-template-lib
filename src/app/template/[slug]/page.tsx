@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getDb } from "@/db";
-import { templates, categories, templateCodes, contributions, templateLikes } from "@/db/schema";
+import { templates, categories, templateCodes, contributions, templateLikes, users, userProfiles } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getSessionFromCookie } from "@/lib/auth";
 import { TemplateCodeSection } from "@/components/template-code-section";
@@ -123,13 +123,16 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
           cfHandle: contributions.contributorCfHandle,
           type: contributions.type,
           createdAt: contributions.createdAt,
+          avatarUrl: userProfiles.avatarUrl,
         })
         .from(contributions)
+        .leftJoin(users, eq(contributions.userId, users.id))
+        .leftJoin(userProfiles, eq(users.id, userProfiles.userId))
         .where(and(eq(contributions.templateId, template.id), eq(contributions.status, "approved")))
         .orderBy(contributions.createdAt);
 
       const seen = new Map<string, number>();
-      const collected: { name: string; cfHandle: string | null; role: "creator" | "editor" }[] = [];
+      const collected: { name: string; cfHandle: string | null; role: "creator" | "editor"; profileAvatarUrl: string | null }[] = [];
       const counts: number[] = [];
       for (const r of rows) {
         const key = `${r.name.toLowerCase()}::${(r.cfHandle || "").toLowerCase()}`;
@@ -144,15 +147,30 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
           name: r.name,
           cfHandle: r.cfHandle,
           role: r.type === "new" ? "creator" : "editor",
+          profileAvatarUrl: r.avatarUrl || null,
         });
       }
 
       // Fallback: legacy templates that only stored a single credit column
       if (collected.length === 0 && template.contributorName) {
+        let legacyAvatar: string | null = null;
+        try {
+          const [u] = await db
+            .select({ avatarUrl: userProfiles.avatarUrl })
+            .from(users)
+            .leftJoin(userProfiles, eq(users.id, userProfiles.userId))
+            .where(eq(users.username, template.contributorName))
+            .limit(1);
+          if (u?.avatarUrl) legacyAvatar = u.avatarUrl;
+        } catch {
+          // Ignore
+        }
+
         collected.push({
           name: template.contributorName,
           cfHandle: template.contributorCfHandle,
           role: "creator",
+          profileAvatarUrl: legacyAvatar,
         });
         counts.push(1);
       }
@@ -190,6 +208,7 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
       contributors = collected.map((c, i) => {
         const cf = c.cfHandle ? cfInfo.get(c.cfHandle.toLowerCase()) : undefined;
         const avatar =
+          c.profileAvatarUrl ||
           cf?.avatar ||
           `https://api.dicebear.com/9.x/identicon/svg?seed=${encodeURIComponent(
             c.cfHandle || c.name

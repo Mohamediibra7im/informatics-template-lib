@@ -1,7 +1,11 @@
 "use client";
 
-import { Plus, X } from "lucide-react";
+import { useState } from "react";
+import { Plus, X, Sparkles } from "lucide-react";
 import { TrafficLights } from "@/components/terminal";
+import { CodeEditor } from "./code-editor";
+import { formatCode } from "@/lib/format-code";
+import { toast } from "sonner";
 
 export interface CodeBlock {
   language: string;
@@ -12,6 +16,7 @@ export const CONTRIBUTE_LANGUAGES = ["cpp", "python", "java", "rust", "go", "jav
 
 /**
  * Multi-language code editor used by both contribute forms.
+ * - Includes a "Format Code" button for automatic formatting.
  * - Pass `onLanguageChange` to render a language <select> (new-template form).
  *   Omit it to show the language as a static label (edit-request form).
  * - Pass `onAdd` to render the "add language" button.
@@ -34,6 +39,22 @@ export function CodeBlocksEditor({
   languages?: string[];
   onInteract?: () => void;
 }) {
+  const [formattingIndex, setFormattingIndex] = useState<number | null>(null);
+
+  const handleFormat = async (index: number, code: string, lang: string) => {
+    if (!code.trim()) return;
+    setFormattingIndex(index);
+    try {
+      const formatted = await formatCode(code, lang);
+      onCodeChange(index, formatted);
+      toast.success("Code formatted");
+    } catch {
+      toast.error("Failed to format code");
+    } finally {
+      setFormattingIndex(null);
+    }
+  };
+
   return (
     <>
       {blocks.map((block, index) => (
@@ -44,35 +65,61 @@ export function CodeBlocksEditor({
               {onLanguageChange ? (
                 <select
                   value={block.language}
-                  onChange={(e) => { onInteract?.(); onLanguageChange(index, e.target.value); }}
+                  onChange={(e) => {
+                    onInteract?.();
+                    onLanguageChange(index, e.target.value);
+                  }}
                   className="bg-background/40 border border-border text-xs font-mono h-7 px-2 outline-none cursor-pointer appearance-none"
                 >
                   {languages.map((l) => (
-                    <option key={l} value={l}>{l}</option>
+                    <option key={l} value={l}>
+                      {l}
+                    </option>
                   ))}
                 </select>
               ) : (
-                <span className="text-[10px] text-muted-foreground/40">{block.language}</span>
+                <span className="text-[10px] text-muted-foreground/40 font-mono font-bold uppercase">
+                  {block.language}
+                </span>
               )}
             </div>
-            {onRemove && blocks.length > 1 && (
+
+            <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => onRemove(index)}
-                className="text-muted-foreground/40 hover:text-destructive transition-colors"
+                onClick={() => handleFormat(index, block.code, block.language)}
+                disabled={formattingIndex === index || !block.code.trim()}
+                className="flex items-center gap-1.5 text-[10px] uppercase font-mono font-bold px-2 py-1 border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed select-none"
+                title="Format code automatically"
               >
-                <X className="h-3.5 w-3.5" />
+                <Sparkles className={`h-3 w-3 ${formattingIndex === index ? "animate-spin" : ""}`} />
+                <span>{formattingIndex === index ? "Formatting..." : "Format"}</span>
               </button>
-            )}
+
+              {onRemove && blocks.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => onRemove(index)}
+                  className="text-muted-foreground/40 hover:text-destructive transition-colors p-1 cursor-pointer"
+                  title="Remove code block"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
           </div>
-          <textarea
-            value={block.code}
-            onChange={(e) => onCodeChange(index, e.target.value)}
-            placeholder="Paste your code here..."
-            rows={12}
-            className="w-full bg-foreground/5 dark:bg-black/30 border border-border/40 text-xs font-mono px-3 py-2.5 outline-none transition-colors resize-y text-foreground/90 leading-relaxed"
-            spellCheck={false}
-          />
+
+          <div className="border border-border/40 overflow-hidden bg-black/40">
+            <CodeEditor
+              value={block.code}
+              language={block.language}
+              onChange={(val) => {
+                onInteract?.();
+                onCodeChange(index, val);
+              }}
+              height={320}
+            />
+          </div>
         </div>
       ))}
 

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
 type Tone = "destructive" | "warning" | "primary";
@@ -58,6 +59,11 @@ export function RetroModal({
   selectNone?: boolean;
 }) {
   const t = toneMap[tone];
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Close on Escape when the caller opted in with onClose.
   useEffect(() => {
@@ -69,36 +75,47 @@ export function RetroModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  return (
+  if (!mounted) return null;
+
+  const content = (
     <div
       onClick={onClose ? () => onClose() : undefined}
       className={cn(
-        "fixed inset-0 z-50 bg-background/85 backdrop-blur-xs flex items-center justify-center p-4",
+        "fixed inset-0 z-[9999] bg-background/85 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-y-auto",
         selectNone && "select-none"
       )}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className={cn("w-full max-w-md border bg-card/95 overflow-hidden font-mono", t.border, t.shadow, className)}
+        className={cn(
+          "w-full max-w-lg border bg-card/95 overflow-hidden font-mono max-h-[90vh] flex flex-col shadow-2xl my-auto",
+          t.border,
+          t.shadow,
+          className
+        )}
       >
         <div
           className={cn(
-            "flex items-center justify-between px-3 py-2 border-b text-[10px] font-bold uppercase tracking-wider",
+            "flex items-center justify-between px-3 py-2 border-b text-[10px] font-bold uppercase tracking-wider shrink-0",
             t.headBorder,
             t.headBg,
             t.text
           )}
         >
-          <div className="flex items-center gap-2">
-            <span className={cn("h-2 w-2 rounded-full animate-ping", tone === "destructive" ? "bg-destructive" : tone === "warning" ? "bg-warning" : "bg-primary")} />
-            <span>{title}</span>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className={cn("h-2 w-2 rounded-full animate-ping shrink-0", tone === "destructive" ? "bg-destructive" : tone === "warning" ? "bg-warning" : "bg-primary")} />
+            <span className="truncate">{title}</span>
           </div>
-          {tag && <span>{tag}</span>}
+          {tag && <span className="shrink-0">{tag}</span>}
         </div>
-        {children}
+        <div className="overflow-y-auto flex-1 scrollbar-thin">
+          {children}
+        </div>
       </div>
     </div>
   );
+
+  return createPortal(content, document.body);
 }
 
 /**
