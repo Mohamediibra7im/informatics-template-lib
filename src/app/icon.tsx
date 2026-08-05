@@ -11,14 +11,14 @@ export default function Icon() {
     (
       <div
         style={{
-          background: "#080808",
+          background: "#06141B",
           width: "100%",
           height: "100%",
           display: "flex",
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "center",
-          border: "2px solid #22c55e",
+          border: "2px solid #9BA8AB",
           borderRadius: "6px",
           position: "relative",
           overflow: "hidden",
@@ -32,7 +32,7 @@ export default function Icon() {
             left: 0,
             right: 0,
             bottom: 0,
-            background: "radial-gradient(circle at center, rgba(34, 197, 94, 0.25) 0%, rgba(0, 0, 0, 0) 80%)",
+            background: "radial-gradient(circle at center, rgba(155, 168, 171, 0.25) 0%, rgba(0, 0, 0, 0) 80%)",
             display: "flex",
           }}
         />
@@ -41,16 +41,16 @@ export default function Icon() {
           style={{
             display: "flex",
             flexDirection: "row",
-            color: "#ffffff",
+            color: "#CCD0CF",
             fontFamily: "monospace",
             fontSize: "12px",
             fontWeight: "bold",
             position: "relative",
           }}
         >
-          <span style={{ color: "#22c55e" }}>[</span>
-          <span style={{ color: "#ffffff", marginLeft: "1px", marginRight: "1px" }}>CP</span>
-          <span style={{ color: "#22c55e" }}>]</span>
+          <span style={{ color: "#9BA8AB" }}>[</span>
+          <span style={{ color: "#CCD0CF", marginLeft: "1px", marginRight: "1px" }}>CP</span>
+          <span style={{ color: "#9BA8AB" }}>]</span>
         </div>
       </div>
     ),

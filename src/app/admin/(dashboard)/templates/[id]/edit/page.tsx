@@ -119,12 +119,22 @@ export default function EditTemplate({ params }: { params: Promise<{ id: string 
       const { id } = await params;
       if (cancelled) return;
       setTemplateId(Number(id));
+      const fetchJson = async (url: string) => {
+        try {
+          const r = await fetch(url);
+          if (!r.ok) return null;
+          const text = await r.text();
+          return text ? JSON.parse(text) : null;
+        } catch {
+          return null;
+        }
+      };
       const [cats, template] = await Promise.all([
-        fetch("/api/admin/categories").then((r) => r.json()),
-        fetch(`/api/admin/templates?id=${id}`).then((r) => r.json()),
+        fetchJson("/api/admin/categories"),
+        fetchJson(`/api/admin/templates?id=${id}`),
       ]);
       if (cancelled) return;
-      setCategories(cats);
+      setCategories(Array.isArray(cats) ? cats : []);
       if (template && !template.error) {
         // Load notes from .md file if exists, fallback to database
         let notesContent = template.notes || "";
@@ -496,7 +506,7 @@ export default function EditTemplate({ params }: { params: Promise<{ id: string 
                       <span>Category Folder</span>
                     </Label>
                     <div className="flex flex-col md:max-w-md w-full gap-2">
-                      <Select value={form.categoryId} onValueChange={(v) => { playClick(); v && setForm((f) => ({ ...f, categoryId: v })); }}>
+                      <Select value={form.categoryId} onValueChange={(v) => { playClick(); if (v) setForm((f) => ({ ...f, categoryId: v })); }}>
                         <SelectTrigger className="bg-background/40 border-border focus:border-primary/50 text-xs font-mono h-8 rounded-none">
                           <SelectValue placeholder="Select Category..." />
                         </SelectTrigger>

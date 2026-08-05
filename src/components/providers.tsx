@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { ThemeProvider, useTerminalTheme } from "./theme-provider";
 import { AuthProvider } from "./auth-provider";
 import { Toaster } from "@/components/ui/sonner";
-import { MatrixRain } from "./matrix-rain";
+import { CyberDotGrid } from "./cyber-dot-grid";
 import { RetroSettings } from "./retro-settings";
 import { CliConsole } from "./cli-console";
 
@@ -50,7 +50,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <MatrixRain />
+      <CyberDotGrid />
       {children}
       <RetroSettings />
       <CliConsole />

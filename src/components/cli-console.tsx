@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useTerminalTheme, type TerminalThemeType } from "./theme-provider";
+import { useTerminalTheme } from "./theme-provider";
 import { Terminal as TerminalIcon, ChevronRight, X, Minimize2, Maximize2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -14,19 +14,16 @@ interface CommandLog {
 export function CliConsole() {
   const router = useRouter();
   const {
-    theme,
-    setTheme,
-    scanlines,
-    setScanlines,
-    flicker,
-    setFlicker,
     sound,
     setSound,
-    matrix,
-    setMatrix,
+    reduceMotion,
+    setReduceMotion,
+    compact,
+    setCompact,
+    lineNumbers,
+    setLineNumbers,
     playClick,
     playBeep,
-    playSuccess
   } = useTerminalTheme();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -112,11 +109,10 @@ export function CliConsole() {
         addLog("  cd <category-slug>           Navigate to a category page", "output");
         addLog("  cd ..                        Go back to home page", "output");
         addLog("  cat <template-slug>          View a specific template", "output");
-        addLog("  theme <color>                Set terminal theme color (green|amber|cyan|red|purple)", "output");
-        addLog("  scanlines                    Toggle CRT Scanline overlay effect", "output");
-        addLog("  flicker                      Toggle CRT Screen Flicker effect", "output");
+        addLog("  reducemotion                 Toggle animations & glow effects", "output");
+        addLog("  compact                      Toggle compact display density", "output");
+        addLog("  linenumbers                  Toggle code line numbers", "output");
         addLog("  sound                        Toggle Retro Audio synthesizer", "output");
-        addLog("  matrix                       Toggle Canvas Matrix falling code background", "output");
         addLog("  clear                        Clear terminal output buffer", "output");
         addLog("  about                        Print system information", "output");
         addLog("  sudo rm -rf /                [!] CRITICAL SYSTEM DELETE", "output");
@@ -162,34 +158,24 @@ export function CliConsole() {
         }
         break;
 
-      case "theme":
-        const t = subArg.toLowerCase();
-        if (["green", "amber", "cyan", "red", "purple"].includes(t)) {
-          setTheme(t as TerminalThemeType);
-          addLog(`Terminal theme color changed to ${t.toUpperCase()}.`, "success");
-        } else {
-          addLog("Invalid theme. Select: green, amber, cyan, red, or purple", "error");
-        }
+      case "reducemotion":
+        setReduceMotion(!reduceMotion);
+        addLog(`Reduce Motion set to: ${!reduceMotion ? "ON" : "OFF"}.`, "system");
         break;
 
-      case "scanlines":
-        setScanlines(!scanlines);
-        addLog(`CRT Scanline filter set to: ${!scanlines ? "ON" : "OFF"}.`, "system");
+      case "compact":
+        setCompact(!compact);
+        addLog(`Compact Density set to: ${!compact ? "ON" : "OFF"}.`, "system");
         break;
 
-      case "flicker":
-        setFlicker(!flicker);
-        addLog(`Monitor Flicker set to: ${!flicker ? "ON" : "OFF"}.`, "system");
+      case "linenumbers":
+        setLineNumbers(!lineNumbers);
+        addLog(`Code Line Numbers set to: ${!lineNumbers ? "ON" : "OFF"}.`, "system");
         break;
 
       case "sound":
         setSound(!sound);
         addLog(`Sound effects set to: ${!sound ? "ON" : "OFF"}.`, "system");
-        break;
-
-      case "matrix":
-        setMatrix(!matrix);
-        addLog(`Matrix falling code background set to: ${!matrix ? "ON" : "OFF"}.`, "system");
         break;
 
       case "clear":

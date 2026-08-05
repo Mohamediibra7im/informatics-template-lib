@@ -27,7 +27,8 @@ export async function GET() {
 
     return NextResponse.json(list);
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error(err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -37,12 +38,15 @@ export async function DELETE(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
-  if (!id) return NextResponse.json({ error: "Missing user id" }, { status: 400 });
+  if (!id || !Number.isFinite(Number(id))) {
+    return NextResponse.json({ error: "Valid user id is required" }, { status: 400 });
+  }
 
   try {
     await db.delete(users).where(eq(users.id, Number(id)));
     return NextResponse.json({ success: true });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error(err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

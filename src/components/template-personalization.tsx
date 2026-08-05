@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CodeEditor } from "./forms/code-editor";
+import { formatCode } from "@/lib/format-code";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -58,6 +60,7 @@ export function TemplatePersonalization({
   const [editorValue, setEditorValue] = useState("");
   const [isCustomActive, setIsCustomActive] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [formatting, setFormatting] = useState(false);
 
   const [newCollectionName, setNewCollectionName] = useState("");
   const [showNewCollection, setShowNewCollection] = useState(false);
@@ -215,6 +218,16 @@ export function TemplatePersonalization({
       toast.error("Failed to save custom template");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFormat = async () => {
+    playClick();
+    setFormatting(true);
+    try {
+      setEditorValue(await formatCode(editorValue, language));
+    } finally {
+      setFormatting(false);
     }
   };
 
@@ -404,6 +417,13 @@ export function TemplatePersonalization({
           <div className="flex items-center justify-between px-3 py-1.5 border-b border-primary/10 bg-primary/5 text-[9px] text-muted-foreground/40 font-bold uppercase select-none">
             <span>Editor: customize_{templateSlug}.cpp</span>
             <div className="flex gap-2">
+              <button
+                onClick={handleFormat}
+                disabled={formatting}
+                className="text-primary hover:underline disabled:opacity-40"
+              >
+                {formatting ? "[FORMATTING…]" : "[FORMAT]"}
+              </button>
               <button onClick={handleSaveCustomCode} className="text-success hover:underline">
                 [SAVE]
               </button>
@@ -418,11 +438,11 @@ export function TemplatePersonalization({
               </button>
             </div>
           </div>
-          <textarea
+          <CodeEditor
             value={editorValue}
-            onChange={(e) => setEditorValue(e.target.value)}
-            className="w-full min-h-[300px] p-4 bg-background/20 font-mono text-[11px] leading-relaxed text-foreground border-0 focus:ring-0 focus:outline-none resize-y"
-            placeholder="Paste or write your custom code snippet here..."
+            language={language}
+            onChange={setEditorValue}
+            height={420}
           />
         </div>
       )}

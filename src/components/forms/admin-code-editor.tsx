@@ -1,10 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Trash2, Wand2 } from "lucide-react";
+import { CodeEditor } from "./code-editor";
 
 export interface CodeEntry {
   language: string;
@@ -71,7 +71,7 @@ export function AdminCodeEditor({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] text-muted-foreground/50 select-none">FILE_{i + 1}:</span>
-                <Select value={entry.language} onValueChange={(v) => { onSound(); v && onUpdateCode(i, "language", v); }}>
+                <Select value={entry.language} onValueChange={(v) => { onSound(); if (v) onUpdateCode(i, "language", v); }}>
                   <SelectTrigger className="w-32 bg-background/50 border-border text-xs font-mono h-7 rounded-none">
                     <SelectValue />
                   </SelectTrigger>
@@ -101,13 +101,15 @@ export function AdminCodeEditor({
                 )}
               </div>
             </div>
-            <Textarea
-              value={entry.code}
-              onChange={(e) => onUpdateCode(i, "code", e.target.value)}
-              placeholder={`// Paste your ${languages.find((l) => l.value === entry.language)?.label || entry.language} code here...`}
-              className="font-mono text-xs bg-background/30 border-border focus:border-primary/50 min-h-[150px] rounded-none resize-y"
-              onFocus={onFocusCode}
-            />
+            <div className="border border-border overflow-hidden">
+              <CodeEditor
+                value={entry.code}
+                language={entry.language}
+                onChange={(v) => onUpdateCode(i, "code", v)}
+                onFocus={onFocusCode}
+                height={280}
+              />
+            </div>
           </div>
         ))}
       </div>

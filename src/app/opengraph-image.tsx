@@ -59,10 +59,10 @@ export default async function OpengraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          backgroundColor: "#030a05",
+          backgroundColor: "#06141B",
           fontFamily: "JetBrains Mono, monospace",
           padding: "50px",
-          color: "#22c55e",
+          color: "#9BA8AB",
           position: "relative",
           overflow: "hidden",
         }}
@@ -77,7 +77,7 @@ export default async function OpengraphImage() {
             height: "600px",
             borderRadius: "50%",
             background:
-              "radial-gradient(circle, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0) 70%)",
+              "radial-gradient(circle, rgba(155, 168, 171, 0.15) 0%, rgba(155, 168, 171, 0) 70%)",
             display: "flex",
           }}
         />
@@ -91,7 +91,7 @@ export default async function OpengraphImage() {
             height: "500px",
             borderRadius: "50%",
             background:
-              "radial-gradient(circle, rgba(6, 182, 212, 0.08) 0%, rgba(6, 182, 212, 0) 70%)",
+              "radial-gradient(circle, rgba(74, 92, 106, 0.08) 0%, rgba(74, 92, 106, 0) 70%)",
             display: "flex",
           }}
         />
@@ -118,7 +118,7 @@ export default async function OpengraphImage() {
               top: 0,
               bottom: 0,
               width: "1px",
-              backgroundColor: "#22c55e",
+              backgroundColor: "#9BA8AB",
               display: "flex",
             }}
           />
@@ -129,7 +129,7 @@ export default async function OpengraphImage() {
               top: 0,
               bottom: 0,
               width: "1px",
-              backgroundColor: "#22c55e",
+              backgroundColor: "#9BA8AB",
               display: "flex",
             }}
           />
@@ -140,7 +140,7 @@ export default async function OpengraphImage() {
               top: 0,
               bottom: 0,
               width: "1px",
-              backgroundColor: "#22c55e",
+              backgroundColor: "#9BA8AB",
               display: "flex",
             }}
           />
@@ -151,7 +151,7 @@ export default async function OpengraphImage() {
               top: 0,
               bottom: 0,
               width: "1px",
-              backgroundColor: "#22c55e",
+              backgroundColor: "#9BA8AB",
               display: "flex",
             }}
           />
@@ -162,7 +162,7 @@ export default async function OpengraphImage() {
               top: 0,
               bottom: 0,
               width: "1px",
-              backgroundColor: "#22c55e",
+              backgroundColor: "#9BA8AB",
               display: "flex",
             }}
           />
@@ -173,7 +173,7 @@ export default async function OpengraphImage() {
               top: 0,
               bottom: 0,
               width: "1px",
-              backgroundColor: "#22c55e",
+              backgroundColor: "#9BA8AB",
               display: "flex",
             }}
           />
@@ -184,7 +184,7 @@ export default async function OpengraphImage() {
               top: 0,
               bottom: 0,
               width: "1px",
-              backgroundColor: "#22c55e",
+              backgroundColor: "#9BA8AB",
               display: "flex",
             }}
           />
@@ -195,7 +195,7 @@ export default async function OpengraphImage() {
               top: 0,
               bottom: 0,
               width: "1px",
-              backgroundColor: "#22c55e",
+              backgroundColor: "#9BA8AB",
               display: "flex",
             }}
           />
@@ -206,7 +206,7 @@ export default async function OpengraphImage() {
               top: 0,
               bottom: 0,
               width: "1px",
-              backgroundColor: "#22c55e",
+              backgroundColor: "#9BA8AB",
               display: "flex",
             }}
           />
@@ -218,7 +218,7 @@ export default async function OpengraphImage() {
               left: 0,
               right: 0,
               height: "1px",
-              backgroundColor: "#22c55e",
+              backgroundColor: "#9BA8AB",
               display: "flex",
             }}
           />
@@ -229,7 +229,7 @@ export default async function OpengraphImage() {
               left: 0,
               right: 0,
               height: "1px",
-              backgroundColor: "#22c55e",
+              backgroundColor: "#9BA8AB",
               display: "flex",
             }}
           />
@@ -240,7 +240,7 @@ export default async function OpengraphImage() {
               left: 0,
               right: 0,
               height: "1px",
-              backgroundColor: "#22c55e",
+              backgroundColor: "#9BA8AB",
               display: "flex",
             }}
           />
@@ -251,7 +251,7 @@ export default async function OpengraphImage() {
               left: 0,
               right: 0,
               height: "1px",
-              backgroundColor: "#22c55e",
+              backgroundColor: "#9BA8AB",
               display: "flex",
             }}
           />
@@ -262,7 +262,7 @@ export default async function OpengraphImage() {
               left: 0,
               right: 0,
               height: "1px",
-              backgroundColor: "#22c55e",
+              backgroundColor: "#9BA8AB",
               display: "flex",
             }}
           />
@@ -273,7 +273,7 @@ export default async function OpengraphImage() {
               left: 0,
               right: 0,
               height: "1px",
-              backgroundColor: "#22c55e",
+              backgroundColor: "#9BA8AB",
               display: "flex",
             }}
           />
@@ -285,7 +285,7 @@ export default async function OpengraphImage() {
             position: "absolute",
             top: "20px",
             left: "20px",
-            color: "rgba(34, 197, 94, 0.4)",
+            color: "rgba(155, 168, 171, 0.4)",
             fontSize: "11px",
             display: "flex",
           }}
@@ -297,7 +297,7 @@ export default async function OpengraphImage() {
             position: "absolute",
             top: "20px",
             right: "20px",
-            color: "rgba(34, 197, 94, 0.4)",
+            color: "rgba(155, 168, 171, 0.4)",
             fontSize: "11px",
             display: "flex",
           }}
@@ -309,7 +309,7 @@ export default async function OpengraphImage() {
             position: "absolute",
             bottom: "20px",
             left: "20px",
-            color: "rgba(34, 197, 94, 0.4)",
+            color: "rgba(155, 168, 171, 0.4)",
             fontSize: "11px",
             display: "flex",
           }}
@@ -321,7 +321,7 @@ export default async function OpengraphImage() {
             position: "absolute",
             bottom: "20px",
             right: "20px",
-            color: "rgba(34, 197, 94, 0.4)",
+            color: "rgba(155, 168, 171, 0.4)",
             fontSize: "11px",
             display: "flex",
           }}
@@ -337,7 +337,7 @@ export default async function OpengraphImage() {
             left: "16px",
             right: "16px",
             bottom: "16px",
-            border: "1px solid rgba(34, 197, 94, 0.15)",
+            border: "1px solid rgba(155, 168, 171, 0.15)",
             pointerEvents: "none",
             display: "flex",
           }}
@@ -349,7 +349,7 @@ export default async function OpengraphImage() {
             left: "12px",
             right: "12px",
             bottom: "12px",
-            border: "1px solid rgba(34, 197, 94, 0.05)",
+            border: "1px solid rgba(155, 168, 171, 0.05)",
             pointerEvents: "none",
             display: "flex",
           }}
@@ -362,22 +362,22 @@ export default async function OpengraphImage() {
             justifyContent: "space-between",
             alignItems: "center",
             width: "100%",
-            borderBottom: "1px solid rgba(34, 197, 94, 0.2)",
+            borderBottom: "1px solid rgba(155, 168, 171, 0.2)",
             paddingBottom: "15px",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <div
               style={{
-                backgroundColor: "#22c55e",
-                color: "#030a05",
+                backgroundColor: "#9BA8AB",
+                color: "#06141B",
                 padding: "3px 10px",
                 fontSize: "15px",
                 fontWeight: "bold",
                 borderRadius: "0px",
                 display: "flex",
                 alignItems: "center",
-                boxShadow: "0 0 10px rgba(34, 197, 94, 0.5)",
+                boxShadow: "0 0 10px rgba(155, 168, 171, 0.5)",
               }}
             >
               CP
@@ -386,7 +386,7 @@ export default async function OpengraphImage() {
               style={{
                 fontSize: "20px",
                 fontWeight: "bold",
-                color: "#ffffff",
+                color: "#CCD0CF",
                 letterSpacing: "4px",
                 display: "flex",
                 textShadow: "0 0 8px rgba(255,255,255,0.3)",
@@ -402,8 +402,8 @@ export default async function OpengraphImage() {
                 display: "flex",
                 alignItems: "center",
                 gap: "8px",
-                border: "1px solid rgba(34, 197, 94, 0.3)",
-                backgroundColor: "rgba(34, 197, 94, 0.04)",
+                border: "1px solid rgba(155, 168, 171, 0.3)",
+                backgroundColor: "rgba(155, 168, 171, 0.04)",
                 padding: "2px 10px",
               }}
             >
@@ -412,15 +412,15 @@ export default async function OpengraphImage() {
                   width: "7px",
                   height: "7px",
                   borderRadius: "50%",
-                  backgroundColor: "#22c55e",
-                  boxShadow: "0 0 6px rgba(34, 197, 94, 0.9)",
+                  backgroundColor: "#9BA8AB",
+                  boxShadow: "0 0 6px rgba(155, 168, 171, 0.9)",
                   display: "flex",
                 }}
               />
               <span
                 style={{
                   fontSize: "10px",
-                  color: "#22c55e",
+                  color: "#9BA8AB",
                   letterSpacing: "1px",
                   fontWeight: "bold",
                 }}
@@ -431,7 +431,7 @@ export default async function OpengraphImage() {
             <div
               style={{
                 fontSize: "11px",
-                color: "rgba(34, 197, 94, 0.4)",
+                color: "rgba(155, 168, 171, 0.4)",
                 display: "flex",
               }}
             >
@@ -463,11 +463,11 @@ export default async function OpengraphImage() {
               <div
                 style={{
                   fontSize: "11px",
-                  color: "#06b6d4",
+                  color: "#4A5C6A",
                   fontWeight: "bold",
                   letterSpacing: "4px",
                   display: "flex",
-                  textShadow: "0 0 6px rgba(6, 182, 212, 0.2)",
+                  textShadow: "0 0 6px rgba(74, 92, 106, 0.2)",
                 }}
               >
                 {"// TEMPLATE LIBRARY & CONTEST SYNC"}
@@ -476,7 +476,7 @@ export default async function OpengraphImage() {
                 style={{
                   fontSize: "44px",
                   fontWeight: "bold",
-                  color: "#ffffff",
+                  color: "#CCD0CF",
                   lineHeight: "1.15",
                   letterSpacing: "-0.5px",
                   display: "flex",
@@ -491,8 +491,8 @@ export default async function OpengraphImage() {
               style={{
                 display: "flex",
                 flexDirection: "column",
-                border: "1px solid rgba(34, 197, 94, 0.15)",
-                backgroundColor: "rgba(5, 20, 8, 0.4)",
+                border: "1px solid rgba(155, 168, 171, 0.15)",
+                backgroundColor: "rgba(6, 20, 27, 0.4)",
                 padding: "16px",
                 gap: "8px",
               }}
@@ -500,12 +500,12 @@ export default async function OpengraphImage() {
               <div
                 style={{
                   display: "flex",
-                  borderBottom: "1px solid rgba(34, 197, 94, 0.15)",
+                  borderBottom: "1px solid rgba(155, 168, 171, 0.15)",
                   paddingBottom: "6px",
                   marginBottom: "4px",
                   fontSize: "9px",
                   fontWeight: "bold",
-                  color: "rgba(34, 197, 94, 0.4)",
+                  color: "rgba(155, 168, 171, 0.4)",
                   letterSpacing: "1px",
                 }}
               >
@@ -518,8 +518,8 @@ export default async function OpengraphImage() {
                   fontSize: "12px",
                 }}
               >
-                <span style={{ color: "rgba(34, 197, 94, 0.5)" }}>OS_KERNEL</span>
-                <span style={{ color: "#ffffff", fontWeight: "bold" }}>
+                <span style={{ color: "rgba(155, 168, 171, 0.5)" }}>OS_KERNEL</span>
+                <span style={{ color: "#CCD0CF", fontWeight: "bold" }}>
                   cp-base-v2.0.sh
                 </span>
               </div>
@@ -530,8 +530,8 @@ export default async function OpengraphImage() {
                   fontSize: "12px",
                 }}
               >
-                <span style={{ color: "rgba(34, 197, 94, 0.5)" }}>ALGORITHMS</span>
-                <span style={{ color: "#ffffff" }}>SegmentTree, DSU, Dijkstra</span>
+                <span style={{ color: "rgba(155, 168, 171, 0.5)" }}>ALGORITHMS</span>
+                <span style={{ color: "#CCD0CF" }}>SegmentTree, DSU, Dijkstra</span>
               </div>
               <div
                 style={{
@@ -540,8 +540,8 @@ export default async function OpengraphImage() {
                   fontSize: "12px",
                 }}
               >
-                <span style={{ color: "rgba(34, 197, 94, 0.5)" }}>OPTIMIZATION</span>
-                <span style={{ color: "#06b6d4", fontWeight: "bold" }}>
+                <span style={{ color: "rgba(155, 168, 171, 0.5)" }}>OPTIMIZATION</span>
+                <span style={{ color: "#4A5C6A", fontWeight: "bold" }}>
                   O(1) / O(log N)
                 </span>
               </div>
@@ -555,9 +555,9 @@ export default async function OpengraphImage() {
                   style={{
                     fontSize: "11px",
                     fontWeight: "bold",
-                    color: "#22c55e",
-                    backgroundColor: "rgba(34, 197, 94, 0.05)",
-                    border: "1px solid rgba(34, 197, 94, 0.2)",
+                    color: "#9BA8AB",
+                    backgroundColor: "rgba(155, 168, 171, 0.05)",
+                    border: "1px solid rgba(155, 168, 171, 0.2)",
                     padding: "3px 12px",
                     borderRadius: "0px",
                     display: "flex",
@@ -575,11 +575,11 @@ export default async function OpengraphImage() {
               display: "flex",
               flexDirection: "column",
               width: "48%",
-              backgroundColor: "#050f06",
-              border: "1px solid rgba(34, 197, 94, 0.25)",
+              backgroundColor: "#11212D",
+              border: "1px solid rgba(155, 168, 171, 0.25)",
               borderRadius: "0px",
               boxShadow:
-                "0 25px 50px rgba(0,0,0,0.8), 0 0 20px rgba(34, 197, 94, 0.05)",
+                "0 25px 50px rgba(0,0,0,0.8), 0 0 20px rgba(155, 168, 171, 0.05)",
               overflow: "hidden",
             }}
           >
@@ -589,8 +589,8 @@ export default async function OpengraphImage() {
                 alignItems: "center",
                 justifyContent: "space-between",
                 padding: "10px 14px",
-                backgroundColor: "rgba(34, 197, 94, 0.06)",
-                borderBottom: "1px solid rgba(34, 197, 94, 0.15)",
+                backgroundColor: "rgba(155, 168, 171, 0.06)",
+                borderBottom: "1px solid rgba(155, 168, 171, 0.15)",
               }}
             >
               <div style={{ display: "flex", gap: "6px" }}>
@@ -608,7 +608,7 @@ export default async function OpengraphImage() {
                     width: "9px",
                     height: "9px",
                     borderRadius: "50%",
-                    backgroundColor: "rgba(234, 179, 8, 0.6)",
+                    backgroundColor: "rgba(74, 92, 106, 0.6)",
                     display: "flex",
                   }}
                 />
@@ -617,7 +617,7 @@ export default async function OpengraphImage() {
                     width: "9px",
                     height: "9px",
                     borderRadius: "50%",
-                    backgroundColor: "rgba(34, 197, 94, 0.6)",
+                    backgroundColor: "rgba(155, 168, 171, 0.6)",
                     display: "flex",
                   }}
                 />
@@ -642,17 +642,17 @@ export default async function OpengraphImage() {
                 padding: "18px 14px",
                 fontSize: "12px",
                 lineHeight: "1.75",
-                backgroundColor: "#020703",
+                backgroundColor: "#06141B",
               }}
             >
               <div
                 style={{
                   display: "flex",
                   flexDirection: "column",
-                  color: "rgba(34, 197, 94, 0.2)",
+                  color: "rgba(155, 168, 171, 0.2)",
                   textAlign: "right",
                   paddingRight: "12px",
-                  borderRight: "1px solid rgba(34, 197, 94, 0.08)",
+                  borderRight: "1px solid rgba(155, 168, 171, 0.08)",
                   userSelect: "none",
                 }}
               >
@@ -674,39 +674,39 @@ export default async function OpengraphImage() {
               >
                 <div style={{ display: "flex" }}>
                   <span style={{ color: "#ef4444" }}>vector</span>
-                  <span style={{ color: "#ffffff" }}>&lt;</span>
-                  <span style={{ color: "#06b6d4" }}>int</span>
-                  <span style={{ color: "#ffffff" }}>&gt; dist(N, INF);</span>
+                  <span style={{ color: "#CCD0CF" }}>&lt;</span>
+                  <span style={{ color: "#4A5C6A" }}>int</span>
+                  <span style={{ color: "#CCD0CF" }}>&gt; dist(N, INF);</span>
                 </div>
                 <div style={{ display: "flex" }}>
-                  <span style={{ color: "#f59e0b" }}>priority_queue</span>
-                  <span style={{ color: "#ffffff" }}>
+                  <span style={{ color: "#4A5C6A" }}>priority_queue</span>
+                  <span style={{ color: "#CCD0CF" }}>
                     &lt;pii, vector&lt;pii&gt;, greater&lt;pii&gt;&gt; pq;
                   </span>
                 </div>
                 <div style={{ display: "flex" }}>
-                  <span style={{ color: "#ffffff" }}>dist[src] = 0;</span>
+                  <span style={{ color: "#CCD0CF" }}>dist[src] = 0;</span>
                 </div>
                 <div style={{ display: "flex" }}>
-                  <span style={{ color: "#ffffff" }}>pq.push({"{"}0, src{"}"});</span>
+                  <span style={{ color: "#CCD0CF" }}>pq.push({"{"}0, src{"}"});</span>
                 </div>
                 <div style={{ display: "flex" }}>
                   <span style={{ color: "#ef4444" }}>while</span>
-                  <span style={{ color: "#ffffff" }}> (!pq.empty()) {"{"}</span>
+                  <span style={{ color: "#CCD0CF" }}> (!pq.empty()) {"{"}</span>
                 </div>
                 <div style={{ display: "flex", paddingLeft: "16px" }}>
-                  <span style={{ color: "#ffffff" }}>
+                  <span style={{ color: "#CCD0CF" }}>
                     auto [d, u] = pq.top(); pq.pop();
                   </span>
                 </div>
                 <div style={{ display: "flex", paddingLeft: "16px" }}>
                   <span style={{ color: "#ef4444" }}>if</span>
-                  <span style={{ color: "#ffffff" }}> (d &gt; dist[u]) </span>
+                  <span style={{ color: "#CCD0CF" }}> (d &gt; dist[u]) </span>
                   <span style={{ color: "#ef4444" }}>continue</span>
-                  <span style={{ color: "#ffffff" }}>;</span>
+                  <span style={{ color: "#CCD0CF" }}>;</span>
                 </div>
                 <div style={{ display: "flex" }}>
-                  <span style={{ color: "#ffffff" }}>{"}"}</span>
+                  <span style={{ color: "#CCD0CF" }}>{"}"}</span>
                 </div>
               </div>
             </div>
@@ -720,14 +720,14 @@ export default async function OpengraphImage() {
             justifyContent: "space-between",
             alignItems: "center",
             width: "100%",
-            borderTop: "1px solid rgba(34, 197, 94, 0.15)",
+            borderTop: "1px solid rgba(155, 168, 171, 0.15)",
             paddingTop: "15px",
           }}
         >
           <div
             style={{
               fontSize: "13px",
-              color: "rgba(34, 197, 94, 0.6)",
+              color: "rgba(155, 168, 171, 0.6)",
               display: "flex",
               alignItems: "center",
             }}
@@ -738,7 +738,7 @@ export default async function OpengraphImage() {
                 display: "flex",
                 width: "7px",
                 height: "13px",
-                backgroundColor: "#22c55e",
+                backgroundColor: "#9BA8AB",
                 marginLeft: "6px",
               }}
             />

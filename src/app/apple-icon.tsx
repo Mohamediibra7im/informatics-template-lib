@@ -11,14 +11,14 @@ export default function AppleIcon() {
     (
       <div
         style={{
-          background: "#080808",
+          background: "#06141B",
           width: "100%",
           height: "100%",
           display: "flex",
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "center",
-          border: "3px solid #22c55e",
+          border: "3px solid #9BA8AB",
           borderRadius: "24px",
           position: "relative",
           overflow: "hidden",
@@ -33,7 +33,7 @@ export default function AppleIcon() {
             right: 0,
             bottom: 0,
             background:
-              "radial-gradient(circle at center, rgba(34, 197, 94, 0.3) 0%, rgba(0, 0, 0, 0) 80%)",
+              "radial-gradient(circle at center, rgba(155, 168, 171, 0.3) 0%, rgba(0, 0, 0, 0) 80%)",
             display: "flex",
           }}
         />
@@ -42,18 +42,18 @@ export default function AppleIcon() {
           style={{
             display: "flex",
             flexDirection: "row",
-            color: "#ffffff",
+            color: "#CCD0CF",
             fontFamily: "monospace",
             fontSize: "64px",
             fontWeight: "bold",
             position: "relative",
           }}
         >
-          <span style={{ color: "#22c55e" }}>[</span>
-          <span style={{ color: "#ffffff", marginLeft: "4px", marginRight: "4px" }}>
+          <span style={{ color: "#9BA8AB" }}>[</span>
+          <span style={{ color: "#CCD0CF", marginLeft: "4px", marginRight: "4px" }}>
             CP
           </span>
-          <span style={{ color: "#22c55e" }}>]</span>
+          <span style={{ color: "#9BA8AB" }}>]</span>
         </div>
       </div>
     ),

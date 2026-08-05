@@ -1,6 +1,4 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Shield, Radio } from "lucide-react";
+import { Shield, Radio } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (

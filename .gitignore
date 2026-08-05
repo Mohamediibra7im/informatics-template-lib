@@ -34,9 +34,6 @@ yarn-error.log*
 .env*
 !.env.example
 
-# drizzle
-/drizzle/
-
 # vercel
 .vercel
 
@@ -48,3 +45,5 @@ next-env.d.ts
 
 .vscode
 /thoughts
+
+/templates_notes

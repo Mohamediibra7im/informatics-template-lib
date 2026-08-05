@@ -4,7 +4,6 @@ import { categories, templates } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { TemplateCard } from "@/components/template-card";
 import * as LucideIcons from "lucide-react";
-import { SearchInput } from "@/components/search-input";
 import { TerminalBreadcrumb } from "@/components/terminal";
 
 export const dynamic = "force-dynamic";

@@ -1,0 +1,1 @@
+ALTER TABLE "template_history" ADD COLUMN "contribution_id" integer;

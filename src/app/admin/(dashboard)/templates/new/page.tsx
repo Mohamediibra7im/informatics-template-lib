@@ -86,7 +86,15 @@ export default function NewTemplate() {
   const [formattingIdx, setFormattingIdx] = useState<number | null>(null);
 
   const fetchCategories = useCallback(() => {
-    fetch("/api/admin/categories").then((r) => r.json()).then(setCategories);
+    fetch("/api/admin/categories")
+      .then((r) => (r.ok ? r.text() : ""))
+      .then((t) => {
+        const data = t ? JSON.parse(t) : [];
+        setCategories(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        // ignore — categories load is non-critical
+      });
   }, []);
 
   const handleJsonImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -409,7 +417,7 @@ export default function NewTemplate() {
                       <span>Category Folder</span>
                     </Label>
                     <div className="flex flex-col md:max-w-md w-full gap-2">
-                      <Select value={form.categoryId} onValueChange={(v) => { playClick(); v && setForm((f) => ({ ...f, categoryId: v })); }}>
+                      <Select value={form.categoryId} onValueChange={(v) => { playClick(); if (v) setForm((f) => ({ ...f, categoryId: v })); }}>
                         <SelectTrigger className="bg-background/40 border-border focus:border-primary/50 text-xs font-mono h-8 rounded-none">
                           <SelectValue placeholder="Select Category..." />
                         </SelectTrigger>

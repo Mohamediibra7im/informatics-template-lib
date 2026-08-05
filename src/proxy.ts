@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin";
-
 function resolveJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
@@ -19,20 +17,50 @@ function resolveJwtSecret(): string {
 
 const JWT_SECRET = new TextEncoder().encode(resolveJwtSecret());
 
+async function hasValidSession(token: string | undefined): Promise<boolean> {
+  if (!token) return false;
+  try {
+    await jwtVerify(token, JWT_SECRET);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function hasValidAdmin(token: string | undefined): Promise<boolean> {
+  if (!token) return false;
+  try {
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    return payload.role === "admin";
+  } catch {
+    return false;
+  }
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Admin protection
+  // Admin API: everything under /api/admin requires a valid admin session,
+  // except the login/logout endpoints that mint and clear it. Returns 401
+  // JSON (not a redirect) so API clients get a machine-readable failure.
+  if (pathname.startsWith("/api/admin")) {
+    if (pathname === "/api/admin/login" || pathname === "/api/admin/logout") {
+      return NextResponse.next();
+    }
+    if (await hasValidAdmin(request.cookies.get("admin_session")?.value)) {
+      return NextResponse.next();
+    }
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Admin pages
   if (pathname.startsWith("/admin")) {
     if (pathname === "/admin/login") {
       return NextResponse.next();
     }
-
-    const cookie = request.cookies.get("admin_session")?.value;
-    if (cookie === ADMIN_PASSWORD) {
+    if (await hasValidAdmin(request.cookies.get("admin_session")?.value)) {
       return NextResponse.next();
     }
-
     const loginUrl = new URL("/admin/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
@@ -42,30 +70,23 @@ export async function proxy(request: NextRequest) {
   // session. The /contribute landing page is public — it renders its own
   // logged-out message with login/register actions — so only its subpaths
   // (/contribute/new, /contribute/edit) are gated here.
-  if (
-    pathname.startsWith("/dashboard") ||
-    (pathname.startsWith("/contribute/"))
-  ) {
-    const token = request.cookies.get("cp_session")?.value;
-    if (!token) {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    try {
-      await jwtVerify(token, JWT_SECRET);
+  if (pathname.startsWith("/dashboard") || pathname.startsWith("/contribute/")) {
+    if (await hasValidSession(request.cookies.get("cp_session")?.value)) {
       return NextResponse.next();
-    } catch {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(loginUrl);
     }
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/dashboard/:path*", "/contribute/:path*"],
+  matcher: [
+    "/api/admin/:path*",
+    "/admin/:path*",
+    "/dashboard/:path*",
+    "/contribute/:path*",
+  ],
 };

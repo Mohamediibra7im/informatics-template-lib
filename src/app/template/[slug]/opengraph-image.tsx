@@ -62,10 +62,9 @@ export default async function TemplateOpengraphImage({
   // Fetch template data
   let templateTitle = slug.replace(/-/g, " ");
   let templateDesc = "";
-  let templateComplexity = "";
   let templateTags: string[] = [];
   let categoryName = "";
-  let categoryColor = "#22c55e";
+  let categoryColor = "#9BA8AB";
 
   try {
     const db = getDb();
@@ -77,7 +76,6 @@ export default async function TemplateOpengraphImage({
       if (tmpl) {
         templateTitle = tmpl.title;
         templateDesc = tmpl.description || "";
-        templateComplexity = tmpl.complexity || "";
         templateTags = tmpl.tags || [];
 
         const [cat] = await db
@@ -86,7 +84,7 @@ export default async function TemplateOpengraphImage({
           .where(eq(categories.id, tmpl.categoryId));
         if (cat) {
           categoryName = cat.name;
-          categoryColor = cat.color || "#22c55e";
+          categoryColor = cat.color || "#9BA8AB";
         }
       }
     }
@@ -103,10 +101,10 @@ export default async function TemplateOpengraphImage({
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          backgroundColor: "#030a05",
+          backgroundColor: "#06141B",
           fontFamily: "JetBrains Mono, monospace",
           padding: "50px",
-          color: "#22c55e",
+          color: "#9BA8AB",
           position: "relative",
           overflow: "hidden",
         }}
@@ -133,7 +131,7 @@ export default async function TemplateOpengraphImage({
             height: "400px",
             borderRadius: "50%",
             background:
-              "radial-gradient(circle, rgba(6, 182, 212, 0.08) 0%, rgba(6, 182, 212, 0) 70%)",
+              "radial-gradient(circle, rgba(74, 92, 106, 0.08) 0%, rgba(74, 92, 106, 0) 70%)",
             display: "flex",
           }}
         />
@@ -159,7 +157,7 @@ export default async function TemplateOpengraphImage({
                 top: 0,
                 bottom: 0,
                 width: "1px",
-                backgroundColor: "#22c55e",
+                backgroundColor: "#9BA8AB",
                 display: "flex",
               }}
             />
@@ -173,7 +171,7 @@ export default async function TemplateOpengraphImage({
                 left: 0,
                 right: 0,
                 height: "1px",
-                backgroundColor: "#22c55e",
+                backgroundColor: "#9BA8AB",
                 display: "flex",
               }}
             />
@@ -188,7 +186,7 @@ export default async function TemplateOpengraphImage({
             left: "16px",
             right: "16px",
             bottom: "16px",
-            border: "1px solid rgba(34, 197, 94, 0.15)",
+            border: "1px solid rgba(155, 168, 171, 0.15)",
             pointerEvents: "none",
             display: "flex",
           }}
@@ -201,21 +199,21 @@ export default async function TemplateOpengraphImage({
             justifyContent: "space-between",
             alignItems: "center",
             width: "100%",
-            borderBottom: "1px solid rgba(34, 197, 94, 0.2)",
+            borderBottom: "1px solid rgba(155, 168, 171, 0.2)",
             paddingBottom: "15px",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <div
               style={{
-                backgroundColor: "#22c55e",
-                color: "#030a05",
+                backgroundColor: "#9BA8AB",
+                color: "#06141B",
                 padding: "3px 10px",
                 fontSize: "15px",
                 fontWeight: "bold",
                 display: "flex",
                 alignItems: "center",
-                boxShadow: "0 0 10px rgba(34, 197, 94, 0.5)",
+                boxShadow: "0 0 10px rgba(155, 168, 171, 0.5)",
               }}
             >
               CP
@@ -224,7 +222,7 @@ export default async function TemplateOpengraphImage({
               style={{
                 fontSize: "20px",
                 fontWeight: "bold",
-                color: "#ffffff",
+                color: "#CCD0CF",
                 letterSpacing: "4px",
                 display: "flex",
               }}
@@ -269,12 +267,12 @@ export default async function TemplateOpengraphImage({
           <div
             style={{
               fontSize: "12px",
-              color: "rgba(34, 197, 94, 0.5)",
+              color: "rgba(155, 168, 171, 0.5)",
               display: "flex",
               gap: "6px",
             }}
           >
-            <span style={{ color: "#22c55e", fontWeight: "bold" }}>$</span>
+            <span style={{ color: "#9BA8AB", fontWeight: "bold" }}>$</span>
             <span>cat templates/{slug}</span>
           </div>
 
@@ -283,7 +281,7 @@ export default async function TemplateOpengraphImage({
             style={{
               fontSize: "52px",
               fontWeight: "bold",
-              color: "#ffffff",
+              color: "#CCD0CF",
               lineHeight: "1.15",
               letterSpacing: "-0.5px",
               display: "flex",
@@ -330,9 +328,9 @@ export default async function TemplateOpengraphImage({
                   key={tag}
                   style={{
                     fontSize: "12px",
-                    color: "#22c55e",
-                    backgroundColor: "rgba(34, 197, 94, 0.06)",
-                    border: "1px solid rgba(34, 197, 94, 0.2)",
+                    color: "#9BA8AB",
+                    backgroundColor: "rgba(155, 168, 171, 0.06)",
+                    border: "1px solid rgba(155, 168, 171, 0.2)",
                     padding: "3px 12px",
                     display: "flex",
                   }}
@@ -363,14 +361,14 @@ export default async function TemplateOpengraphImage({
             justifyContent: "space-between",
             alignItems: "center",
             width: "100%",
-            borderTop: "1px solid rgba(34, 197, 94, 0.15)",
+            borderTop: "1px solid rgba(155, 168, 171, 0.15)",
             paddingTop: "15px",
           }}
         >
           <div
             style={{
               fontSize: "13px",
-              color: "rgba(34, 197, 94, 0.5)",
+              color: "rgba(155, 168, 171, 0.5)",
               display: "flex",
               alignItems: "center",
             }}
@@ -381,7 +379,7 @@ export default async function TemplateOpengraphImage({
                 display: "flex",
                 width: "7px",
                 height: "13px",
-                backgroundColor: "#22c55e",
+                backgroundColor: "#9BA8AB",
                 marginLeft: "6px",
               }}
             />

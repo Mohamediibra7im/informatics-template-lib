@@ -2,19 +2,21 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
-export type TerminalThemeType = "green" | "amber" | "cyan" | "red" | "purple" | "mono";
+export type BgStyleType = "dots" | "matrix" | "off";
 
 interface TerminalThemeContextValue {
-  theme: TerminalThemeType;
-  setTheme: (t: TerminalThemeType) => void;
-  scanlines: boolean;
-  setScanlines: (b: boolean) => void;
-  flicker: boolean;
-  setFlicker: (b: boolean) => void;
   sound: boolean;
   setSound: (b: boolean) => void;
+  reduceMotion: boolean;
+  setReduceMotion: (b: boolean) => void;
+  compact: boolean;
+  setCompact: (b: boolean) => void;
+  lineNumbers: boolean;
+  setLineNumbers: (b: boolean) => void;
   matrix: boolean;
   setMatrix: (b: boolean) => void;
+  bgStyle: BgStyleType;
+  setBgStyle: (style: BgStyleType) => void;
   playClick: () => void;
   playBeep: (freq?: number, duration?: number) => void;
   playSuccess: () => void;
@@ -39,38 +41,39 @@ function getAudioContext(): AudioContext | null {
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false);
-  const [theme, setThemeState] = useState<TerminalThemeType>("green");
-  const [scanlines, setScanlinesState] = useState(true);
-  const [flicker, setFlickerState] = useState(true);
   const [sound, setSoundState] = useState(true);
-  const [matrix, setMatrixState] = useState(true);
+  const [reduceMotion, setReduceMotionState] = useState(false);
+  const [compact, setCompactState] = useState(false);
+  const [lineNumbers, setLineNumbersState] = useState(true);
+  const [matrix, setMatrixState] = useState(false);
+  const [bgStyle, setBgStyleState] = useState<BgStyleType>("dots");
 
   // Load from local storage
   useEffect(() => {
-    const storedTheme = localStorage.getItem("terminal-theme") as TerminalThemeType;
-    if (storedTheme && ["green", "amber", "cyan", "red", "purple", "mono"].includes(storedTheme)) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setThemeState(storedTheme);
-    }
-
-    const storedScanlines = localStorage.getItem("terminal-scanlines");
-    if (storedScanlines !== null) {
-      setScanlinesState(storedScanlines === "true");
-    }
-
-    const storedFlicker = localStorage.getItem("terminal-flicker");
-    if (storedFlicker !== null) {
-      setFlickerState(storedFlicker === "true");
-    }
-
     const storedSound = localStorage.getItem("terminal-sound");
     if (storedSound !== null) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSoundState(storedSound === "true");
     }
 
-    const storedMatrix = localStorage.getItem("terminal-matrix");
-    if (storedMatrix !== null) {
-      setMatrixState(storedMatrix === "true");
+    const storedReduceMotion = localStorage.getItem("terminal-reduce-motion");
+    if (storedReduceMotion !== null) {
+      setReduceMotionState(storedReduceMotion === "true");
+    }
+
+    const storedCompact = localStorage.getItem("terminal-compact");
+    if (storedCompact !== null) {
+      setCompactState(storedCompact === "true");
+    }
+
+    const storedLineNumbers = localStorage.getItem("terminal-line-numbers");
+    if (storedLineNumbers !== null) {
+      setLineNumbersState(storedLineNumbers === "true");
+    }
+
+    const storedBgStyle = localStorage.getItem("terminal-bg-style") as BgStyleType;
+    if (storedBgStyle === "dots" || storedBgStyle === "off") {
+      setBgStyleState(storedBgStyle);
     }
 
     setMounted(true);
@@ -83,26 +86,26 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     root.classList.remove("light");
     root.classList.add("dark");
     root.style.colorScheme = "dark";
-    root.setAttribute("data-terminal-theme", theme);
-    root.setAttribute("data-scanlines", String(scanlines));
-    root.setAttribute("data-flicker", String(flicker));
-  }, [theme, scanlines, flicker, mounted]);
+    root.setAttribute("data-reduce-motion", String(reduceMotion));
+    root.setAttribute("data-compact", String(compact));
+    root.setAttribute("data-line-numbers", String(lineNumbers));
+  }, [reduceMotion, compact, lineNumbers, mounted]);
 
-  const setTheme = (t: TerminalThemeType) => {
-    setThemeState(t);
-    localStorage.setItem("terminal-theme", t);
-    if (sound) playSuccess();
-  };
-
-  const setScanlines = (b: boolean) => {
-    setScanlinesState(b);
-    localStorage.setItem("terminal-scanlines", String(b));
+  const setReduceMotion = (b: boolean) => {
+    setReduceMotionState(b);
+    localStorage.setItem("terminal-reduce-motion", String(b));
     if (sound) playClick();
   };
 
-  const setFlicker = (b: boolean) => {
-    setFlickerState(b);
-    localStorage.setItem("terminal-flicker", String(b));
+  const setCompact = (b: boolean) => {
+    setCompactState(b);
+    localStorage.setItem("terminal-compact", String(b));
+    if (sound) playClick();
+  };
+
+  const setLineNumbers = (b: boolean) => {
+    setLineNumbersState(b);
+    localStorage.setItem("terminal-line-numbers", String(b));
     if (sound) playClick();
   };
 
@@ -110,7 +113,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setSoundState(b);
     localStorage.setItem("terminal-sound", String(b));
     if (b) {
-      // Play a quick sound to show it's enabled
       setTimeout(() => {
         const ctx = getAudioContext();
         if (ctx) playSuccessSound(ctx);
@@ -120,11 +122,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const setMatrix = (b: boolean) => {
     setMatrixState(b);
-    localStorage.setItem("terminal-matrix", String(b));
     if (sound) playClick();
   };
 
-  // Audio synthethizers
+  const setBgStyle = (style: BgStyleType) => {
+    setBgStyleState(style);
+    localStorage.setItem("terminal-bg-style", style);
+    if (sound) playClick();
+  };
+
+  // Audio synthesizers
   const playClick = () => {
     if (!sound) return;
     const ctx = getAudioContext();
@@ -182,7 +189,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.03);
       osc.start();
       osc.stop(ctx.currentTime + 0.03);
-    } catch (_) {}
+    } catch {}
   };
 
   const playBeepSound = (ctx: AudioContext, freq: number, duration: number) => {
@@ -197,7 +204,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
       osc.start();
       osc.stop(ctx.currentTime + duration);
-    } catch (_) {}
+    } catch {}
   };
 
   const playSuccessSound = (ctx: AudioContext) => {
@@ -215,13 +222,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         osc.start(time + idx * 0.05);
         osc.stop(time + idx * 0.05 + 0.12);
       });
-    } catch (_) {}
+    } catch {}
   };
 
   const playBootSound = (ctx: AudioContext) => {
     try {
       const time = ctx.currentTime;
-      // Retro synth chord
       const chords = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
       const step = 0.08;
       chords.forEach((freq, idx) => {
@@ -237,7 +243,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         osc.start(time + idx * step);
         osc.stop(time + idx * step + 0.3);
       });
-    } catch (_) {}
+    } catch {}
   };
 
   if (!mounted) {
@@ -247,16 +253,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   return (
     <TerminalThemeCtx.Provider
       value={{
-        theme,
-        setTheme,
-        scanlines,
-        setScanlines,
-        flicker,
-        setFlicker,
         sound,
         setSound,
+        reduceMotion,
+        setReduceMotion,
+        compact,
+        setCompact,
+        lineNumbers,
+        setLineNumbers,
         matrix,
         setMatrix,
+        bgStyle,
+        setBgStyle,
         playClick,
         playBeep,
         playSuccess,
@@ -271,18 +279,19 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 export function useTerminalTheme() {
   const context = useContext(TerminalThemeCtx);
   if (!context) {
-    // Return a safe fallback during SSR / static prerendering when provider is not mounted
     return {
-      theme: "green" as const,
-      setTheme: () => {},
-      scanlines: true,
-      setScanlines: () => {},
-      flicker: true,
-      setFlicker: () => {},
       sound: false,
       setSound: () => {},
-      matrix: true,
+      reduceMotion: false,
+      setReduceMotion: () => {},
+      compact: false,
+      setCompact: () => {},
+      lineNumbers: true,
+      setLineNumbers: () => {},
+      matrix: false,
       setMatrix: () => {},
+      bgStyle: "dots" as const,
+      setBgStyle: () => {},
       playClick: () => {},
       playBeep: () => {},
       playSuccess: () => {},
@@ -292,7 +301,6 @@ export function useTerminalTheme() {
   return context;
 }
 
-// Fallback legacy export to keep original types happy if they import useTheme
 export function useTheme() {
   return { resolvedTheme: "dark" as const };
 }

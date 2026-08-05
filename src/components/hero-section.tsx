@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { Terminal, Code2, Braces, Zap, ArrowRight } from "lucide-react";
+import { Terminal, Code2, Zap, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useTerminalTheme } from "./theme-provider";
 

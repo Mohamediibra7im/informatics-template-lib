@@ -1,7 +1,6 @@
 import { getDb, schema } from "@/db";
-import { sql, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { TemplatesList } from "@/components/templates-list";
-import { SearchInput } from "@/components/search-input";
 import { Terminal } from "lucide-react";
 import type { Metadata } from "next";
 
