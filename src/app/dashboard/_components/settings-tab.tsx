@@ -1,0 +1,312 @@
+"use client";
+
+import { useState } from "react";
+import { Settings, Calendar, Copy, Terminal } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Profile } from "./types";
+
+interface SettingsTabProps {
+  cfHandle: string;
+  acHandle: string;
+  lcHandle: string;
+  ccHandle: string;
+  saving: boolean;
+  profile: Profile | null;
+  username?: string;
+  email?: string;
+  isLocalhost: boolean;
+  playClick: () => void;
+  onSaveProfile: () => void;
+  onCheckHandleVerification: (platform: string, handle: string) => Promise<void>;
+  onCopyCalendarLink: () => void;
+  setCfHandle: (val: string) => void;
+  setAcHandle: (val: string) => void;
+  setLcHandle: (val: string) => void;
+  setCcHandle: (val: string) => void;
+}
+
+export function SettingsTab({
+  cfHandle,
+  acHandle,
+  lcHandle,
+  ccHandle,
+  saving,
+  profile,
+  username,
+  email,
+  isLocalhost,
+  playClick,
+  onSaveProfile,
+  onCheckHandleVerification,
+  onCopyCalendarLink,
+}: SettingsTabProps) {
+  const [verifyingPlatform, setVerifyingPlatform] = useState<string | null>(null);
+  const [verifyInputVal, setVerifyInputVal] = useState("");
+  const [isCheckingVerify, setIsCheckingVerify] = useState(false);
+
+  const handleVerify = async (platform: string) => {
+    if (!verifyInputVal.trim()) return;
+    setIsCheckingVerify(true);
+    await onCheckHandleVerification(platform, verifyInputVal.trim());
+    setIsCheckingVerify(false);
+    setVerifyingPlatform(null);
+    setVerifyInputVal("");
+  };
+
+  return (
+    <div className="space-y-6 animate-fade-in font-mono">
+      {/* Platform Verification Settings panel */}
+      <div className="border border-border bg-card/40 backdrop-blur-md shadow-2xl">
+        <div className="px-4 py-3 border-b border-border/40 bg-muted/20 text-[10px] uppercase tracking-widest text-muted-foreground/50 font-bold flex items-center gap-2 select-none">
+          <Settings className="h-4 w-4 text-primary" />
+          <span>Handle Verification & Linking</span>
+        </div>
+
+        <div className="p-5 space-y-4">
+          {[
+            { key: "codeforces", label: "Codeforces", handle: cfHandle, color: "text-red-400 border-red-400/30 bg-red-400/10" },
+            { key: "atcoder", label: "AtCoder", handle: acHandle, color: "text-zinc-400 border-zinc-400/30 bg-zinc-400/10" },
+            { key: "leetcode", label: "LeetCode", handle: lcHandle, color: "text-amber-400 border-amber-400/30 bg-amber-400/10" },
+            { key: "codechef", label: "CodeChef", handle: ccHandle, color: "text-emerald-400 border-emerald-400/30 bg-emerald-400/10" },
+          ].map((field) => {
+            const isVerifying = verifyingPlatform === field.key;
+            return (
+              <div key={field.key} className="border border-border/60 p-4 bg-background/20 space-y-3">
+                <div className="flex justify-between items-center select-none">
+                  <Label className="text-[10.5px] uppercase tracking-widest text-foreground font-extrabold">
+                    {field.label}
+                  </Label>
+                  {field.handle ? (
+                    <span className={`text-[9px] uppercase tracking-widest font-extrabold px-2.5 py-0.5 border ${field.color}`}>
+                      Linked: @{field.handle}
+                    </span>
+                  ) : (
+                    <span className="text-[9px] uppercase tracking-widest text-muted-foreground/40 border border-border/40 bg-card/30 px-2 py-0.5 font-bold">
+                      Unlinked
+                    </span>
+                  )}
+                </div>
+
+                {!isVerifying ? (
+                  <div className="flex items-center justify-between select-none pt-1">
+                    <span className="text-[10.5px] text-muted-foreground/50">
+                      {field.handle ? "Modify linked profile username handle" : "Link and verify profile for live metrics"}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        playClick();
+                        setVerifyingPlatform(field.key);
+                        setVerifyInputVal(field.handle || "");
+                      }}
+                      className="text-[9.5px] uppercase h-7 font-extrabold font-mono border-primary/30 hover:border-primary text-primary cursor-pointer"
+                    >
+                      {field.handle ? "Modify" : "Verify Handle"}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4 pt-3 border-t border-border/30">
+                    <div className="space-y-1.5">
+                      <Label className="text-[9.5px] uppercase tracking-wider text-muted-foreground/60 font-bold">
+                        Enter {field.label} username handle
+                      </Label>
+                      <Input
+                        value={verifyInputVal}
+                        onChange={(e) => setVerifyInputVal(e.target.value)}
+                        placeholder={`Enter handle (e.g. ${field.label === "LeetCode" ? "Mohamediibra7im" : "Midoriya"})`}
+                        className="font-mono text-xs bg-background/40 border-primary/20 focus:border-primary/50 placeholder:text-muted-foreground/30 h-9"
+                      />
+                    </div>
+
+                    {verifyInputVal.trim() && (
+                      <div className="p-3.5 bg-primary/5 border border-primary/20 text-[10.5px] text-muted-foreground/60 space-y-2 leading-relaxed">
+                        <div className="font-bold text-primary uppercase select-none flex items-center gap-1.5 text-[10px]">
+                          <Terminal className="h-3.5 w-3.5" />
+                          <span>Verification Steps for {field.label}</span>
+                        </div>
+                        {field.key === "codeforces" && (
+                          <div>
+                            1. Open Codeforces profile settings.
+                            <br />
+                            2. Set First Name or Organization to:
+                            <br />
+                            <strong className="text-primary tracking-wider font-mono font-bold select-all bg-primary/10 px-1.5 py-0.5 border border-primary/20">
+                              {profile?.verificationToken || "..."}
+                            </strong>
+                            <br />
+                            3. Save on Codeforces and click Check Verification below.
+                          </div>
+                        )}
+                        {field.key === "atcoder" && (
+                          <div>
+                            1. Open AtCoder profile settings.
+                            <br />
+                            2. Set Affiliation or Bio to:
+                            <br />
+                            <strong className="text-primary tracking-wider font-mono font-bold select-all bg-primary/10 px-1.5 py-0.5 border border-primary/20">
+                              {profile?.verificationToken || "..."}
+                            </strong>
+                            <br />
+                            3. Save on AtCoder and click Check Verification.
+                          </div>
+                        )}
+                        {field.key === "leetcode" && (
+                          <div>
+                            1. Open LeetCode profile settings.
+                            <br />
+                            2. Paste token in About Me / Bio:
+                            <br />
+                            <strong className="text-primary tracking-wider font-mono font-bold select-all bg-primary/10 px-1.5 py-0.5 border border-primary/20">
+                              {profile?.verificationToken || "..."}
+                            </strong>
+                            <br />
+                            3. Save on LeetCode and click Check Verification.
+                          </div>
+                        )}
+                        {field.key === "codechef" && (
+                          <div>
+                            1. Open CodeChef profile settings.
+                            <br />
+                            2. Set Name or Bio to:
+                            <br />
+                            <strong className="text-primary tracking-wider font-mono font-bold select-all bg-primary/10 px-1.5 py-0.5 border border-primary/20">
+                              {profile?.verificationToken || "..."}
+                            </strong>
+                            <br />
+                            3. Save on CodeChef and click Check Verification.
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => handleVerify(field.key)}
+                        disabled={isCheckingVerify || !verifyInputVal.trim()}
+                        className="text-[9.5px] uppercase font-bold font-mono cursor-pointer"
+                      >
+                        {isCheckingVerify ? (
+                          <span className="flex items-center gap-1.5">
+                            <Terminal className="h-3.5 w-3.5 animate-spin" />
+                            <span>Checking...</span>
+                          </span>
+                        ) : (
+                          "Check Verification"
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          playClick();
+                          setVerifyingPlatform(null);
+                          setVerifyInputVal("");
+                        }}
+                        className="text-[9.5px] uppercase font-mono cursor-pointer"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          <Button
+            onClick={onSaveProfile}
+            disabled={saving}
+            className="font-mono text-xs uppercase font-extrabold tracking-wider h-9.5 border border-primary/30 hover:border-primary bg-primary/10 text-primary cursor-pointer w-full"
+          >
+            {saving ? (
+              <span className="flex items-center justify-center gap-2">
+                <Terminal className="h-4 w-4 animate-spin" />
+                Saving Preferences...
+              </span>
+            ) : (
+              "Save Profile Handles"
+            )}
+          </Button>
+        </div>
+      </div>
+
+      {/* Calendar Sync feed option panel */}
+      <div className="border border-border bg-card/40 backdrop-blur-md shadow-2xl select-none">
+        <div className="px-4 py-3 border-b border-border/40 bg-muted/20 text-[10px] uppercase tracking-widest text-muted-foreground/50 font-bold flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-primary" />
+          <span>Dynamic Calendar Sync Feed</span>
+        </div>
+        <div className="p-5 space-y-4">
+          <p className="text-xs text-muted-foreground/60 leading-relaxed">
+            Subscribe to your personalized ICS feed to automatically sync CP contest alerts with Google Calendar, Apple Calendar, or Outlook.
+          </p>
+
+          <Button
+            onClick={onCopyCalendarLink}
+            variant="outline"
+            className="font-mono text-xs uppercase font-bold tracking-wider border-primary/30 hover:border-primary text-primary cursor-pointer"
+          >
+            <Copy className="h-3.5 w-3.5 mr-2" />
+            Copy Calendar Feed URL
+          </Button>
+
+          <div className="mt-4 pt-4 border-t border-border/30 text-[10.5px] text-muted-foreground/50 space-y-3 font-mono">
+            <div className="font-extrabold text-foreground uppercase tracking-widest text-[9.5px]">Calendar Subscription Setup:</div>
+
+            <div className="space-y-1">
+              <div className="text-primary font-bold">1. Google Calendar:</div>
+              <div className="pl-3 leading-relaxed">
+                Web Calendar &rarr; Click <strong className="text-foreground font-bold">+</strong> next to &ldquo;Other calendars&rdquo; &rarr; Select{" "}
+                <strong className="text-foreground font-bold">From URL</strong> &rarr; Paste copied URL &rarr; Add calendar.
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <div className="text-primary font-bold">2. Apple Calendar (macOS / iOS):</div>
+              <div className="pl-3 leading-relaxed">
+                Calendar App &rarr; <strong className="text-foreground font-bold">File &gt; New Calendar Subscription...</strong> &rarr; Paste copied URL &rarr; Subscribe.
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <div className="text-primary font-bold">3. Outlook Calendar:</div>
+              <div className="pl-3 leading-relaxed">
+                Outlook Calendar &rarr; <strong className="text-foreground font-bold">Add Calendar</strong> &rarr;{" "}
+                <strong className="text-foreground font-bold">Subscribe from web</strong> &rarr; Paste copied URL &rarr; Import.
+              </div>
+            </div>
+
+            {isLocalhost && (
+              <div className="mt-3 p-3 border border-warning/30 bg-warning/10 text-warning text-[10px] leading-relaxed select-text font-mono">
+                <strong className="uppercase font-extrabold block mb-1">[!] LOCALHOST NOTE:</strong>
+                Cloud web services (Google Calendar, Outlook Web) cannot reach <code className="bg-warning/20 px-1 py-0.5 font-bold">localhost</code> URLs directly. Test with local client apps (Apple Calendar / Windows Calendar) during development. Sync works seamlessly once deployed to public hosting.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Standard metadata fields */}
+      <div className="border border-border bg-card/40 backdrop-blur-md shadow-2xl select-none">
+        <div className="px-4 py-3 border-b border-border/40 bg-muted/20 text-[10px] uppercase tracking-widest text-muted-foreground/50 font-bold flex items-center gap-2">
+          <Terminal className="h-4 w-4 text-primary" />
+          <span>Account Information</span>
+        </div>
+        <div className="p-5 space-y-3 text-xs text-muted-foreground/60 font-mono">
+          <div className="flex items-center gap-3">
+            <span className="w-24 text-muted-foreground/35 uppercase font-bold">Username:</span>
+            <span className="text-foreground font-extrabold">{username}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="w-24 text-muted-foreground/35 uppercase font-bold">Email:</span>
+            <span className="text-foreground font-extrabold">{email}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
