@@ -28,6 +28,9 @@ import {
   Code,
   GitPullRequest,
   Heart,
+  Pencil,
+  ArrowLeft,
+  Save,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,6 +63,14 @@ interface Collection {
   description: string | null;
   createdAt: string;
   itemCount: number;
+}
+
+interface CollectionItem {
+  id: number;
+  templateId: number;
+  templateTitle: string;
+  templateSlug: string;
+  addedAt: string;
 }
 
 interface Contribution {
@@ -181,7 +192,19 @@ export default function DashboardPage() {
 
   // New collection form
   const [newCollName, setNewCollName] = useState("");
+  const [newCollDesc, setNewCollDesc] = useState("");
   const [creatingColl, setCreatingColl] = useState(false);
+
+  // Selected Collection & items state
+  const [activeCollection, setActiveCollection] = useState<Collection | null>(null);
+  const [collectionItems, setCollectionItems] = useState<CollectionItem[]>([]);
+  const [loadingCollItems, setLoadingCollItems] = useState(false);
+
+  // Edit Collection state
+  const [editingCollId, setEditingCollId] = useState<number | null>(null);
+  const [editCollName, setEditCollName] = useState("");
+  const [editCollDesc, setEditCollDesc] = useState("");
+  const [savingCollEdit, setSavingCollEdit] = useState(false);
 
   const isLocalhost = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
 
@@ -301,6 +324,37 @@ export default function DashboardPage() {
     }
   };
 
+  const openCollection = async (coll: Collection) => {
+    playClick();
+    setActiveCollection(coll);
+    setLoadingCollItems(true);
+    try {
+      const res = await fetch(`/api/users/collections/${coll.id}/items`);
+      if (res.ok) {
+        const data = await res.json();
+        const items = data.items || [];
+        setCollectionItems(items);
+        setActiveCollection((prev) =>
+          prev
+            ? {
+                ...prev,
+                name: data.collection?.name || prev.name,
+                description: data.collection?.description ?? prev.description,
+                itemCount: items.length,
+              }
+            : null
+        );
+        setCollections((prev) =>
+          prev.map((c) => (c.id === coll.id ? { ...c, itemCount: items.length } : c))
+        );
+      }
+    } catch {
+      toast.error("Failed to load collection items");
+    } finally {
+      setLoadingCollItems(false);
+    }
+  };
+
   const createCollection = async () => {
     if (!newCollName.trim()) return;
     setCreatingColl(true);
@@ -308,18 +362,83 @@ export default function DashboardPage() {
       const res = await fetch("/api/users/collections", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newCollName.trim() }),
+        body: JSON.stringify({
+          name: newCollName.trim(),
+          description: newCollDesc.trim() || undefined,
+        }),
       });
       if (res.ok) {
         toast.success("Collection created");
         playSuccess();
         setNewCollName("");
+        setNewCollDesc("");
         fetchData();
       }
     } catch {
       toast.error("Failed to create collection");
     } finally {
       setCreatingColl(false);
+    }
+  };
+
+  const startEditCollection = (coll: Collection, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    playClick();
+    setEditingCollId(coll.id);
+    setEditCollName(coll.name);
+    setEditCollDesc(coll.description || "");
+  };
+
+  const cancelEditCollection = () => {
+    playClick();
+    setEditingCollId(null);
+    setEditCollName("");
+    setEditCollDesc("");
+  };
+
+  const saveCollectionEdit = async (id: number) => {
+    if (!editCollName.trim()) return;
+    setSavingCollEdit(true);
+    try {
+      const res = await fetch("/api/users/collections", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id,
+          name: editCollName.trim(),
+          description: editCollDesc.trim() || null,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        toast.success("Collection updated");
+        playSuccess();
+        setEditingCollId(null);
+
+        // Update local collections state
+        setCollections((prev) =>
+          prev.map((c) =>
+            c.id === id
+              ? { ...c, name: data.collection.name, description: data.collection.description }
+              : c
+          )
+        );
+
+        // Update active collection state if open
+        if (activeCollection && activeCollection.id === id) {
+          setActiveCollection((prev) =>
+            prev
+              ? { ...prev, name: data.collection.name, description: data.collection.description }
+              : null
+          );
+        }
+      } else {
+        toast.error("Failed to update collection");
+      }
+    } catch {
+      toast.error("Error updating collection");
+    } finally {
+      setSavingCollEdit(false);
     }
   };
 
@@ -333,10 +452,34 @@ export default function DashboardPage() {
       if (res.ok) {
         toast.success("Collection deleted");
         playSuccess();
+        if (activeCollection?.id === id) {
+          setActiveCollection(null);
+        }
         fetchData();
       }
     } catch {
       toast.error("Failed to delete collection");
+    }
+  };
+
+  const removeItemFromCollection = async (collectionId: number, templateId: number) => {
+    playClick();
+    try {
+      const res = await fetch(`/api/users/collections/${collectionId}/items`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ templateId }),
+      });
+      if (res.ok) {
+        toast.success("Template removed from collection");
+        playSuccess();
+        setCollectionItems((prev) => prev.filter((item) => item.templateId !== templateId));
+        setCollections((prev) =>
+          prev.map((c) => (c.id === collectionId ? { ...c, itemCount: Math.max(0, c.itemCount - 1) } : c))
+        );
+      }
+    } catch {
+      toast.error("Failed to remove template");
     }
   };
 
@@ -957,82 +1100,309 @@ export default function DashboardPage() {
               {/* ════ COLLECTIONS TAB ════ */}
               {activeTab === "collections" && (
                 <div className="space-y-6 animate-fade-in">
-                  {/* Create Collection */}
-                  <div className="border border-border bg-card/35 backdrop-blur-md p-5 shadow-xl">
-                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground/45 font-bold mb-3 flex items-center gap-1.5 select-none">
-                      <Plus className="h-3.5 w-3.5 text-primary" />
-                      <span>New Collection Setup</span>
-                    </div>
-                    <div className="flex gap-2">
-                      <Input
-                        value={newCollName}
-                        onChange={(e) => setNewCollName(e.target.value)}
-                        placeholder="Collection title (e.g., Graph Algorithms)..."
-                        className="font-mono text-xs bg-background/30 border-primary/15 focus:border-primary/40 placeholder:text-muted-foreground/25 flex-1"
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") createCollection();
-                        }}
-                      />
-                      <Button
-                        onClick={createCollection}
-                        disabled={creatingColl || !newCollName.trim()}
-                        className="font-mono text-xs uppercase tracking-wider h-9"
-                      >
-                        <Plus className="h-3.5 w-3.5 mr-1" />
-                        Create
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Collections Card Grid */}
-                  {collections.length === 0 ? (
-                    <div className="border border-border bg-card/35 backdrop-blur-md p-16 text-center space-y-4 shadow-xl select-none font-mono">
-                      <FolderOpen className="h-8 w-8 text-muted-foreground/15 mx-auto" />
-                      <p className="text-xs text-muted-foreground/40 font-mono">No collections initialized yet.</p>
-                      <p className="text-[10px] text-muted-foreground/25 max-w-sm mx-auto leading-relaxed">
-                        Create a collection directory above. Group and organize custom templates easily.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="grid gap-4 sm:grid-cols-2 select-none">
-                      {collections.map((c) => (
-                        <div
-                          key={c.id}
-                          className="border border-border/80 bg-card/35 backdrop-blur-md p-4 flex flex-col justify-between hover:border-primary/50 transition-all duration-300 group shadow-md"
-                        >
-                          <div className="space-y-2.5">
-                            {/* Directory Label path */}
-                            <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-wider text-primary/75 font-bold font-mono">
-                              <FolderOpen className="h-3.5 w-3.5 text-primary" />
-                              <span>~/collections/{c.name.toLowerCase().replace(/\s+/g, "_")}</span>
-                            </div>
-                            
-                            <h4 className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
-                              {c.name}
-                            </h4>
-                            
-                            <p className="text-[10px] text-muted-foreground/50 leading-relaxed font-mono">
-                              {c.description || "No description provided."}
-                            </p>
-                          </div>
-
-                          <div className="mt-5 pt-3.5 border-t border-border/25 flex items-center justify-between text-[9px] select-none text-muted-foreground/35 font-mono">
-                            <span className="bg-primary/5 border border-primary/20 px-2 py-0.5 text-primary text-[8px] font-bold uppercase">
-                              {c.itemCount} items
-                            </span>
-                            <button
+                  {activeCollection ? (
+                    /* ── View Single Collection Detail ── */
+                    <div className="space-y-6">
+                      <div className="border border-border bg-card/35 backdrop-blur-md p-5 shadow-xl font-mono">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-4 mb-4">
+                          <button
+                            onClick={() => {
+                              playClick();
+                              setActiveCollection(null);
+                            }}
+                            className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline font-bold w-fit cursor-pointer"
+                          >
+                            <ArrowLeft className="h-3.5 w-3.5" />
+                            Back to all collections
+                          </button>
+                          <div className="flex items-center gap-2">
+                            {editingCollId !== activeCollection.id && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => startEditCollection(activeCollection)}
+                                className="font-mono text-[10px] uppercase h-7 px-2.5 border-border hover:border-primary/40 cursor-pointer"
+                              >
+                                <Pencil className="h-3 w-3 mr-1 text-primary" />
+                                Edit Details
+                              </Button>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
                               onClick={() => {
-                                playClick();
-                                deleteCollection(c.id);
+                                deleteCollection(activeCollection.id);
                               }}
-                              className="text-muted-foreground/20 hover:text-destructive transition-colors cursor-pointer p-1"
-                              title="Delete collection"
+                              className="font-mono text-[10px] uppercase h-7 px-2.5 border-destructive/30 hover:bg-destructive/10 text-destructive cursor-pointer"
                             >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
+                              <Trash2 className="h-3 w-3 mr-1" />
+                              Delete
+                            </Button>
                           </div>
                         </div>
-                      ))}
+
+                        {editingCollId === activeCollection.id ? (
+                          /* Edit Form inside detail view */
+                          <div className="space-y-3 p-4 border border-primary/20 bg-primary/5">
+                            <div className="text-[10px] uppercase tracking-wider font-bold text-primary flex items-center gap-1.5">
+                              <Pencil className="h-3.5 w-3.5" />
+                              <span>Edit Collection Details</span>
+                            </div>
+                            <div className="space-y-2">
+                              <Input
+                                value={editCollName}
+                                onChange={(e) => setEditCollName(e.target.value)}
+                                placeholder="Collection Title..."
+                                className="font-mono text-xs bg-background/50 border-primary/20"
+                              />
+                              <Input
+                                value={editCollDesc}
+                                onChange={(e) => setEditCollDesc(e.target.value)}
+                                placeholder="Collection Description (optional)..."
+                                className="font-mono text-xs bg-background/50 border-primary/20"
+                              />
+                            </div>
+                            <div className="flex gap-2 justify-end pt-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={cancelEditCollection}
+                                className="font-mono text-xs uppercase h-7 cursor-pointer"
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                size="sm"
+                                disabled={savingCollEdit || !editCollName.trim()}
+                                onClick={() => saveCollectionEdit(activeCollection.id)}
+                                className="font-mono text-xs uppercase h-7 cursor-pointer"
+                              >
+                                <Save className="h-3 w-3 mr-1" />
+                                Save Changes
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          /* Collection info display */
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-primary font-bold">
+                              <FolderOpen className="h-4 w-4" />
+                              <span>~/collections/{activeCollection.name.toLowerCase().replace(/\s+/g, "_")}</span>
+                            </div>
+                            <h3 className="text-lg font-bold text-foreground">{activeCollection.name}</h3>
+                            <p className="text-xs text-muted-foreground/70 leading-relaxed max-w-2xl">
+                              {activeCollection.description || "No description provided for this collection."}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Collection Items List */}
+                      <div className="border border-border bg-card/35 backdrop-blur-md shadow-xl font-mono">
+                        <div className="px-4 py-2.5 border-b border-border/40 bg-muted/15 flex items-center justify-between">
+                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground/45 font-bold flex items-center gap-1.5">
+                            <Library className="h-3.5 w-3.5 text-primary" />
+                            <span>Templates in this collection ({collectionItems.length})</span>
+                          </div>
+                        </div>
+
+                        {loadingCollItems ? (
+                          <div className="p-12 text-center text-xs text-muted-foreground/35 animate-pulse">
+                            Loading templates...
+                          </div>
+                        ) : collectionItems.length === 0 ? (
+                          <div className="p-12 text-center space-y-2 text-xs text-muted-foreground/35 select-none">
+                            <BookOpen className="h-8 w-8 mx-auto text-muted-foreground/15" />
+                            <p>No templates added to this collection yet.</p>
+                            <p className="text-[10px] text-muted-foreground/25 max-w-xs mx-auto">
+                              Visit any template page and use the Personalization panel to add templates to "{activeCollection.name}".
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="divide-y divide-border/25">
+                            {collectionItems.map((item) => (
+                              <div
+                                key={item.id}
+                                className="flex items-center justify-between px-4 py-3 hover:bg-primary/5 transition-colors group"
+                              >
+                                <Link
+                                  href={`/template/${item.templateSlug}`}
+                                  onClick={playClick}
+                                  className="flex items-center gap-2 text-xs font-bold text-foreground/80 group-hover:text-primary transition-colors flex-1"
+                                >
+                                  <Code className="h-3.5 w-3.5 text-primary/50 group-hover:text-primary" />
+                                  <span>{item.templateTitle}</span>
+                                  <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity ml-1" />
+                                </Link>
+                                <div className="flex items-center gap-3 text-[10px] text-muted-foreground/40">
+                                  <span className="hidden sm:inline">
+                                    Added {new Date(item.addedAt).toLocaleDateString()}
+                                  </span>
+                                  <button
+                                    onClick={() => removeItemFromCollection(activeCollection.id, item.templateId)}
+                                    className="text-muted-foreground/30 hover:text-destructive transition-colors p-1 cursor-pointer"
+                                    title="Remove from collection"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    /* ── All Collections Grid View ── */
+                    <div className="space-y-6">
+                      {/* Create Collection Form */}
+                      <div className="border border-border bg-card/35 backdrop-blur-md p-5 shadow-xl font-mono">
+                        <div className="text-[10px] uppercase tracking-widest text-muted-foreground/45 font-bold mb-3 flex items-center gap-1.5 select-none">
+                          <Plus className="h-3.5 w-3.5 text-primary" />
+                          <span>New Collection Setup</span>
+                        </div>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <Input
+                            value={newCollName}
+                            onChange={(e) => setNewCollName(e.target.value)}
+                            placeholder="Collection title (e.g., Graph Algorithms)..."
+                            className="font-mono text-xs bg-background/30 border-primary/15 focus:border-primary/40 placeholder:text-muted-foreground/25 flex-1"
+                          />
+                          <Input
+                            value={newCollDesc}
+                            onChange={(e) => setNewCollDesc(e.target.value)}
+                            placeholder="Description (optional)..."
+                            className="font-mono text-xs bg-background/30 border-primary/15 focus:border-primary/40 placeholder:text-muted-foreground/25 flex-1"
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") createCollection();
+                            }}
+                          />
+                          <Button
+                            onClick={createCollection}
+                            disabled={creatingColl || !newCollName.trim()}
+                            className="font-mono text-xs uppercase tracking-wider h-9 shrink-0 cursor-pointer"
+                          >
+                            <Plus className="h-3.5 w-3.5 mr-1" />
+                            Create
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Collections Card Grid */}
+                      {collections.length === 0 ? (
+                        <div className="border border-border bg-card/35 backdrop-blur-md p-16 text-center space-y-4 shadow-xl select-none font-mono">
+                          <FolderOpen className="h-8 w-8 text-muted-foreground/15 mx-auto" />
+                          <p className="text-xs text-muted-foreground/40 font-mono">No collections initialized yet.</p>
+                          <p className="text-[10px] text-muted-foreground/25 max-w-sm mx-auto leading-relaxed">
+                            Create a collection directory above. Group and organize custom templates easily.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="grid gap-4 sm:grid-cols-2 select-none font-mono">
+                          {collections.map((c) => (
+                            <div
+                              key={c.id}
+                              className="border border-border/80 bg-card/35 backdrop-blur-md p-4 flex flex-col justify-between hover:border-primary/50 transition-all duration-300 group shadow-md"
+                            >
+                              {editingCollId === c.id ? (
+                                /* Edit inline form */
+                                <div className="space-y-3">
+                                  <div className="text-[10px] uppercase tracking-wider font-bold text-primary flex items-center gap-1.5">
+                                    <Pencil className="h-3 w-3" />
+                                    <span>Edit Collection</span>
+                                  </div>
+                                  <Input
+                                    value={editCollName}
+                                    onChange={(e) => setEditCollName(e.target.value)}
+                                    placeholder="Collection Name..."
+                                    className="font-mono text-xs bg-background/50 border-primary/20"
+                                  />
+                                  <Input
+                                    value={editCollDesc}
+                                    onChange={(e) => setEditCollDesc(e.target.value)}
+                                    placeholder="Description (optional)..."
+                                    className="font-mono text-xs bg-background/50 border-primary/20"
+                                  />
+                                  <div className="flex gap-2 justify-end pt-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={cancelEditCollection}
+                                      className="font-mono text-[10px] uppercase h-7 px-2 cursor-pointer"
+                                    >
+                                      Cancel
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      disabled={savingCollEdit || !editCollName.trim()}
+                                      onClick={() => saveCollectionEdit(c.id)}
+                                      className="font-mono text-[10px] uppercase h-7 px-2 cursor-pointer"
+                                    >
+                                      <Save className="h-3 w-3 mr-1" />
+                                      Save
+                                    </Button>
+                                  </div>
+                                </div>
+                              ) : (
+                                /* Collection Card Body */
+                                <>
+                                  <div
+                                    className="space-y-2.5 cursor-pointer"
+                                    onClick={() => openCollection(c)}
+                                  >
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-wider text-primary/75 font-bold font-mono">
+                                        <FolderOpen className="h-3.5 w-3.5 text-primary" />
+                                        <span>~/collections/{c.name.toLowerCase().replace(/\s+/g, "_")}</span>
+                                      </div>
+                                      <span className="text-[9px] text-primary group-hover:underline flex items-center gap-1">
+                                        Open <ChevronRight className="h-3 w-3" />
+                                      </span>
+                                    </div>
+
+                                    <h4 className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
+                                      {c.name}
+                                    </h4>
+
+                                    <p className="text-[10px] text-muted-foreground/50 leading-relaxed font-mono line-clamp-2">
+                                      {c.description || "No description provided."}
+                                    </p>
+                                  </div>
+
+                                  <div className="mt-5 pt-3.5 border-t border-border/25 flex items-center justify-between text-[9px] select-none text-muted-foreground/35 font-mono">
+                                    <button
+                                      onClick={() => openCollection(c)}
+                                      className="bg-primary/5 border border-primary/20 px-2 py-0.5 text-primary text-[8px] font-bold uppercase hover:bg-primary/10 transition-colors cursor-pointer"
+                                    >
+                                      {Number(c.itemCount || 0)} items
+                                    </button>
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        onClick={(e) => startEditCollection(c, e)}
+                                        className="text-muted-foreground/30 hover:text-primary transition-colors cursor-pointer p-1"
+                                        title="Rename or edit description"
+                                      >
+                                        <Pencil className="h-3.5 w-3.5" />
+                                      </button>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          playClick();
+                                          deleteCollection(c.id);
+                                        }}
+                                        className="text-muted-foreground/20 hover:text-destructive transition-colors cursor-pointer p-1"
+                                        title="Delete collection"
+                                      >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
