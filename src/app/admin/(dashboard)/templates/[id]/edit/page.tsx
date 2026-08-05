@@ -119,12 +119,22 @@ export default function EditTemplate({ params }: { params: Promise<{ id: string 
       const { id } = await params;
       if (cancelled) return;
       setTemplateId(Number(id));
+      const fetchJson = async (url: string) => {
+        try {
+          const r = await fetch(url);
+          if (!r.ok) return null;
+          const text = await r.text();
+          return text ? JSON.parse(text) : null;
+        } catch {
+          return null;
+        }
+      };
       const [cats, template] = await Promise.all([
-        fetch("/api/admin/categories").then((r) => r.json()),
-        fetch(`/api/admin/templates?id=${id}`).then((r) => r.json()),
+        fetchJson("/api/admin/categories"),
+        fetchJson(`/api/admin/templates?id=${id}`),
       ]);
       if (cancelled) return;
-      setCategories(cats);
+      setCategories(Array.isArray(cats) ? cats : []);
       if (template && !template.error) {
         // Load notes from .md file if exists, fallback to database
         let notesContent = template.notes || "";

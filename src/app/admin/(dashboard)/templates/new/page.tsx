@@ -86,7 +86,15 @@ export default function NewTemplate() {
   const [formattingIdx, setFormattingIdx] = useState<number | null>(null);
 
   const fetchCategories = useCallback(() => {
-    fetch("/api/admin/categories").then((r) => r.json()).then(setCategories);
+    fetch("/api/admin/categories")
+      .then((r) => (r.ok ? r.text() : ""))
+      .then((t) => {
+        const data = t ? JSON.parse(t) : [];
+        setCategories(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        // ignore — categories load is non-critical
+      });
   }, []);
 
   const handleJsonImport = (e: React.ChangeEvent<HTMLInputElement>) => {
