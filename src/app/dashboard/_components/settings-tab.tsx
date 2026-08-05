@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Settings, Calendar, Copy, Terminal, User, Lock, Sparkles, Image as ImageIcon } from "lucide-react";
+import { Settings, Calendar, Copy, Terminal, User, Lock, Sparkles, Image as ImageIcon, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Profile } from "./types";
+import { useUploadThing } from "@/lib/uploadthing";
+import { toast } from "sonner";
 
 interface SettingsTabProps {
   displayName: string;
@@ -65,6 +67,47 @@ export function SettingsTab({
   const [verifyingPlatform, setVerifyingPlatform] = useState<string | null>(null);
   const [verifyInputVal, setVerifyInputVal] = useState("");
   const [isCheckingVerify, setIsCheckingVerify] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+
+  const { startUpload } = useUploadThing("avatarUploader", {
+    onClientUploadComplete: (res) => {
+      setIsUploading(false);
+      setUploadProgress(100);
+      if (res?.[0]?.url) {
+        setAvatarUrl(res[0].url);
+        toast.success("Avatar image uploaded successfully! (< 1MB)");
+      }
+    },
+    onUploadError: (error: Error) => {
+      setIsUploading(false);
+      toast.error(`Upload error: ${error.message}`);
+    },
+    onUploadProgress: (p: number) => {
+      setUploadProgress(p);
+    },
+  });
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 1024 * 1024) {
+      toast.error("File size exceeds 1MB limit. Please select a smaller image.");
+      e.target.value = "";
+      return;
+    }
+
+    // Rename file using user's username
+    const ext = file.name.split(".").pop() || "png";
+    const cleanUsername = username ? username.toLowerCase().replace(/[^a-z0-9_-]/g, "_") : "user";
+    const renamedFile = new File([file], `${cleanUsername}_avatar.${ext}`, { type: file.type });
+
+    setIsUploading(true);
+    setUploadProgress(10);
+    await startUpload([renamedFile]);
+    e.target.value = "";
+  };
 
   const handleVerify = async (platform: string) => {
     if (!verifyInputVal.trim()) return;
@@ -88,42 +131,104 @@ export function SettingsTab({
         <div className="p-5 space-y-5">
           {/* Avatar Section */}
           <div className="space-y-3">
-            <Label className="text-[10.5px] uppercase tracking-widest text-foreground font-extrabold flex items-center gap-1.5">
+            <Label className="text-[10.5px] uppercase tracking-widest text-foreground font-extrabold flex items-center gap-1.5 select-none">
               <ImageIcon className="h-3.5 w-3.5 text-primary" />
               <span>Profile Avatar</span>
             </Label>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              <div className="relative h-16 w-16 border-2 border-primary/40 bg-primary/10 overflow-hidden shrink-0 flex items-center justify-center">
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
-                ) : (
-                  <User className="h-8 w-8 text-primary" />
-                )}
-              </div>
-              <div className="space-y-2 flex-1 w-full">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[9.5px] text-muted-foreground/50 uppercase font-bold">Presets:</span>
-                  {PRESET_AVATARS.map((preset) => (
-                    <button
-                      key={preset.name}
-                      onClick={() => {
-                        playClick();
-                        setAvatarUrl(preset.url);
-                      }}
-                      className={`px-2 py-0.5 text-[9px] border uppercase font-bold transition-colors cursor-pointer ${
-                        avatarUrl === preset.url
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border/40 text-muted-foreground/50 hover:text-foreground"
-                      }`}
-                    >
-                      {preset.name}
-                    </button>
-                  ))}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+              {/* Interactive Avatar Frame with Hover Camera Overlay */}
+              <div className="relative group cursor-pointer shrink-0 select-none">
+                <div className="relative h-20 w-20 border-2 border-primary/40 bg-primary/10 overflow-hidden flex items-center justify-center transition-all group-hover:border-primary">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+                  ) : (
+                    <User className="h-10 w-10 text-primary" />
+                  )}
+
+                  {/* Hover Camera Overlay */}
+                  <label className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-center p-1">
+                    <Upload className="h-4 w-4 text-primary animate-bounce mb-1" />
+                    <span className="text-[8.5px] font-bold uppercase text-primary tracking-wider">Upload Avatar</span>
+                    <span className="text-[7.5px] text-muted-foreground/60">(&lt; 1MB)</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileSelect}
+                      disabled={isUploading}
+                      className="hidden"
+                    />
+                  </label>
                 </div>
+              </div>
+
+              {/* Controls & Progress Section */}
+              <div className="space-y-3 flex-1 w-full font-mono">
+                <div className="flex items-center gap-3 flex-wrap">
+                  {/* Custom Upload Button */}
+                  <label className={`inline-flex items-center gap-2 px-3.5 py-2 border text-[10.5px] font-bold uppercase tracking-wider font-mono cursor-pointer transition-all select-none ${
+                    isUploading
+                      ? "border-warning/50 bg-warning/10 text-warning cursor-not-allowed"
+                      : "border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary hover:border-primary shadow-[0_0_12px_rgba(var(--primary-rgb),0.15)]"
+                  }`}>
+                    <Upload className={`h-3.5 w-3.5 ${isUploading ? "animate-spin" : ""}`} />
+                    <span>{isUploading ? `Uploading ${uploadProgress}%` : "Upload Image (< 1MB)"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileSelect}
+                      disabled={isUploading}
+                      className="hidden"
+                    />
+                  </label>
+
+                  <span className="text-[9.5px] text-muted-foreground/40 uppercase font-bold select-none">— OR —</span>
+
+                  {/* Preset Selector */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[9.5px] text-muted-foreground/50 uppercase font-bold select-none">Presets:</span>
+                    {PRESET_AVATARS.map((preset) => (
+                      <button
+                        key={preset.name}
+                        onClick={() => {
+                          playClick();
+                          setAvatarUrl(preset.url);
+                        }}
+                        className={`px-2 py-1 text-[9px] border uppercase font-bold transition-colors cursor-pointer ${
+                          avatarUrl === preset.url
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border/40 text-muted-foreground/50 hover:text-foreground"
+                        }`}
+                      >
+                        {preset.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Upload Progress Bar (when uploading) */}
+                {isUploading && (
+                  <div className="space-y-1 bg-background/40 p-2.5 border border-primary/30 animate-pulse">
+                    <div className="flex justify-between text-[9.5px] font-mono text-primary uppercase font-bold select-none">
+                      <span className="flex items-center gap-1">
+                        <Terminal className="h-3 w-3 animate-spin" />
+                        <span>UPLOADING_AVATAR_IMAGE...</span>
+                      </span>
+                      <span>{uploadProgress}%</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-primary/10 overflow-hidden">
+                      <div
+                        className="h-full bg-primary shadow-[0_0_8px_var(--primary-glow)] transition-all duration-300"
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Custom URL Input */}
                 <Input
                   value={avatarUrl}
                   onChange={(e) => setAvatarUrl(e.target.value)}
-                  placeholder="Or enter custom image URL (https://...)..."
+                  placeholder="Or paste custom image URL (https://...)..."
                   className="font-mono text-xs bg-background/40 border-primary/20 focus:border-primary/50 placeholder:text-muted-foreground/30 h-9"
                 />
               </div>
