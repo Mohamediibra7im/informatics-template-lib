@@ -24,10 +24,11 @@ import {
   ArrowUp,
   Compass,
   Library,
-  CheckCircle2,
   Award,
   Activity,
   Globe,
+  UserCircle,
+  Image as ImageIcon,
 } from "lucide-react";
 import { useTerminalTheme } from "@/components/theme-provider";
 
@@ -53,6 +54,7 @@ const sections: Section[] = [
   { id: "contributing", label: "Contributing", icon: <GitPullRequest className="h-3.5 w-3.5" />, cmd: "git push origin contribution" },
   { id: "contest-calendar", label: "Contest Calendar", icon: <Calendar className="h-3.5 w-3.5" />, cmd: "cron contests --watch" },
   { id: "cp-profiles", label: "CP Profiles", icon: <Trophy className="h-3.5 w-3.5" />, cmd: "whoami --cf-stats" },
+  { id: "public-profile", label: "Public Profile", icon: <UserCircle className="h-3.5 w-3.5" />, cmd: "cat ~/profile/public.json" },
   { id: "settings", label: "Settings & Preferences", icon: <Settings className="h-3.5 w-3.5" />, cmd: "nano ~/.cp-base/config" },
 ];
 
@@ -429,6 +431,7 @@ export default function DocsPage() {
                   <FeatureRow icon={<Heart className="h-3.5 w-3.5" />} title="Liked Templates" desc="Like templates to build a personal favorites list visible in your dashboard." />
                   <FeatureRow icon={<GitPullRequest className="h-3.5 w-3.5" />} title="Contributions" desc="Submit new templates or suggest edits to existing ones for admin review." />
                   <FeatureRow icon={<Trophy className="h-3.5 w-3.5" />} title="CP Profiles" desc="Link your Codeforces, AtCoder, LeetCode, and CodeChef handles for rating tracking." />
+                  <FeatureRow icon={<UserCircle className="h-3.5 w-3.5" />} title="Public Profile" desc="A shareable profile page with your avatar, display name, bio, linked handles, and CP stats." />
                 </div>
 
                 <div className="border border-border/40 bg-background/30 p-4">
@@ -753,13 +756,72 @@ export default function DocsPage() {
               </div>
             </section>
 
-            {/* ━━━ 13. Settings & Preferences ━━━ */}
+            {/* ━━━ 13. Public Profile ━━━ */}
+            <section
+              id="public-profile"
+              ref={(el) => { sectionRefs.current["public-profile"] = el; }}
+              className="border border-border bg-card/35 backdrop-blur-md p-5 sm:p-7 shadow-xl animate-fade-in"
+            >
+              <SectionHeader section={sections[12]} />
+              <div className="text-[11px] sm:text-xs text-muted-foreground/60 leading-relaxed space-y-4">
+                <p>
+                  Every account has a <strong className="text-foreground">public profile page</strong> at
+                  {" "}<code className="text-primary/80">/profile/&lt;username&gt;</code>. It&apos;s a shareable
+                  card that shows who you are and what you work on — no login required to view it.
+                </p>
+
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <FeatureRow
+                    icon={<ImageIcon className="h-3.5 w-3.5" />}
+                    title="Avatar Upload"
+                    desc="Upload a profile picture (image, up to 1MB). Replacing it automatically cleans up the old file."
+                  />
+                  <FeatureRow
+                    icon={<UserCircle className="h-3.5 w-3.5" />}
+                    title="Display Name"
+                    desc="Set a friendly display name shown on your profile and used to credit your contributions."
+                  />
+                  <FeatureRow
+                    icon={<BookOpen className="h-3.5 w-3.5" />}
+                    title="Bio"
+                    desc="Add a short bio to tell visitors about yourself, your goals, or your favorite topics."
+                  />
+                  <FeatureRow
+                    icon={<Trophy className="h-3.5 w-3.5" />}
+                    title="Linked Handles & Stats"
+                    desc="Your public profile surfaces your linked CP handles and rating stats alongside your identity."
+                  />
+                </div>
+
+                <div className="border border-border/40 bg-background/30 p-4">
+                  <div className="text-[10px] text-primary font-bold uppercase tracking-wider mb-2">How to Edit Your Profile</div>
+                  <StepList steps={[
+                    "Go to Dashboard → Preferences tab.",
+                    "Upload an avatar, set your display name, and write a bio.",
+                    "Link your CP handles and rating goal (see CP Profiles above).",
+                    "Changes save to your profile and appear at /profile/<your-username>.",
+                  ]} />
+                </div>
+
+                <p>
+                  Contributor chips on template pages link straight to the contributor&apos;s public profile, so
+                  approved authors and editors are one click away from their profile.
+                </p>
+
+                <Tip>
+                  Your profile page is <strong>public</strong> — anyone with the link can view your avatar, name,
+                  bio, handles, and stats. Keep the bio to what you&apos;re happy to share publicly.
+                </Tip>
+              </div>
+            </section>
+
+            {/* ━━━ 14. Settings & Preferences ━━━ */}
             <section
               id="settings"
               ref={(el) => { sectionRefs.current["settings"] = el; }}
               className="border border-border bg-card/35 backdrop-blur-md p-5 sm:p-7 shadow-xl animate-fade-in"
             >
-              <SectionHeader section={sections[12]} />
+              <SectionHeader section={sections[13]} />
               <div className="text-[11px] sm:text-xs text-muted-foreground/60 leading-relaxed space-y-4">
                 <p>
                   CP-Base offers several customization options to tailor the experience to your preferences:
@@ -768,8 +830,8 @@ export default function DocsPage() {
                 <div className="grid sm:grid-cols-2 gap-3">
                   <FeatureRow
                     icon={<Settings className="h-3.5 w-3.5" />}
-                    title="Theme Customization"
-                    desc="Open the theme panel (gear icon in the bottom-right corner) to adjust the primary accent color, choosing from preset terminal themes."
+                    title="Retro Effects"
+                    desc="Open the effects panel (gear icon in the bottom-right corner) to toggle terminal sound FX and the animated matrix background on or off."
                   />
                   <FeatureRow
                     icon={<Activity className="h-3.5 w-3.5" />}
@@ -789,7 +851,7 @@ export default function DocsPage() {
                 </div>
 
                 <Tip>
-                  Look for the small gear icon floating in the bottom-right corner of any page. That opens the theme customization panel where you can switch accent colors and toggle all display preferences.
+                  Look for the small gear icon floating in the bottom-right corner of any page. That opens the effects panel where you can toggle sound FX, the matrix background, and all display preferences.
                 </Tip>
               </div>
             </section>
