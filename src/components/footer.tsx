@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Terminal, Braces, Library, Heart, Globe, Cpu, Wifi, Code, Clock, ShieldAlert } from "lucide-react";
+import { Terminal, Braces, Library, Heart, Globe, Cpu, Wifi, Code, Clock, ShieldAlert, BookOpen } from "lucide-react";
 import { useTerminalTheme } from "./theme-provider";
 
 export function Footer() {
@@ -93,6 +93,14 @@ export function Footer() {
               >
                 <Library className="h-3.5 w-3.5 text-muted-foreground/20 group-hover:text-primary transition-colors" />
                 <span>templates_all/</span>
+              </Link>
+              <Link
+                href="/docs"
+                onClick={playClick}
+                className="flex items-center gap-2 text-[11px] text-muted-foreground/40 hover:text-primary transition-all w-fit group"
+              >
+                <BookOpen className="h-3.5 w-3.5 text-muted-foreground/20 group-hover:text-primary transition-colors" />
+                <span>docs/</span>
               </Link>
             </nav>
           </div>

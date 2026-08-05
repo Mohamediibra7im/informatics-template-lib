@@ -1,6 +1,6 @@
 import { getDb, schema } from "@/db";
 import { eq, sql, and } from "drizzle-orm";
-import { Terminal, Code2, Calendar, Trophy, ArrowRight, Play, TerminalSquare, Compass } from "lucide-react";
+import { Terminal, Code2, Calendar, Trophy, ArrowRight, Play, TerminalSquare, Compass, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { ContestCalendar } from "@/components/contest-calendar";
 import { AnimateOnMount } from "@/components/animate-on-mount";
@@ -99,21 +99,30 @@ export default async function Home() {
             <CliBanner />
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <div className="flex flex-col gap-3 pt-2">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link
+                  href="/categories"
+                  className="group inline-flex h-11 items-center justify-center gap-2 border border-primary bg-primary text-primary-foreground px-8 text-xs uppercase font-bold tracking-wider hover:bg-transparent hover:text-primary transition-all duration-300 shadow-[0_0_15px_var(--primary-glow-weak)] hover:shadow-[0_0_25px_var(--primary-glow)] shrink-0 font-mono"
+                >
+                  <Compass className="h-4 w-4" />
+                  <span>Explore Categories</span>
+                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+                <Link
+                  href="/templates"
+                  className="inline-flex h-11 items-center justify-center gap-2 border border-border bg-card/45 px-6 text-xs uppercase font-bold tracking-wider hover:border-primary/40 text-muted-foreground hover:text-foreground transition-all duration-300 font-mono"
+                >
+                  <Terminal className="h-4 w-4" />
+                  <span>All Templates</span>
+                </Link>
+              </div>
               <Link
-                href="/categories"
-                className="group inline-flex h-11 items-center justify-center gap-2 border border-primary bg-primary text-primary-foreground px-8 text-xs uppercase font-bold tracking-wider hover:bg-transparent hover:text-primary transition-all duration-300 shadow-[0_0_15px_var(--primary-glow-weak)] hover:shadow-[0_0_25px_var(--primary-glow)] shrink-0 font-mono"
+                href="/docs"
+                className="inline-flex h-11 items-center justify-center gap-2 border border-border bg-card/45 px-6 text-xs uppercase font-bold tracking-wider hover:border-info/40 text-muted-foreground hover:text-info transition-all duration-300 font-mono w-fit"
               >
-                <Compass className="h-4 w-4" />
-                <span>Explore Categories</span>
-                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-              </Link>
-              <Link
-                href="/templates"
-                className="inline-flex h-11 items-center justify-center gap-2 border border-border bg-card/45 px-6 text-xs uppercase font-bold tracking-wider hover:border-primary/40 text-muted-foreground hover:text-foreground transition-all duration-300 font-mono"
-              >
-                <Terminal className="h-4 w-4" />
-                <span>All Templates</span>
+                <BookOpen className="h-4 w-4" />
+                <span>Read the Docs</span>
               </Link>
             </div>
           </div>
