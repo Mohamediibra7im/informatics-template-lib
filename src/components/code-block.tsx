@@ -19,7 +19,7 @@ function getHighlighter() {
   if (!highlighterPromise) {
     highlighterPromise = createHighlighter({
       langs: ["cpp", "python", "java", "rust", "go", "javascript"],
-      themes: ["github-dark", "github-light"],
+      themes: ["github-dark"],
     });
   }
   return highlighterPromise;
@@ -35,17 +35,15 @@ export function CodeBlock({ code: originalCode, language, templateId }: { code: 
   }, [originalCode]);
   const [html, setHtml] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [activeLine, setActiveLine] = useState<number | null>(null);
 
-  const lines = useMemo(() => code.split("\n"), [code]);
+  const lineCount = useMemo(() => code.split("\n").length, [code]);
 
   useEffect(() => {
     const lang = langMap[language] || "cpp";
     getHighlighter().then((hl) => {
-      const isDark = document.documentElement.classList.contains("dark");
       let themed = hl.codeToHtml(code, {
         lang,
-        theme: isDark ? "github-dark" : "github-light",
+        theme: "github-dark",
       });
       themed = themed.replace(/(<span class="line"><\/span>\s*)+(<\/code>)/, "$2");
       setHtml(themed);
@@ -98,44 +96,38 @@ export function CodeBlock({ code: originalCode, language, templateId }: { code: 
         </button>
       </div>
 
-      {/* Code area */}
-      <div className="flex overflow-x-auto">
-        {/* Line numbers — gutter style */}
-        <div className="shrink-0 py-3 pl-3 pr-1 select-none border-r border-border/50 bg-muted/10">
-          {lines.map((_, i) => (
-            <div
-              key={i}
-              className={`leading-[1.75] text-[11px] text-right pr-2 cursor-pointer transition-colors ${
-                activeLine === i
-                  ? "text-primary"
-                  : "text-muted-foreground/20 hover:text-muted-foreground/50"
-              }`}
-              onMouseEnter={() => setActiveLine(i)}
-              onMouseLeave={() => setActiveLine(null)}
-            >
-              {String(i + 1).padStart(2, "0")}
-            </div>
-          ))}
-        </div>
-
-        {/* Code */}
-        <div className="flex-1 min-w-0 overflow-x-auto py-3 px-4">
-          {html ? (
-            <div
-              className="[&_pre]:!bg-transparent [&_code]:!bg-transparent text-[12px]"
-              dangerouslySetInnerHTML={{ __html: html }}
-            />
-          ) : (
-            <pre className="text-[12px] text-foreground/80">
-              <code>{code}</code>
-            </pre>
-          )}
-        </div>
+      {/* Code area — line numbers ride shiki's own .line spans via CSS
+          counters, so the gutter can never drift out of sync with the code. */}
+      <style>{`
+        .cb-code code { counter-reset: cb-line; }
+        .cb-code .line { counter-increment: cb-line; }
+        .cb-code .line::before {
+          content: counter(cb-line, decimal-leading-zero);
+          display: inline-block;
+          width: 3ch;
+          margin-right: 1.5rem;
+          text-align: right;
+          color: var(--muted-foreground);
+          opacity: 0.25;
+          user-select: none;
+        }
+      `}</style>
+      <div className="overflow-x-auto py-3 px-4">
+        {html ? (
+          <div
+            className="cb-code text-[12px] [&_pre]:!bg-transparent [&_code]:!bg-transparent"
+            dangerouslySetInnerHTML={{ __html: html }}
+          />
+        ) : (
+          <pre className="text-[12px] text-foreground/80">
+            <code>{code}</code>
+          </pre>
+        )}
       </div>
 
       {/* Bottom status bar */}
       <div className="flex items-center justify-between px-4 py-1 border-t border-border/50 bg-muted/20 text-[10px] text-muted-foreground/30">
-        <span>{lines.length} lines</span>
+        <span>{lineCount} lines</span>
         <span>utf-8</span>
       </div>
     </div>
