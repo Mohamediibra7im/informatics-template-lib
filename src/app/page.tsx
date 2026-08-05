@@ -61,8 +61,6 @@ export default async function Home() {
         <div className="absolute top-[-10%] left-[10%] w-[500px] h-[500px] rounded-full bg-primary/4 blur-[130px] animate-glow-pulse" />
         <div className="absolute top-[20%] right-[15%] w-[450px] h-[450px] rounded-full bg-info/4 blur-[120px] animate-glow-pulse-light" />
         <div className="absolute bottom-[10%] left-[20%] w-[600px] h-[600px] rounded-full bg-success/3 blur-[140px] animate-glow-pulse" />
-        {/* Retro Grid Background */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-85" />
       </div>
 
       {/* 2. Premium Landing Hero Area */}

@@ -70,7 +70,7 @@ export function CodeBlocksEditor({
             onChange={(e) => onCodeChange(index, e.target.value)}
             placeholder="Paste your code here..."
             rows={12}
-            className="w-full bg-black/30 border border-border/40 text-xs font-mono px-3 py-2.5 outline-none transition-colors resize-y text-foreground/90 leading-relaxed"
+            className="w-full bg-foreground/5 dark:bg-black/30 border border-border/40 text-xs font-mono px-3 py-2.5 outline-none transition-colors resize-y text-foreground/90 leading-relaxed"
             spellCheck={false}
           />
         </div>

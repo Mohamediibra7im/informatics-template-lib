@@ -7,7 +7,7 @@ import { useTerminalTheme } from "./theme-provider";
 
 export function Footer() {
   const year = new Date().getFullYear();
-  const { playClick, theme } = useTerminalTheme();
+  const { playClick } = useTerminalTheme();
   const [time, setTime] = useState<string>("");
   const [cpuUsage, setCpuUsage] = useState<number>(45);
 
@@ -62,7 +62,7 @@ export function Footer() {
             </p>
 
             {/* Server Alert Message of the Day */}
-            <div className="border border-border/60 bg-background/50 p-2.5 flex items-start gap-2.5 max-w-xs shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]">
+            <div className="border border-border/60 bg-background/50 p-2.5 flex items-start gap-2.5 max-w-xs dark:shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]">
               <ShieldAlert className="h-4 w-4 text-warning shrink-0 mt-0.5 animate-pulse" />
               <div className="text-[9px] text-muted-foreground/45 space-y-0.5">
                 <span className="text-warning font-bold uppercase tracking-wider">[MOTD ALERT]</span>
@@ -99,7 +99,7 @@ export function Footer() {
 
           {/* Sci-Fi Server System Monitor Pane */}
           <div className="md:col-span-4 space-y-3">
-            <div className="w-full border border-border/80 bg-background/60 shadow-[inset_0_0_20px_rgba(0,0,0,0.7)]">
+            <div className="w-full border border-border/80 bg-background/60 dark:shadow-[inset_0_0_20px_rgba(0,0,0,0.7)]">
               {/* Window Title Header */}
               <div className="flex items-center justify-between border-b border-border/40 px-3 py-1 bg-muted/10 text-[9px] text-muted-foreground/35 uppercase select-none">
                 <div className="flex items-center gap-1.5">
@@ -117,7 +117,7 @@ export function Footer() {
                     <span>CPU LOAD</span>
                     <span className="text-primary/70 font-bold">{cpuUsage}%</span>
                   </div>
-                  <div className="border border-border/50 p-0.5 bg-black/40 flex text-[9px]">
+                  <div className="border border-border/50 p-0.5 bg-foreground/5 dark:bg-black/40 flex text-[9px]">
                     {(() => {
                       const totalBlocks = 15;
                       const activeBlocks = Math.round((cpuUsage / 100) * totalBlocks);
@@ -135,7 +135,7 @@ export function Footer() {
                     <span>MEMORY UTILS</span>
                     <span className="text-info font-bold">128MB / 512MB</span>
                   </div>
-                  <div className="border border-border/50 p-0.5 bg-black/40 flex text-[9px]">
+                  <div className="border border-border/50 p-0.5 bg-foreground/5 dark:bg-black/40 flex text-[9px]">
                     <span className="text-info tracking-tighter">
                       {"████░░░░░░░░░░░"}
                     </span>
@@ -163,7 +163,7 @@ export function Footer() {
             </div>
             <div className="flex items-center gap-1.5">
               <Code className="h-3 w-3 text-muted-foreground/20" />
-              <span>theme: {theme}</span>
+              <span>mode: dark</span>
             </div>
             {time && (
               <div className="flex items-center gap-1.5 animate-pulse">
