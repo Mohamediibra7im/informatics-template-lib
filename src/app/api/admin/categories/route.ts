@@ -28,7 +28,7 @@ export async function POST(request: Request) {
   }).returning();
 
   revalidatePath("/");
-  revalidatePath("/category/[slug]");
+  revalidatePath("/category/[slug]", "page");
 
   return NextResponse.json(category, { status: 201 });
 }
@@ -51,7 +51,7 @@ export async function PUT(request: Request) {
     .where(eq(categories.id, body.id));
 
   revalidatePath("/");
-  revalidatePath("/category/[slug]");
+  revalidatePath("/category/[slug]", "page");
 
   return NextResponse.json({ success: true });
 }

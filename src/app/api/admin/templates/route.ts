@@ -62,8 +62,8 @@ export async function POST(request: Request) {
   }
 
   revalidatePath("/");
-  revalidatePath("/category/[slug]");
-  revalidatePath("/template/[slug]");
+  revalidatePath("/category/[slug]", "page");
+  revalidatePath("/template/[slug]", "page");
 
   return NextResponse.json(template, { status: 201 });
 }
@@ -105,8 +105,8 @@ export async function PUT(request: Request) {
   }
 
   revalidatePath("/");
-  revalidatePath("/category/[slug]");
-  revalidatePath("/template/[slug]");
+  revalidatePath("/category/[slug]", "page");
+  revalidatePath("/template/[slug]", "page");
 
   return NextResponse.json({ success: true });
 }
@@ -122,7 +122,7 @@ export async function DELETE(request: Request) {
   await db.delete(schema.templates).where(eq(schema.templates.id, Number(id)));
 
   revalidatePath("/");
-  revalidatePath("/category/[slug]");
+  revalidatePath("/category/[slug]", "page");
 
   return NextResponse.json({ success: true });
 }
