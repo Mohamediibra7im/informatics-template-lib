@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Terminal, X, Search } from "lucide-react";
 import { toast } from "sonner";
@@ -59,6 +59,34 @@ export default function ContributeEditPage() {
       })
       .catch(() => {});
   }, []);
+
+  // Pre-fill from a prior edit request when an admin requested changes
+  // (?resubmit=<id>). Restores the contributor's own edit, not the template's
+  // current state. Waits for templates so the target can be selected.
+  const prefilledRef = useRef(false);
+  useEffect(() => {
+    if (prefilledRef.current || templates.length === 0) return;
+    const resubmitId = new URLSearchParams(window.location.search).get("resubmit");
+    if (!resubmitId) return;
+    prefilledRef.current = true;
+    fetch(`/api/users/contributions/${resubmitId}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((c) => {
+        if (!c || c.type !== "edit") return;
+        const tpl = templates.find((t) => t.id === c.templateId);
+        if (tpl) {
+          setSelectedTemplate(tpl);
+          if (tpl.categoryId != null) setSelectedCategoryId(tpl.categoryId);
+        }
+        setEditReason(c.editReason ?? "");
+        setEditNotes(c.editNotes ?? tpl?.notes ?? "");
+        if (Array.isArray(c.editCodes) && c.editCodes.length > 0) setEditCodes(c.editCodes);
+        else if (tpl?.codes?.length) setEditCodes(tpl.codes.map((cc) => ({ language: cc.language, code: cc.code })));
+        if (c.contributorCfHandle) setCfHandle(c.contributorCfHandle);
+        toast.info("Loaded your previous edit request for revision.");
+      })
+      .catch(() => {});
+  }, [templates]);
 
   const filteredTemplates = templates.filter((t) => {
     if (selectedCategoryId !== "" && t.categoryId !== Number(selectedCategoryId)) {

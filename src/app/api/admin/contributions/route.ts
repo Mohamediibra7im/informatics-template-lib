@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getDb, schema } from "@/db";
 import { eq, and, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { sendApprovalEmail, sendRejectionEmail } from "@/lib/email";
+import { sendApprovalEmail, sendRejectionEmail, sendChangesRequestedEmail } from "@/lib/email";
 import { snapshotTemplate } from "@/lib/template-history";
 
 export async function GET() {
@@ -127,8 +127,12 @@ export async function PUT(request: Request) {
   const body = await request.json();
   const { id, action, adminNote } = body;
 
-  if (!id || !["approve", "reject"].includes(action)) {
+  if (!id || !["approve", "reject", "request_changes"].includes(action)) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+
+  if (action === "request_changes" && !adminNote?.trim()) {
+    return NextResponse.json({ error: "A message describing the requested changes is required" }, { status: 400 });
   }
 
   const [contribution] = await db
@@ -295,6 +299,28 @@ export async function PUT(request: Request) {
 
       return NextResponse.json({ message: "Edit approved and applied" });
     }
+  }
+
+  if (action === "request_changes") {
+    await db
+      .update(schema.contributions)
+      .set({ status: "changes_requested", adminNote: adminNote.trim(), reviewedAt: new Date() })
+      .where(eq(schema.contributions.id, Number(id)));
+
+    try {
+      await sendChangesRequestedEmail(
+        contribution.contributorEmail,
+        contribution.contributorName,
+        contribution.title || (contribution.type === "edit" ? "Edit Request" : "Untitled"),
+        adminNote.trim(),
+        contribution.type as "new" | "edit",
+        contribution.id
+      );
+    } catch (e) {
+      console.error("Failed to send changes-requested email:", e);
+    }
+
+    return NextResponse.json({ message: "Changes requested" });
   }
 
   if (action === "reject") {

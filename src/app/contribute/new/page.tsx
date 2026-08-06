@@ -46,6 +46,28 @@ export default function ContributeNewPage() {
       .catch(() => {});
   }, []);
 
+  // Pre-fill from a prior submission when an admin requested changes
+  // (?resubmit=<id>). Owner + status are enforced server-side.
+  useEffect(() => {
+    const resubmitId = new URLSearchParams(window.location.search).get("resubmit");
+    if (!resubmitId) return;
+    fetch(`/api/users/contributions/${resubmitId}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((c) => {
+        if (!c || c.type !== "new") return;
+        setTitle(c.title ?? "");
+        setCategoryId(c.categoryId ?? "");
+        setDescription(c.description ?? "");
+        setTags(Array.isArray(c.tags) ? c.tags.join(", ") : "");
+        setComplexity(c.complexity ?? "");
+        setNotes(c.notes ?? "");
+        if (Array.isArray(c.codes) && c.codes.length > 0) setCodes(c.codes);
+        if (c.contributorCfHandle) setCfHandle(c.contributorCfHandle);
+        toast.info("Loaded your previous submission for revision.");
+      })
+      .catch(() => {});
+  }, []);
+
   const addCodeBlock = () => {
     playClick();
     setCodes((prev) => [...prev, { language: "cpp", code: "" }]);

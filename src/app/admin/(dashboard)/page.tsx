@@ -42,7 +42,7 @@ interface Category {
 interface Contribution {
   id: number;
   type: "new" | "edit";
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "approved" | "rejected" | "changes_requested";
   contributorName: string;
   contributorEmail: string;
   contributorCfHandle: string | null;
@@ -164,9 +164,10 @@ export default function AdminDashboard() {
   // Contributions State
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [loadingContributions, setLoadingContributions] = useState(true);
-  const [contribFilter, setContribFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
+  const [contribFilter, setContribFilter] = useState<"all" | "pending" | "approved" | "rejected" | "changes_requested">("all");
   const [expandedContribution, setExpandedContribution] = useState<number | null>(null);
   const [rejectModal, setRejectModal] = useState<{ id: number; adminNote: string } | null>(null);
+  const [requestChangesModal, setRequestChangesModal] = useState<{ id: number; adminNote: string } | null>(null);
   const [deleteContribTarget, setDeleteContribTarget] = useState<Contribution | null>(null);
 
   const { playClick, playBeep, playSuccess } = useTerminalTheme();
@@ -683,6 +684,32 @@ export default function AdminDashboard() {
     }
   };
 
+  const confirmRequestChanges = async () => {
+    if (!requestChangesModal) return;
+    const note = requestChangesModal.adminNote.trim();
+    if (!note) {
+      playBeep(440, 0.15);
+      toast.error("Describe the changes you want before sending");
+      return;
+    }
+    playClick();
+    const { id } = requestChangesModal;
+    setRequestChangesModal(null);
+    const res = await fetch("/api/admin/contributions", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, action: "request_changes", adminNote: note }),
+    });
+    if (res.ok) {
+      playSuccess();
+      toast.success("Changes requested — contributor notified by email");
+      fetchContributions();
+    } else {
+      playBeep(440, 0.15);
+      toast.error("Failed to request changes");
+    }
+  };
+
   const confirmDeleteContribution = async () => {
     if (!deleteContribTarget) return;
     playClick();
@@ -1054,7 +1081,7 @@ export default function AdminDashboard() {
       {activeTab === "users" && <UsersTab users={users} loading={loadingUsers} onDelete={(u) => { playBeep(330, 0.25); setDeleteUserTarget(u); }} onSelectUser={(u) => setSelectedUserDetail(u)} onRowClickSound={playClick} />}
 
       {/* VIEW: Contributions Review */}
-      {activeTab === "contributions" && <ContributionsTab loadingContributions={loadingContributions} contribFilter={contribFilter} setContribFilter={setContribFilter} pendingContribCount={pendingContribCount} filteredContributions={filteredContributions} expandedContribution={expandedContribution} setExpandedContribution={setExpandedContribution} playClick={playClick} playBeep={playBeep} onApprove={approveContribution} onReject={(c) => setRejectModal({ id: c.id, adminNote: "" })} onDelete={(c) => setDeleteContribTarget(c)} />}
+      {activeTab === "contributions" && <ContributionsTab loadingContributions={loadingContributions} contribFilter={contribFilter} setContribFilter={setContribFilter} pendingContribCount={pendingContribCount} filteredContributions={filteredContributions} expandedContribution={expandedContribution} setExpandedContribution={setExpandedContribution} playClick={playClick} playBeep={playBeep} onApprove={approveContribution} onReject={(c) => setRejectModal({ id: c.id, adminNote: "" })} onRequestChanges={(c) => setRequestChangesModal({ id: c.id, adminNote: "" })} onDelete={(c) => setDeleteContribTarget(c)} />}
 
       {/* Retro Delete warning modal overlay (Templates) */}
       {deleteTarget && (
@@ -1248,6 +1275,46 @@ export default function AdminDashboard() {
             >
               <span>[ ENTER ]</span>
               <span>Reject Submission</span>
+            </button>
+          </div>
+        </RetroModal>
+      )}
+
+      {requestChangesModal && (
+        <RetroModal tone="primary" title="✎ [ REQUEST_CHANGES.SH ]" tag="REVIEW_SYS_V1" selectNone={false}>
+          <div className="p-6 space-y-4 text-xs select-text">
+            <div className="text-xs text-muted-foreground/85 leading-relaxed font-mono">
+              Describe the changes the contributor should make. They will receive an email with your message and a button that reopens their submission pre-filled for revision.
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] text-muted-foreground/50 uppercase tracking-widest font-bold block">
+                Requested Changes (required)
+              </label>
+              <textarea
+                value={requestChangesModal.adminNote}
+                onChange={(e) => setRequestChangesModal((prev) => (prev ? { ...prev, adminNote: e.target.value } : prev))}
+                placeholder="e.g. Add a complexity note and fix the off-by-one in the build() loop..."
+                rows={4}
+                className="w-full bg-background/40 border border-border focus:border-primary/50 focus:outline-none text-xs font-mono p-2 rounded-none resize-none placeholder:text-muted-foreground/25 text-foreground"
+              />
+            </div>
+          </div>
+          <div className="border-t border-border/45 px-6 py-4 bg-muted/5 flex justify-end gap-3 text-[10px] select-none">
+            <button
+              type="button"
+              onClick={() => { playClick(); setRequestChangesModal(null); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 border border-border hover:border-primary/40 hover:text-primary transition-colors uppercase font-mono cursor-pointer"
+            >
+              <span>[ ESC ]</span>
+              <span>Cancel</span>
+            </button>
+            <button
+              type="button"
+              onClick={confirmRequestChanges}
+              className="flex items-center gap-1.5 px-3 py-1.5 border border-primary bg-primary/15 hover:bg-primary/35 text-primary transition-colors uppercase font-mono font-bold cursor-pointer"
+            >
+              <span>[ ENTER ]</span>
+              <span>Send Request</span>
             </button>
           </div>
         </RetroModal>

@@ -10,7 +10,7 @@ interface ContributionCodeBlock {
 interface Contribution {
   id: number;
   type: "new" | "edit";
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "approved" | "rejected" | "changes_requested";
   contributorName: string;
   contributorEmail: string;
   contributorCfHandle: string | null;
@@ -33,7 +33,7 @@ interface Contribution {
   template?: { title: string; slug: string };
 }
 
-type ContribFilter = "all" | "pending" | "approved" | "rejected";
+type ContribFilter = "all" | "pending" | "approved" | "rejected" | "changes_requested";
 
 interface ContributionsTabProps {
   loadingContributions: boolean;
@@ -47,6 +47,7 @@ interface ContributionsTabProps {
   playBeep: (freq?: number, duration?: number) => void;
   onApprove: (id: number) => void;
   onReject: (c: Contribution) => void;
+  onRequestChanges: (c: Contribution) => void;
   onDelete: (c: Contribution) => void;
 }
 
@@ -62,6 +63,7 @@ export function ContributionsTab({
   playBeep,
   onApprove,
   onReject,
+  onRequestChanges,
   onDelete,
 }: ContributionsTabProps) {
   return (
@@ -74,7 +76,7 @@ export function ContributionsTab({
           <span className="inline-block h-3 w-1.5 bg-primary/40 animate-blink" />
         </div>
         <div className="flex flex-wrap gap-2">
-          {(["all", "pending", "approved", "rejected"] as const).map((f) => (
+          {(["all", "pending", "changes_requested", "approved", "rejected"] as const).map((f) => (
             <button
               key={f}
               onClick={() => { playClick(); setContribFilter(f); }}
@@ -84,7 +86,7 @@ export function ContributionsTab({
                   : "border-border text-muted-foreground/45 hover:text-foreground"
               }`}
             >
-              [ {f} ]
+              [ {f.replace(/_/g, " ")} ]
               {f === "pending" && pendingContribCount > 0 && (
                 <span className="ml-1 text-warning">{pendingContribCount}</span>
               )}
@@ -167,10 +169,12 @@ export function ContributionsTab({
                                 ? "border-warning/40 bg-warning/5 text-warning"
                                 : c.status === "approved"
                                 ? "border-primary/40 bg-primary/5 text-primary"
+                                : c.status === "changes_requested"
+                                ? "border-info/40 bg-info/5 text-info"
                                 : "border-destructive/40 bg-destructive/5 text-destructive"
                             }`}
                           >
-                            {c.status.toUpperCase()}
+                            {c.status.replace(/_/g, " ").toUpperCase()}
                           </span>
                         </td>
                         <td className="py-2.5 px-3 text-right" onClick={(e) => e.stopPropagation()}>
@@ -182,6 +186,12 @@ export function ContributionsTab({
                                   className="text-[10px] px-3 py-1.5 border border-primary bg-primary/10 text-primary hover:bg-primary/20 transition-colors uppercase font-bold tracking-wider cursor-pointer"
                                 >
                                   [ approve ]
+                                </button>
+                                <button
+                                  onClick={() => { playClick(); onRequestChanges(c); }}
+                                  className="text-[10px] px-3 py-1.5 border border-info bg-info/10 text-info hover:bg-info/20 transition-colors uppercase font-bold tracking-wider cursor-pointer"
+                                >
+                                  [ request updates ]
                                 </button>
                                 <button
                                   onClick={() => { playBeep(330, 0.25); onReject(c); }}

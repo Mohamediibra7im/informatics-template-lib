@@ -49,6 +49,8 @@ export function ContributionsTab({ userContributions, playClick }: Contributions
                 ? "text-success border-success/30 bg-success/10"
                 : c.status === "rejected"
                 ? "text-destructive border-destructive/30 bg-destructive/10"
+                : c.status === "changes_requested"
+                ? "text-info border-info/30 bg-info/10"
                 : "text-warning border-warning/30 bg-warning/10";
             return (
               <div key={c.id} className="p-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -75,13 +77,25 @@ export function ContributionsTab({ userContributions, playClick }: Contributions
                   </p>
                   {c.adminNote && (
                     <div className="text-[10.5px] text-muted-foreground/60 leading-relaxed border-l-2 border-primary/40 pl-3 bg-primary/5 p-2 border border-primary/10 select-text">
-                      <span className="text-primary font-bold uppercase tracking-wider text-[9px] block mb-0.5">Admin Review Feedback:</span>
+                      <span className="text-primary font-bold uppercase tracking-wider text-[9px] block mb-0.5">
+                        {c.status === "changes_requested" ? "Requested Changes:" : "Admin Review Feedback:"}
+                      </span>
                       {c.adminNote}
                     </div>
                   )}
+                  {c.status === "changes_requested" && (
+                    <Link
+                      href={`/contribute/${c.type === "edit" ? "edit" : "new"}?resubmit=${c.id}`}
+                      onClick={playClick}
+                      className="inline-flex items-center gap-1.5 border border-info bg-info/10 text-info px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider hover:bg-info/20 transition-colors"
+                    >
+                      <Plus className="h-3 w-3" />
+                      <span>Revise &amp; Resubmit</span>
+                    </Link>
+                  )}
                 </div>
                 <span className={`shrink-0 text-[10px] uppercase tracking-widest font-extrabold border px-3 py-1 select-none ${statusColor}`}>
-                  {c.status}
+                  {c.status.replace(/_/g, " ")}
                 </span>
               </div>
             );

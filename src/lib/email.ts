@@ -142,6 +142,37 @@ export async function sendRejectionEmail(
   await send(to, `[CP-Base] Update on your submission "${templateTitle}"`, html);
 }
 
+// Admin requested changes before this contribution can be accepted. The button
+// deep-links to the contribute form with ?resubmit=<id> so the prior submission
+// is pre-filled for revision.
+export async function sendChangesRequestedEmail(
+  to: string,
+  contributorName: string,
+  templateTitle: string,
+  adminNote: string,
+  type: "new" | "edit",
+  contributionId: number
+) {
+  const form = type === "new" ? "new" : "edit";
+  const link = `${baseUrl}/contribute/${form}?resubmit=${contributionId}`;
+
+  const html = wrap(
+    "Changes Requested",
+    `<p>Hey <strong style="color:#9BA8AB">${escapeHtml(contributorName)}</strong>,</p>
+    <p>Thanks for your submission for <strong>"${escapeHtml(templateTitle)}"</strong>. Before it can be accepted, the reviewer has requested some changes:</p>
+    <div style="border-left:3px solid #9BA8AB;padding:8px 12px;margin:12px 0;background:#11212D">
+      <span style="color:#9BA8AB;font-size:11px;font-weight:bold">REQUESTED CHANGES:</span>
+      <p style="margin:4px 0 0;color:#ccc">${escapeHtml(adminNote)}</p>
+    </div>
+    <p style="margin-top:16px">
+      <a href="${link}" style="display:inline-block;padding:8px 20px;border:1px solid #9BA8AB;color:#9BA8AB;text-decoration:none;font-weight:bold;font-size:12px;letter-spacing:1px">[ MAKE REQUESTED CHANGES ]</a>
+    </p>
+    <p style="color:#888;font-size:12px;margin-top:20px">Your original submission is pre-filled on that page — just apply the changes and resubmit.</p>`
+  );
+
+  await send(to, `[CP-Base] Changes requested on your submission "${templateTitle}"`, html);
+}
+
 // Notify the admin that a new contribution is awaiting review. Recipient is
 // ADMIN_EMAIL, falling back to the SMTP account. No-ops if neither is set.
 export async function sendNewContributionNotification(
