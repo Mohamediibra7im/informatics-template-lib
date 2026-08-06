@@ -98,6 +98,7 @@ function StatusBadge({ status, color }: { status: string; color: string }) {
     green: "text-success border-success/30 bg-success/5",
     yellow: "text-warning border-warning/30 bg-warning/5",
     blue: "text-blue-400 border-blue-400/30 bg-blue-400/5",
+    red: "text-destructive border-destructive/30 bg-destructive/5",
     primary: "text-primary border-primary/30 bg-primary/5",
   };
   return (
@@ -676,8 +677,21 @@ export default function DocsPage() {
                   "Fill in the form with all required fields.",
                   "Submit — your contribution enters the review queue.",
                   "An admin reviews and approves, rejects, or requests changes.",
-                  "Track your contribution status in the dashboard 'Contributions' tab.",
+                  "You get an email with the outcome, and can track it in the dashboard 'Contributions' tab.",
                 ]} />
+
+                <div className="text-[10px] text-foreground font-bold uppercase tracking-wider mt-2">Review Outcomes</div>
+                <div className="flex flex-wrap gap-2 my-1">
+                  <StatusBadge status="Pending" color="yellow" />
+                  <StatusBadge status="Changes Requested" color="blue" />
+                  <StatusBadge status="Approved" color="green" />
+                  <StatusBadge status="Rejected" color="red" />
+                </div>
+                <ul className="list-disc list-inside space-y-1.5 text-[11px] text-muted-foreground/55 leading-relaxed">
+                  <li><strong className="text-success/80">Approved</strong> — your work goes live and you&apos;re credited on the template page.</li>
+                  <li><strong className="text-blue-400/80">Changes Requested</strong> — the reviewer emails you what to fix. The email has a button that reopens your submission <strong className="text-foreground/70">pre-filled</strong> so you just apply the changes and resubmit.</li>
+                  <li><strong className="text-destructive/80">Rejected</strong> — not accepted this time; the email includes the reviewer&apos;s optional note explaining why.</li>
+                </ul>
 
                 <p>
                   Approved contributions are credited with your name and optional Codeforces handle, displayed on the template page.
