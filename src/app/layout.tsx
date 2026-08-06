@@ -5,6 +5,7 @@ import { NavBar } from "@/components/nav-bar";
 import { Footer } from "@/components/footer";
 import { Suspense } from "react";
 import Script from "next/script";
+import { Analytics } from "@vercel/analytics/next";
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
@@ -50,6 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Script id="structured-data" type="application/ld+json">
           {JSON.stringify(structuredData)}
         </Script>
+        <Analytics />
       </body>
     </html>
   );
