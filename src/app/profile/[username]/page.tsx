@@ -19,10 +19,45 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params;
-  const decoded = decodeURIComponent(username);
+  const decoded = decodeURIComponent(username).trim();
+  const db = getDb();
+
+  let name: string | null = null;
+  let handle = decoded;
+  let bio: string | null = null;
+
+  if (db) {
+    const [row] = await db
+      .select({ username: users.username, name: userProfiles.name, bio: userProfiles.bio })
+      .from(users)
+      .leftJoin(userProfiles, eq(users.id, userProfiles.userId))
+      .where(
+        or(
+          sql`LOWER(${users.username}) = LOWER(${decoded})`,
+          sql`LOWER(${userProfiles.name}) = LOWER(${decoded})`,
+          sql`LOWER(${userProfiles.codeforcesHandle}) = LOWER(${decoded})`
+        )
+      )
+      .limit(1);
+    if (!row) {
+      return { title: "Profile not found", robots: { index: false, follow: false } };
+    }
+    name = row.name;
+    handle = row.username;
+    bio = row.bio;
+  }
+
+  const displayName = name || handle;
+  const title = `${displayName} (@${handle})`;
+  const description = bio || `Competitive programming profile and approved templates by ${displayName} on CP-Base.`;
+  const canonical = `/profile/${encodeURIComponent(handle)}`;
+
   return {
-    title: `${decoded}'s Profile | CP-Base`,
-    description: `Public profile and competitive programming templates by ${decoded}`,
+    title,
+    description,
+    alternates: { canonical },
+    openGraph: { type: "profile", title, description, url: canonical },
+    twitter: { card: "summary_large_image", title, description },
   };
 }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, ReactNode } from "react";
+import { isSafeImageUrl } from "@/lib/utils";
 import { User, ShieldCheck, Cpu, Target, Check, X } from "lucide-react";
 import { Tab } from "./types";
 
@@ -53,7 +54,7 @@ export function DashboardSidebar({
         <div className="flex items-center gap-3">
           {/* Avatar with glowing green online dot indicator on the side */}
           <div className="relative flex items-center justify-center h-11 w-11 border border-primary/40 bg-primary/10 text-primary shrink-0 shadow-[0_0_12px_rgba(var(--primary-rgb),0.15)]">
-            {avatarUrl ? (
+            {avatarUrl && isSafeImageUrl(avatarUrl) ? (
               <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
             ) : (
               <User className="h-5.5 w-5.5" />
@@ -190,7 +191,7 @@ export function DashboardSidebar({
       </nav>
 
       {/* Mobile Tab Selectors (Horizontal layout) */}
-      <div className="flex lg:hidden overflow-x-auto scrollbar-thin pb-2 border-b border-border/40 gap-2 select-none shrink-0">
+      <div className="flex lg:hidden max-w-full min-w-0 overflow-x-auto scrollbar-thin pb-2 border-b border-border/40 gap-2 select-none shrink-0">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (

@@ -5,6 +5,7 @@ import Link from "next/link";
 export interface Contributor {
   name: string;
   cfHandle: string | null;
+  username: string | null;
   role: "creator" | "editor";
   avatar: string;
   contributions: number;
@@ -22,7 +23,7 @@ export function ContributorChips({ contributors }: { contributors: Contributor[]
       {contributors.map((c, i) => (
         <Link
           key={i}
-          href={`/profile/${encodeURIComponent(c.name)}`}
+          href={`/profile/${encodeURIComponent(c.username || c.name)}`}
           title={`View ${c.name}'s profile`}
           className="flex items-center gap-1.5 border border-border/60 bg-card/30 px-2.5 py-1.5 text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors cursor-pointer"
         >

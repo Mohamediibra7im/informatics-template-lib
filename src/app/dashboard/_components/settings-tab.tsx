@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { isSafeImageUrl } from "@/lib/utils";
 import { Settings, Calendar, Copy, Terminal, User, Lock, Sparkles, Image as ImageIcon, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -139,7 +140,7 @@ export function SettingsTab({
               {/* Interactive Avatar Frame with Hover Camera Overlay */}
               <div className="relative group cursor-pointer shrink-0 select-none">
                 <div className="relative h-20 w-20 border-2 border-primary/40 bg-primary/10 overflow-hidden flex items-center justify-center transition-all group-hover:border-primary">
-                  {avatarUrl ? (
+                  {avatarUrl && isSafeImageUrl(avatarUrl) ? (
                     <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
                   ) : (
                     <User className="h-10 w-10 text-primary" />

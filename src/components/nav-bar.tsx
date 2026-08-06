@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Terminal, Search, X, Braces, Library, Menu, GitPullRequest, LogIn, LayoutDashboard, LogOut, BookOpen } from "lucide-react";
+import { Terminal, Search, X, Braces, Library, Menu, GitPullRequest, LogIn, LayoutDashboard, LogOut, BookOpen, Zap, Rows3, Hash, Volume2, VolumeX } from "lucide-react";
 import { useTerminalTheme } from "./theme-provider";
 import { useAuth } from "./auth-provider";
 import {
@@ -71,9 +71,9 @@ function NavSearch({ autoFocus }: { autoFocus?: boolean }) {
   }, [playClick]);
 
   return (
-    <div className="relative flex items-center w-full">
+    <div className="relative flex items-center w-full min-w-0 max-w-full">
       <div
-        className={`flex items-center gap-2 border transition-all duration-200 w-full ${
+        className={`flex items-center gap-2 border transition-all duration-200 w-full min-w-0 max-w-full ${
           focused
             ? "border-primary/50 bg-card md:w-80"
             : "border-border bg-card/30 md:w-64"
@@ -94,10 +94,10 @@ function NavSearch({ autoFocus }: { autoFocus?: boolean }) {
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           placeholder="grep templates..."
-          className="flex-1 bg-transparent text-xs text-foreground placeholder:text-muted-foreground/30 outline-none py-1.5 pr-2"
+          className="flex-1 min-w-0 bg-transparent text-xs text-foreground placeholder:text-muted-foreground/30 outline-none py-1.5 pr-2"
         />
         {!value && !focused && (
-          <div className="flex items-center gap-0.5 pr-2.5 shrink-0">
+          <div className="hidden sm:flex items-center gap-0.5 pr-2.5 shrink-0">
             <kbd className="text-[9px] text-muted-foreground/25 border border-border/50 px-1 py-0.5 font-mono">⌘K</kbd>
           </div>
         )}
@@ -122,7 +122,17 @@ function NavSearch({ autoFocus }: { autoFocus?: boolean }) {
 
 export function NavBar() {
   const pathname = usePathname();
-  const { playClick } = useTerminalTheme();
+  const {
+    sound,
+    setSound,
+    reduceMotion,
+    setReduceMotion,
+    compact,
+    setCompact,
+    lineNumbers,
+    setLineNumbers,
+    playClick,
+  } = useTerminalTheme();
   const { user, logout } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -133,6 +143,36 @@ export function NavBar() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 640) {
+        setOpen(false);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (open) {
+      document.body.classList.add("no-scrollbar");
+      document.documentElement.classList.add("no-scrollbar");
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.classList.remove("no-scrollbar");
+      document.documentElement.classList.remove("no-scrollbar");
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+    return () => {
+      document.body.classList.remove("no-scrollbar");
+      document.documentElement.classList.remove("no-scrollbar");
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [open]);
 
   const isActive = (path: string) => {
     if (path === "/") return pathname === "/";
@@ -323,146 +363,240 @@ export function NavBar() {
                   >
                     <Menu className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
                   </SheetTrigger>
-                  <SheetContent side="right" className="border-l border-border bg-background p-6 pt-16 w-80 max-w-[85vw]">
-                    <SheetHeader className="mb-6 p-0">
-                      <SheetTitle className="text-left font-mono text-xs font-bold tracking-[0.2em] text-primary uppercase flex items-center gap-2">
-                        <Terminal className="h-3.5 w-3.5" />
-                        CP-BASE MENU
-                      </SheetTitle>
-                    </SheetHeader>
+                  <SheetContent side="right" className="border-l border-border bg-background p-6 pt-16 w-80 max-w-[85vw] flex flex-col justify-between overflow-x-hidden overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:hidden">
+                    <div>
+                      <SheetHeader className="mb-6 p-0">
+                        <SheetTitle className="text-left font-mono text-xs font-bold tracking-[0.2em] text-primary uppercase flex items-center gap-2">
+                          <Terminal className="h-3.5 w-3.5" />
+                          CP-BASE MENU
+                        </SheetTitle>
+                      </SheetHeader>
 
-                    {/* Mobile Search */}
-                    <div className="mb-8 flex flex-col gap-2">
-                      <div className="text-[10px] text-muted-foreground/40 font-mono flex items-center gap-1">
-                        <span className="text-primary">$</span>
-                        <span>grep templates --all</span>
-                      </div>
-                      <NavSearch />
-                    </div>
-
-                    {/* Mobile Links */}
-                    <nav className="flex flex-col gap-3 font-mono">
-                      <div className="text-[10px] text-muted-foreground/40 font-mono mb-1 flex items-center gap-1">
-                        <span className="text-primary">$</span>
-                        <span>cd navigation/</span>
-                      </div>
-                      <Link
-                        href="/categories"
-                        onClick={() => {
-                          playClick();
-                          setOpen(false);
-                        }}
-                        className={`flex items-center gap-2 px-3 py-2 border text-xs tracking-wide uppercase transition-all ${
-                          isActive("/categories")
-                            ? "border-primary/20 bg-primary/5 text-primary"
-                            : "border-border bg-card/30 text-muted-foreground hover:text-foreground hover:border-border/80"
-                        }`}
-                      >
-                        <Braces className="h-3.5 w-3.5" />
-                        <span>categories</span>
-                      </Link>
-                      <Link
-                        href="/templates"
-                        onClick={() => {
-                          playClick();
-                          setOpen(false);
-                        }}
-                        className={`flex items-center gap-2 px-3 py-2 border text-xs tracking-wide uppercase transition-all ${
-                          isActive("/templates")
-                            ? "border-primary/20 bg-primary/5 text-primary"
-                            : "border-border bg-card/30 text-muted-foreground hover:text-foreground hover:border-border/80"
-                        }`}
-                      >
-                        <Library className="h-3.5 w-3.5" />
-                        <span>templates</span>
-                      </Link>
-                      <Link
-                        href="/contribute"
-                        onClick={() => {
-                          playClick();
-                          setOpen(false);
-                        }}
-                        className={`flex items-center gap-2 px-3 py-2 border text-xs tracking-wide uppercase transition-all ${
-                          isActive("/contribute")
-                            ? "border-primary/20 bg-primary/5 text-primary"
-                            : "border-border bg-card/30 text-muted-foreground hover:text-foreground hover:border-border/80"
-                        }`}
-                      >
-                      <GitPullRequest className="h-3.5 w-3.5" />
-                        <span>contribute</span>
-                      </Link>
-                      <Link
-                        href="/docs"
-                        onClick={() => {
-                          playClick();
-                          setOpen(false);
-                        }}
-                        className={`flex items-center gap-2 px-3 py-2 border text-xs tracking-wide uppercase transition-all ${
-                          isActive("/docs")
-                            ? "border-primary/20 bg-primary/5 text-primary"
-                            : "border-border bg-card/30 text-muted-foreground hover:text-foreground hover:border-border/80"
-                        }`}
-                      >
-                        <BookOpen className="h-3.5 w-3.5" />
-                        <span>docs</span>
-                      </Link>
-
-                      {/* Auth Links (Mobile) */}
-                      <div className="border-t border-border/50 mt-2 pt-3">
-                        <div className="text-[10px] text-muted-foreground/40 font-mono mb-2 flex items-center gap-1">
+                      {/* Mobile Search */}
+                      <div className="mb-8 flex flex-col gap-2">
+                        <div className="text-[10px] text-muted-foreground/40 font-mono flex items-center gap-1">
                           <span className="text-primary">$</span>
-                          <span>whoami</span>
+                          <span>grep templates --all</span>
                         </div>
-                        {user ? (
-                          <>
+                        <NavSearch />
+                      </div>
+
+                      {/* Mobile Links */}
+                      <nav className="flex flex-col gap-3 font-mono">
+                        <div className="text-[10px] text-muted-foreground/40 font-mono mb-1 flex items-center gap-1">
+                          <span className="text-primary">$</span>
+                          <span>cd navigation/</span>
+                        </div>
+                        <Link
+                          href="/categories"
+                          onClick={() => {
+                            playClick();
+                            setOpen(false);
+                          }}
+                          className={`flex items-center gap-2 px-3 py-2 border text-xs tracking-wide uppercase transition-all ${
+                            isActive("/categories")
+                              ? "border-primary/20 bg-primary/5 text-primary"
+                              : "border-border bg-card/30 text-muted-foreground hover:text-foreground hover:border-border/80"
+                          }`}
+                        >
+                          <Braces className="h-3.5 w-3.5" />
+                          <span>categories</span>
+                        </Link>
+                        <Link
+                          href="/templates"
+                          onClick={() => {
+                            playClick();
+                            setOpen(false);
+                          }}
+                          className={`flex items-center gap-2 px-3 py-2 border text-xs tracking-wide uppercase transition-all ${
+                            isActive("/templates")
+                              ? "border-primary/20 bg-primary/5 text-primary"
+                              : "border-border bg-card/30 text-muted-foreground hover:text-foreground hover:border-border/80"
+                          }`}
+                        >
+                          <Library className="h-3.5 w-3.5" />
+                          <span>templates</span>
+                        </Link>
+                        <Link
+                          href="/contribute"
+                          onClick={() => {
+                            playClick();
+                            setOpen(false);
+                          }}
+                          className={`flex items-center gap-2 px-3 py-2 border text-xs tracking-wide uppercase transition-all ${
+                            isActive("/contribute")
+                              ? "border-primary/20 bg-primary/5 text-primary"
+                              : "border-border bg-card/30 text-muted-foreground hover:text-foreground hover:border-border/80"
+                          }`}
+                        >
+                        <GitPullRequest className="h-3.5 w-3.5" />
+                          <span>contribute</span>
+                        </Link>
+                        <Link
+                          href="/docs"
+                          onClick={() => {
+                            playClick();
+                            setOpen(false);
+                          }}
+                          className={`flex items-center gap-2 px-3 py-2 border text-xs tracking-wide uppercase transition-all ${
+                            isActive("/docs")
+                              ? "border-primary/20 bg-primary/5 text-primary"
+                              : "border-border bg-card/30 text-muted-foreground hover:text-foreground hover:border-border/80"
+                          }`}
+                        >
+                          <BookOpen className="h-3.5 w-3.5" />
+                          <span>docs</span>
+                        </Link>
+
+                        {/* Auth Links (Mobile) */}
+                        <div className="border-t border-border/50 mt-2 pt-3">
+                          <div className="text-[10px] text-muted-foreground/40 font-mono mb-2 flex items-center gap-1">
+                            <span className="text-primary">$</span>
+                            <span>whoami</span>
+                          </div>
+                          {user ? (
+                            <>
+                              <Link
+                                href="/dashboard"
+                                onClick={() => {
+                                  playClick();
+                                  setOpen(false);
+                                }}
+                                className={`flex items-center gap-2 px-3 py-2 border text-xs tracking-wide uppercase transition-all mb-2 ${
+                                  isActive("/dashboard")
+                                    ? "border-primary/20 bg-primary/5 text-primary"
+                                    : "border-border bg-card/30 text-muted-foreground hover:text-foreground hover:border-border/80"
+                                }`}
+                              >
+                                <LayoutDashboard className="h-3.5 w-3.5" />
+                                <span>{user.username}</span>
+                              </Link>
+                              <button
+                                onClick={() => {
+                                  playClick();
+                                  logout();
+                                  setOpen(false);
+                                }}
+                                className="flex items-center gap-2 px-3 py-2 border border-border bg-card/30 text-muted-foreground hover:text-destructive hover:border-destructive/30 transition-all text-xs tracking-wide uppercase w-full"
+                              >
+                                <LogOut className="h-3.5 w-3.5" />
+                                <span>logout</span>
+                              </button>
+                            </>
+                          ) : (
                             <Link
-                              href="/dashboard"
+                              href="/login"
                               onClick={() => {
                                 playClick();
                                 setOpen(false);
                               }}
-                              className={`flex items-center gap-2 px-3 py-2 border text-xs tracking-wide uppercase transition-all mb-2 ${
-                                isActive("/dashboard")
+                              className={`flex items-center gap-2 px-3 py-2 border text-xs tracking-wide uppercase transition-all ${
+                                isActive("/login")
                                   ? "border-primary/20 bg-primary/5 text-primary"
                                   : "border-border bg-card/30 text-muted-foreground hover:text-foreground hover:border-border/80"
                               }`}
                             >
-                              <LayoutDashboard className="h-3.5 w-3.5" />
-                              <span>{user.username}</span>
+                              <LogIn className="h-3.5 w-3.5" />
+                              <span>login</span>
                             </Link>
+                          )}
+                        </div>
+
+                        {/* Mobile Interface Settings ($ configure --interface) */}
+                        <div className="border-t border-border/50 mt-3 pt-3 space-y-2">
+                          <div className="text-[10px] text-muted-foreground/40 font-mono mb-2 flex items-center gap-1">
+                            <span className="text-primary">$</span>
+                            <span>configure --interface</span>
+                          </div>
+
+                          {/* Reduce Motion */}
+                          <div className="flex items-center justify-between text-xs font-mono">
+                            <span className="flex items-center gap-2 text-muted-foreground/70">
+                              <Zap className="h-3.5 w-3.5" />
+                              Reduce Motion
+                            </span>
                             <button
                               onClick={() => {
                                 playClick();
-                                logout();
-                                setOpen(false);
+                                setReduceMotion(!reduceMotion);
                               }}
-                              className="flex items-center gap-2 px-3 py-2 border border-border bg-card/30 text-muted-foreground hover:text-destructive hover:border-destructive/30 transition-all text-xs tracking-wide uppercase w-full"
+                              className={`px-2 py-0.5 border text-[9px] font-bold uppercase transition-all ${
+                                reduceMotion
+                                  ? "border-primary bg-primary/10 text-primary"
+                                  : "border-border/60 text-muted-foreground/40 hover:border-border"
+                              }`}
                             >
-                              <LogOut className="h-3.5 w-3.5" />
-                              <span>logout</span>
+                              {reduceMotion ? "ENABLED" : "DISABLED"}
                             </button>
-                          </>
-                        ) : (
-                          <Link
-                            href="/login"
-                            onClick={() => {
-                              playClick();
-                              setOpen(false);
-                            }}
-                            className={`flex items-center gap-2 px-3 py-2 border text-xs tracking-wide uppercase transition-all ${
-                              isActive("/login")
-                                ? "border-primary/20 bg-primary/5 text-primary"
-                                : "border-border bg-card/30 text-muted-foreground hover:text-foreground hover:border-border/80"
-                            }`}
-                          >
-                            <LogIn className="h-3.5 w-3.5" />
-                            <span>login</span>
-                          </Link>
-                        )}
-                      </div>
-                    </nav>
+                          </div>
 
-                    <div className="absolute bottom-6 left-6 right-6 font-mono text-[9px] text-muted-foreground/30 flex justify-between items-center border-t border-border/50 pt-4">
+                          {/* Compact Density */}
+                          <div className="flex items-center justify-between text-xs font-mono">
+                            <span className="flex items-center gap-2 text-muted-foreground/70">
+                              <Rows3 className="h-3.5 w-3.5" />
+                              Compact Density
+                            </span>
+                            <button
+                              onClick={() => {
+                                playClick();
+                                setCompact(!compact);
+                              }}
+                              className={`px-2 py-0.5 border text-[9px] font-bold uppercase transition-all ${
+                                compact
+                                  ? "border-primary bg-primary/10 text-primary"
+                                  : "border-border/60 text-muted-foreground/40 hover:border-border"
+                              }`}
+                            >
+                              {compact ? "ENABLED" : "DISABLED"}
+                            </button>
+                          </div>
+
+                          {/* Line Numbers */}
+                          <div className="flex items-center justify-between text-xs font-mono">
+                            <span className="flex items-center gap-2 text-muted-foreground/70">
+                              <Hash className="h-3.5 w-3.5" />
+                              Line Numbers
+                            </span>
+                            <button
+                              onClick={() => {
+                                playClick();
+                                setLineNumbers(!lineNumbers);
+                              }}
+                              className={`px-2 py-0.5 border text-[9px] font-bold uppercase transition-all ${
+                                lineNumbers
+                                  ? "border-primary bg-primary/10 text-primary"
+                                  : "border-border/60 text-muted-foreground/40 hover:border-border"
+                              }`}
+                            >
+                              {lineNumbers ? "ENABLED" : "DISABLED"}
+                            </button>
+                          </div>
+
+                          {/* Retro Sounds */}
+                          <div className="flex items-center justify-between text-xs font-mono">
+                            <span className="flex items-center gap-2 text-muted-foreground/70">
+                              {sound ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+                              Retro Sounds
+                            </span>
+                            <button
+                              onClick={() => {
+                                playClick();
+                                setSound(!sound);
+                              }}
+                              className={`px-2 py-0.5 border text-[9px] font-bold uppercase transition-all ${
+                                sound
+                                  ? "border-primary bg-primary/10 text-primary"
+                                  : "border-border/60 text-muted-foreground/40 hover:border-border"
+                              }`}
+                            >
+                              {sound ? "ENABLED" : "DISABLED"}
+                            </button>
+                          </div>
+                        </div>
+                      </nav>
+                    </div>
+
+                    <div className="mt-8 font-mono text-[9px] text-muted-foreground/30 flex justify-between items-center border-t border-border/50 pt-4 shrink-0">
                       <span>cp-base --version 1.0</span>
                       <span>[online]</span>
                     </div>

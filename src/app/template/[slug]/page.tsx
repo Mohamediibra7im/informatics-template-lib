@@ -121,6 +121,7 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
         .select({
           name: contributions.contributorName,
           cfHandle: contributions.contributorCfHandle,
+          username: users.username,
           type: contributions.type,
           createdAt: contributions.createdAt,
           avatarUrl: userProfiles.avatarUrl,
@@ -132,7 +133,7 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
         .orderBy(contributions.createdAt);
 
       const seen = new Map<string, number>();
-      const collected: { name: string; cfHandle: string | null; role: "creator" | "editor"; profileAvatarUrl: string | null }[] = [];
+      const collected: { name: string; cfHandle: string | null; username: string | null; role: "creator" | "editor"; profileAvatarUrl: string | null }[] = [];
       const counts: number[] = [];
       for (const r of rows) {
         const key = `${r.name.toLowerCase()}::${(r.cfHandle || "").toLowerCase()}`;
@@ -146,6 +147,7 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
         collected.push({
           name: r.name,
           cfHandle: r.cfHandle,
+          username: r.username,
           role: r.type === "new" ? "creator" : "editor",
           profileAvatarUrl: r.avatarUrl || null,
         });
@@ -169,6 +171,7 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
         collected.push({
           name: template.contributorName,
           cfHandle: template.contributorCfHandle,
+          username: template.contributorName,
           role: "creator",
           profileAvatarUrl: legacyAvatar,
         });

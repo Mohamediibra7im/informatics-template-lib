@@ -115,22 +115,22 @@ export function Footer() {
         </div>
 
         {/* Bottom Signature Line */}
-        <div className="pt-4 border-t border-border/30 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-muted-foreground/65">
-          <div className="flex items-center gap-2">
+        <div className="pt-4 border-t border-border/30 flex flex-col sm:flex-row items-center justify-between gap-3 text-[10.5px] sm:text-[11px] text-muted-foreground/65 text-center sm:text-left">
+          <div className="flex items-center justify-center sm:justify-start gap-2">
             <span>© {year} CP-BASE. All rights reserved.</span>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-x-1 gap-y-0.5">
             <span>crafted for competitive programmers by</span>
             <a
               href="https://mohamediibrahim.dev"
               target="_blank"
               rel="noopener noreferrer"
               onClick={playClick}
-              className="text-foreground hover:text-primary transition-colors font-semibold inline-flex items-center gap-0.5 ml-0.5"
+              className="text-foreground hover:text-primary transition-colors font-semibold inline-flex items-center gap-0.5 whitespace-nowrap ml-0.5"
             >
               <span>Mohamed Ibrahim</span>
-              <ArrowUpRight className="h-2.5 w-2.5 opacity-60" />
+              <ArrowUpRight className="h-2.5 w-2.5 opacity-60 shrink-0" />
             </a>
           </div>
         </div>
