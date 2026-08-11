@@ -30,7 +30,7 @@ export function DashboardHeader({
           </div>
           <span className="text-[10px] sm:text-[10.5px] uppercase font-extrabold tracking-widest text-primary flex items-center gap-1.5 min-w-0 truncate">
             <Terminal className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate">[ {username}@cp-base_console ]</span>
+            <span className="truncate">[ {username}@itl_console ]</span>
           </span>
         </div>
         <button
@@ -46,7 +46,7 @@ export function DashboardHeader({
 
       <div className="px-4 py-3 text-[10.5px] text-muted-foreground/60 space-y-1.5 border-b border-primary/10 bg-black/25">
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 min-w-0 break-all">
-          <span className="text-primary font-bold shrink-0">{username}@cp-base:~$</span>
+          <span className="text-primary font-bold shrink-0">{username}@itl:~$</span>
           <span className="text-foreground/90 font-bold break-all">cat /sys/diagnostics --status</span>
           <span className="inline-block h-3 w-1.5 bg-primary animate-blink shrink-0" />
         </div>

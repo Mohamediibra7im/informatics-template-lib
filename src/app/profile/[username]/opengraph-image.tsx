@@ -4,7 +4,7 @@ import { users, userProfiles } from "@/db/schema";
 import { eq, or, sql } from "drizzle-orm";
 import { OG_SIZE, OG, loadOgFonts, OgShell, OgHeader, OgChip, OgFooter } from "@/lib/og";
 
-export const alt = "CP-Base Profile";
+export const alt = "ITL Profile";
 export const size = OG_SIZE;
 export const contentType = "image/png";
 export const runtime = "nodejs";
@@ -186,7 +186,7 @@ export default async function ProfileOpengraphImage({
               </div>
             ) : (
               <div style={{ fontSize: "18px", color: "rgba(255,255,255,0.3)", display: "flex", marginTop: "2px" }}>
-                {"// competitive programmer on CP-Base"}
+                {"// competitive programmer on ITL"}
               </div>
             )}
 
@@ -232,7 +232,7 @@ export default async function ProfileOpengraphImage({
           </div>
         </div>
 
-        <OgFooter prompt="$ cat ~/profile/public.json" caption={`cp-base/@${handleName}`} />
+        <OgFooter prompt="$ cat ~/profile/public.json" caption={`itl/@${handleName}`} />
       </OgShell>
     ),
     { ...OG_SIZE, fonts }

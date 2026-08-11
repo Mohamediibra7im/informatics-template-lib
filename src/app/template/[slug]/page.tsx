@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const db = getDb();
   if (!db) {
     return {
-      title: "Template | CP-Base",
+      title: "Template | Informatics Template Lib",
       openGraph: { images: ["/opengraph-image"] },
       twitter: { card: "summary_large_image" },
     };
@@ -36,13 +36,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const category = row?.category;
     if (!template || template.hidden || !category || category.hidden) {
       return {
-        title: "Template Not Found | CP-Base",
+        title: "Template Not Found | Informatics Template Lib",
         openGraph: { images: ["/opengraph-image"] },
         twitter: { card: "summary_large_image" },
       };
     }
 
-    const title = `${template.title} | CP-Base`;
+    const title = `${template.title} | Informatics Template Lib`;
     const description = template.description || `Optimized competitive programming template for ${template.title}.`;
     const keywords = [
       "competitive programming",
@@ -58,20 +58,20 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description,
       keywords,
       openGraph: {
-        title: `${template.title} Template | CP-Base`,
+        title: `${template.title} Template | Informatics Template Lib`,
         description,
         type: "article",
       },
       twitter: {
         card: "summary_large_image",
-        title: `${template.title} Template | CP-Base`,
+        title: `${template.title} Template | Informatics Template Lib`,
         description,
       },
     };
   } catch (err) {
     console.error("Error generating template metadata:", err);
     return {
-      title: "Template | CP-Base",
+      title: "Template | Informatics Template Lib",
       openGraph: { images: ["/opengraph-image"] },
       twitter: { card: "summary_large_image" },
     };

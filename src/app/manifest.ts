@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "CP-Base — Competitive Programming Templates",
-    short_name: "CP-Base",
+    name: "Informatics Template Lib — Competitive Programming Templates",
+    short_name: "ITL",
     description:
       "Terminal-themed competitive programming template library. Fast, organized, contest-ready.",
     start_url: "/",

@@ -10,7 +10,7 @@ export interface Crumb {
 }
 
 /**
- * The `guest@cp-base:~ / … $` breadcrumb used on top of most pages.
+ * The `guest@itl:~ / … $` breadcrumb used on top of most pages.
  * Renders each item as `/ <label>`, with a trailing prompt + blinking cursor.
  */
 export function TerminalBreadcrumb({
@@ -22,7 +22,7 @@ export function TerminalBreadcrumb({
 }) {
   return (
     <div className={cn("flex flex-wrap items-center gap-1 font-mono text-xs select-none", className)}>
-      <span className="text-primary font-bold">guest@cp-base:</span>
+      <span className="text-primary font-bold">guest@itl:</span>
       <span className="text-muted-foreground/40">~</span>
       {items.map((it, i) => (
         <Fragment key={i}>

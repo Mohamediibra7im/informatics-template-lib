@@ -8,7 +8,7 @@ import { toast } from "sonner";
 export function CliBanner() {
   const [copied, setCopied] = useState(false);
   const { playSuccess } = useTerminalTheme();
-  const command = "npx cp-base --init --template=all";
+  const command = "npx itl --init --template=all";
 
   const handleCopy = () => {
     navigator.clipboard.writeText(command);

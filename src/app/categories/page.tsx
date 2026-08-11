@@ -17,10 +17,10 @@ export const metadata: Metadata = {
     "data structures",
     "graph algorithms",
     "dynamic programming",
-    "cp-base categories",
+    "itl categories",
   ],
   openGraph: {
-    title: "All Categories | CP-Base",
+    title: "All Categories | Informatics Template Lib",
     description:
       "Browse all competitive programming algorithm categories — graphs, data structures, math, strings, dynamic programming, and more.",
     type: "website",
@@ -42,7 +42,7 @@ export default async function CategoriesPage() {
       <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
         <div className="border border-border bg-card p-8 max-w-md w-full">
           <div className="text-xs space-y-2 text-left">
-            <div className="text-muted-foreground">$ cp-base --status</div>
+            <div className="text-muted-foreground">$ itl --status</div>
             <div className="text-error animate-blink">[ERR] Something went wrong</div>
             <div className="text-muted-foreground">Please try again later.</div>
             <div className="flex items-center gap-1 mt-3">
@@ -79,7 +79,7 @@ export default async function CategoriesPage() {
       <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
         <div className="border border-border bg-card p-8 max-w-md w-full">
           <div className="text-xs space-y-2 text-left">
-            <div className="text-muted-foreground">$ cp-base --status</div>
+            <div className="text-muted-foreground">$ itl --status</div>
             <div className="text-error animate-blink">[ERR] Something went wrong</div>
             <div className="text-muted-foreground">Please try again later.</div>
             <div className="flex items-center gap-1 mt-3">

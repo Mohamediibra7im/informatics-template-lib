@@ -38,7 +38,7 @@ interface SettingsTabProps {
 
 const PRESET_AVATARS = [
   { name: "Cyber Bot", url: "https://api.dicebear.com/7.x/bottts/svg?seed=Midoriya" },
-  { name: "Quantum Dev", url: "https://api.dicebear.com/7.x/identicon/svg?seed=CPBase" },
+  { name: "Quantum Dev", url: "https://api.dicebear.com/7.x/identicon/svg?seed=QuantumDev" },
   { name: "Neon Hacker", url: "https://api.dicebear.com/7.x/adventurer/svg?seed=Hacker" },
   { name: "Algo Master", url: "https://api.dicebear.com/7.x/thumbs/svg?seed=AlgoMaster" },
   { name: "Pixel Knight", url: "https://api.dicebear.com/7.x/bottts/svg?seed=CyberNinja" },

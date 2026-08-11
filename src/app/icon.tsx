@@ -15,16 +15,14 @@ export default function Icon() {
           width: "100%",
           height: "100%",
           display: "flex",
-          flexDirection: "row",
           alignItems: "center",
           justifyContent: "center",
-          border: "2px solid #9BA8AB",
-          borderRadius: "6px",
+          border: "1.5px solid #9BA8AB",
+          borderRadius: "4px",
           position: "relative",
           overflow: "hidden",
         }}
       >
-        {/* Background glow */}
         <div
           style={{
             position: "absolute",
@@ -32,25 +30,24 @@ export default function Icon() {
             left: 0,
             right: 0,
             bottom: 0,
-            background: "radial-gradient(circle at center, rgba(155, 168, 171, 0.25) 0%, rgba(0, 0, 0, 0) 80%)",
+            background:
+              "radial-gradient(circle at center, rgba(155, 168, 171, 0.35) 0%, rgba(0, 0, 0, 0) 80%)",
             display: "flex",
           }}
         />
-        {/* Text [CP] */}
         <div
           style={{
             display: "flex",
-            flexDirection: "row",
-            color: "#CCD0CF",
+            alignItems: "center",
             fontFamily: "monospace",
-            fontSize: "12px",
-            fontWeight: "bold",
+            fontWeight: 900,
+            fontSize: "11px",
+            color: "#CCD0CF",
+            letterSpacing: "-0.5px",
             position: "relative",
           }}
         >
-          <span style={{ color: "#9BA8AB" }}>[</span>
-          <span style={{ color: "#CCD0CF", marginLeft: "1px", marginRight: "1px" }}>CP</span>
-          <span style={{ color: "#9BA8AB" }}>]</span>
+          ITL
         </div>
       </div>
     ),

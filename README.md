@@ -1,6 +1,6 @@
 <div align="center">
 
-# CP-Base
+# Informatics Template Lib (ITL)
 
 **A competitive programming template library**
 
@@ -19,7 +19,7 @@ Copy, paste, and ace your next contest.
 
 ## Overview
 
-CP-Base is a modern web application for organizing and sharing competitive programming templates. Built for speed — find the right algorithm template in seconds, copy it, and focus on solving problems. It ships with user accounts, a public contribution + review workflow, a live contest calendar, and a password-gated admin dashboard. Slate dark theme throughout.
+Informatics Template Lib (ITL) is a modern web application for organizing and sharing competitive programming templates. Built for speed — find the right algorithm template in seconds, copy it, and focus on solving problems. It ships with user accounts, a public contribution + review workflow, a live contest calendar, and a password-gated admin dashboard. Slate dark theme throughout.
 
 ## Features
 
@@ -64,8 +64,8 @@ CP-Base is a modern web application for organizing and sharing competitive progr
 
 ```bash
 # Clone the repository
-git clone https://github.com/Mohamediibra7im/cp-base.git
-cd cp-base
+git clone https://github.com/Mohamediibra7im/informatics-template-lib.git
+cd informatics-template-lib
 
 # Install dependencies
 bun install

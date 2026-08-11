@@ -30,7 +30,7 @@ export function CliConsole() {
   const [isMaximized, setIsMaximized] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [logs, setLogs] = useState<CommandLog[]>([
-    { text: "CP-Base OS v1.0.8 (tty1)", type: "system" },
+    { text: "ITL OS v1.0.8 (tty1)", type: "system" },
     { text: "Type 'help' to see available commands. Press ` (backtick) to toggle console.", type: "system" },
   ]);
   const [history, setHistory] = useState<string[]>([]);
@@ -183,7 +183,7 @@ export function CliConsole() {
         break;
 
       case "about":
-        addLog("CP-Base — A Premium Competitive Programming Template Library", "system");
+        addLog("Informatics Template Lib (ITL) — A Premium Competitive Programming Template Library", "system");
         addLog("Developed with Next.js, Bun, Tailwind CSS and Neon Postgres.", "output");
         addLog("Aesthetics modeled after retro 1980s phosphor terminals.", "output");
         break;
@@ -276,7 +276,7 @@ export function CliConsole() {
             <div className="flex items-center justify-between border-b border-primary/40 px-4 py-2 bg-primary/5 select-none shrink-0">
               <div className="flex items-center gap-2 text-xs font-bold text-primary">
                 <TerminalIcon className="h-3.5 w-3.5" />
-                <span>guest@cp-base: ~</span>
+                <span>guest@itl: ~</span>
               </div>
               <div className="flex items-center gap-3">
                 {/* Maximize / Minimize toggle */}
@@ -327,7 +327,7 @@ export function CliConsole() {
               onSubmit={handleCommandSubmit}
               className="border-t border-primary/30 py-2.5 px-4 bg-primary/5 flex items-center gap-1.5 shrink-0"
             >
-              <span className="text-primary/70 text-xs shrink-0 select-none">guest@cp-base:~$</span>
+              <span className="text-primary/70 text-xs shrink-0 select-none">guest@itl:~$</span>
               <ChevronRight className="h-3.5 w-3.5 text-primary shrink-0 select-none" />
               <input
                 ref={inputRef}

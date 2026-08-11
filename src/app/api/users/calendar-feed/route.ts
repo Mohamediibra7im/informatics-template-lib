@@ -57,10 +57,10 @@ export async function GET(request: Request) {
   const icsLines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//CP-Base//Contest Feed//EN",
+    "PRODID:-//ITL//Contest Feed//EN",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
-    `X-WR-CALNAME:${escapeICS(`CP-Base Contests (${user.username})`)}`,
+    `X-WR-CALNAME:${escapeICS(`ITL Contests (${user.username})`)}`,
   ];
 
   const dtStamp = fmtDate(new Date());
@@ -78,7 +78,7 @@ export async function GET(request: Request) {
       `SUMMARY:${escapeICS(`[${contest.site}] ${contest.name}`)}`,
       `URL:${escapeICS(contest.url)}`,
       `DESCRIPTION:${escapeICS(`Contest on ${contest.site}\nLink: ${contest.url}`)}`,
-      `UID:${escapeICS(contest.site)}-${start.getTime()}@cp-base`,
+      `UID:${escapeICS(contest.site)}-${start.getTime()}@itl`,
       "END:VEVENT"
     );
   }
@@ -88,7 +88,7 @@ export async function GET(request: Request) {
   return new NextResponse(icsLines.join("\r\n"), {
     headers: {
       "Content-Type": "text/calendar; charset=utf-8",
-      "Content-Disposition": "attachment; filename=cp-base-contests.ics",
+      "Content-Disposition": "attachment; filename=itl-contests.ics",
     },
   });
 }

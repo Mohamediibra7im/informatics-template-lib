@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
 
   const displayName = name || handle;
   const title = `${displayName} (@${handle})`;
-  const description = bio || `Competitive programming profile and approved templates by ${displayName} on CP-Base.`;
+  const description = bio || `Competitive programming profile and approved templates by ${displayName} on ITL.`;
   const canonical = `/profile/${encodeURIComponent(handle)}`;
 
   return {

@@ -17,10 +17,10 @@ export { metadata } from "./metadata";
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  name: "CP-Base",
+  name: "Informatics Template Lib",
   description:
     "Accelerate your competitive programming speed. Browse modular, optimized C++ algorithm templates, track upcoming Codeforces, AtCoder, LeetCode, & CodeChef contests, and sync feeds directly to your calendar.",
-  url: process.env.NEXT_PUBLIC_SITE_URL || "https://cp-base.vercel.app",
+  url: process.env.NEXT_PUBLIC_SITE_URL || "https://itl-hub.vercel.app",
   applicationCategory: "DeveloperApplication",
   operatingSystem: "Web Browser",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },

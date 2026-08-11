@@ -15,7 +15,7 @@ function resolveJwtSecret(): string {
         "JWT_SECRET is not set. Refusing to sign sessions with a default secret in production."
       );
     }
-    return "cp-base-default-secret-change-me";
+    return "itl-default-secret-change-me";
   }
   return secret;
 }

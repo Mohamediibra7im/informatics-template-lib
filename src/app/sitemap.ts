@@ -7,7 +7,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     process.env.NEXT_PUBLIC_SITE_URL ||
     (process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
-      : "https://cp-base.vercel.app");
+      : "https://itl-hub.vercel.app");
 
   const entries: MetadataRoute.Sitemap = [
     {

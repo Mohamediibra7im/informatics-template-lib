@@ -6,7 +6,7 @@ import { getSessionFromCookie } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Contribute",
-  description: "Submit new competitive programming templates or request edits to existing ones. Help grow the CP-Base library.",
+  description: "Submit new competitive programming templates or request edits to existing ones. Help grow the ITL library.",
 };
 
 export default async function ContributePage() {
@@ -75,7 +75,7 @@ export default async function ContributePage() {
           <span>contribute --help</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-bold text-primary glow-text-strong mb-3">
-          Contribute to CP-Base
+          Contribute to ITL
         </h1>
         <p className="text-xs sm:text-sm text-muted-foreground/65 leading-relaxed max-w-xl">
           Help grow the competitive programming template library. Submit new templates or suggest improvements to existing ones.

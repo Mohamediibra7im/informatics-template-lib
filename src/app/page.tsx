@@ -17,7 +17,7 @@ export default async function Home() {
       <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4 font-mono select-none">
         <div className="border border-border bg-card p-8 max-w-md w-full shadow-[0_0_30px_rgba(239,68,68,0.15)]">
           <div className="text-xs space-y-2 text-left">
-            <div className="text-muted-foreground">$ cp-base --status</div>
+            <div className="text-muted-foreground">$ itl --status</div>
             <div className="text-error animate-blink">[ERR] Database environment offline</div>
             <div className="text-muted-foreground">Please check setup or try again.</div>
             <div className="flex items-center gap-1 mt-3">
@@ -145,7 +145,7 @@ export default async function Home() {
                 <div className="space-y-2 text-[10px] sm:text-[11px] leading-relaxed text-muted-foreground/60 select-text">
                   <div className="flex items-start gap-2">
                     <span className="text-primary font-bold">[SYS]</span>
-                    <span>Loading CP-Base contest configurations...</span>
+                    <span>Loading ITL contest configurations...</span>
                   </div>
                   <div className="flex items-start gap-2 text-success/80">
                     <span className="font-bold">[OK]</span>
@@ -305,7 +305,7 @@ export default async function Home() {
             <div className="max-w-2xl mx-auto space-y-6 relative z-10">
               <div className="flex justify-center items-center gap-2 text-xs text-primary mb-2 select-none">
                 <TerminalSquare className="h-4.5 w-4.5" />
-                <span>$ cp-base --initiate-session</span>
+                <span>$ itl --initiate-session</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
                 READY TO ELEVATE YOUR SPEED?

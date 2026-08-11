@@ -5,8 +5,8 @@ const description =
 
 export const metadata: Metadata = {
   title: {
-    default: "CP-Base | Ultimate Competitive Programming Library & Contest Sync",
-    template: "%s | CP-Base",
+    default: "Informatics Template Lib | Ultimate Competitive Programming Library & Contest Sync",
+    template: "%s | Informatics Template Lib",
   },
   description,
   keywords: [
@@ -65,26 +65,26 @@ export const metadata: Metadata = {
     process.env.NEXT_PUBLIC_SITE_URL ||
       (process.env.VERCEL_URL
         ? `https://${process.env.VERCEL_URL}`
-        : "https://cp-base.vercel.app"),
+        : "https://itl-hub.vercel.app"),
   ),
   openGraph: {
     type: "website",
     locale: "en_US",
-    siteName: "CP-Base",
-    title: "CP-Base | Ultimate Competitive Programming Library & Contest Sync",
+    siteName: "Informatics Template Lib",
+    title: "Informatics Template Lib | Ultimate Competitive Programming Library & Contest Sync",
     description,
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "CP-Base | Ultimate Competitive Programming Library & Contest Sync",
+        alt: "Informatics Template Lib | Ultimate Competitive Programming Library & Contest Sync",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "CP-Base | Ultimate Competitive Programming Library & Contest Sync",
+    title: "Informatics Template Lib | Ultimate Competitive Programming Library & Contest Sync",
     description,
     images: ["/opengraph-image"],
   },

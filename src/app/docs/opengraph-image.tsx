@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { OG_SIZE, OG, loadOgFonts, OgShell, OgHeader, OgChip, OgFooter } from "@/lib/og";
 
-export const alt = "CP-Base Documentation | Complete guide to every feature";
+export const alt = "ITL Documentation | Complete Guide to Competitive Programming Templates";
 export const size = OG_SIZE;
 export const contentType = "image/png";
 export const runtime = "nodejs";
@@ -28,44 +28,61 @@ export default async function DocsOpengraphImage() {
   return new ImageResponse(
     (
       <OgShell accent={OG.muted}>
-        <OgHeader right={<OgChip label="Docs" />} />
+        <OgHeader right={<OgChip label="DOCS / V1.0" accent={OG.bright} />} />
 
-        {/* Main content */}
-        <div style={{ display: "flex", width: "100%", height: "380px", alignItems: "center", gap: "32px" }}>
-          {/* Left: title block */}
-          <div style={{ display: "flex", flexDirection: "column", width: "42%", gap: "16px" }}>
-            <div style={{ fontSize: "13px", color: "rgba(155, 168, 171, 0.6)", display: "flex", gap: "8px" }}>
+        {/* Main Content Area */}
+        <div style={{ display: "flex", width: "100%", height: "390px", alignItems: "center", justifyContent: "space-between" }}>
+          {/* Left Block: Title, Description & Badges */}
+          <div style={{ display: "flex", flexDirection: "column", width: "43%", gap: "16px" }}>
+            {/* Terminal Prompt Tag */}
+            <div style={{ fontSize: "13px", color: "rgba(155, 168, 171, 0.7)", display: "flex", alignItems: "center", gap: "8px" }}>
               <span style={{ color: OG.muted, fontWeight: "bold" }}>$</span>
-              <span>man cp-base</span>
+              <span>man itl.docs</span>
               <span style={{ display: "flex", width: "8px", height: "16px", backgroundColor: OG.muted, marginLeft: "2px" }} />
             </div>
+
+            {/* Main Title */}
             <div
               style={{
-                fontSize: "68px",
+                fontSize: "48px",
                 fontWeight: "bold",
                 color: OG.bright,
                 lineHeight: "1.05",
                 letterSpacing: "-1px",
                 display: "flex",
-                textShadow: "0 0 14px rgba(255,255,255,0.12)",
+                textShadow: "0 0 20px rgba(155, 168, 171, 0.25)",
               }}
             >
-              DOCS
+              DOCUMENTATION
             </div>
-            <div style={{ fontSize: "18px", color: "rgba(255,255,255,0.6)", display: "flex", lineHeight: "1.45", maxWidth: "94%" }}>
-              The complete guide to every CP-Base feature — from browsing and copying templates to progress tracking and contest sync.
+
+            {/* Glowing Accent Line */}
+            <div
+              style={{
+                height: "3px",
+                width: "100px",
+                background: "linear-gradient(90deg, #9BA8AB 0%, rgba(155, 168, 171, 0.1) 100%)",
+                display: "flex",
+              }}
+            />
+
+            {/* Description */}
+            <div style={{ fontSize: "15px", color: "rgba(255,255,255,0.7)", display: "flex", lineHeight: "1.5", maxWidth: "98%" }}>
+              Master competitive programming workflows — optimized algorithm templates, complexity benchmarks, and real-time contest tools.
             </div>
-            <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
-              {[`${TOC.length} sections`, "always current"].map((t) => (
+
+            {/* Feature Chips */}
+            <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
+              {["12 SECTIONS", "CONTEST READY", "C++20 OPTIMIZED"].map((t, idx) => (
                 <div
                   key={t}
                   style={{
-                    fontSize: "12px",
+                    fontSize: "10.5px",
                     fontWeight: "bold",
-                    color: OG.muted,
-                    backgroundColor: "rgba(155, 168, 171, 0.06)",
-                    border: "1px solid rgba(155, 168, 171, 0.2)",
-                    padding: "3px 12px",
+                    color: idx === 0 ? OG.bright : OG.muted,
+                    backgroundColor: idx === 0 ? "rgba(155, 168, 171, 0.15)" : "rgba(155, 168, 171, 0.05)",
+                    border: `1px solid ${idx === 0 ? "rgba(155, 168, 171, 0.4)" : "rgba(155, 168, 171, 0.2)"}`,
+                    padding: "4px 8px",
                     display: "flex",
                   }}
                 >
@@ -75,49 +92,85 @@ export default async function DocsOpengraphImage() {
             </div>
           </div>
 
-          {/* Right: table-of-contents panel */}
+          {/* Right Block: Futuristic Window Table of Contents */}
           <div
             style={{
               display: "flex",
               flexDirection: "column",
               width: "53%",
               backgroundColor: OG.panel,
-              border: "1px solid rgba(155, 168, 171, 0.25)",
-              boxShadow: "0 25px 50px rgba(0,0,0,0.8)",
+              border: "1px solid rgba(155, 168, 171, 0.3)",
+              boxShadow: "0 30px 60px rgba(0,0,0,0.85)",
+              borderRadius: "4px",
               overflow: "hidden",
             }}
           >
+            {/* Terminal Title Bar */}
             <div
               style={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                padding: "10px 16px",
-                backgroundColor: "rgba(155, 168, 171, 0.06)",
-                borderBottom: "1px solid rgba(155, 168, 171, 0.15)",
-                fontSize: "10px",
+                padding: "12px 18px",
+                backgroundColor: "rgba(155, 168, 171, 0.08)",
+                borderBottom: "1px solid rgba(155, 168, 171, 0.2)",
+                fontSize: "11px",
                 fontWeight: "bold",
-                letterSpacing: "2px",
-                color: "rgba(155, 168, 171, 0.6)",
               }}
             >
-              <span style={{ display: "flex" }}>TABLE OF CONTENTS</span>
-              <span style={{ display: "flex", color: "rgba(155, 168, 171, 0.35)" }}>~/docs</span>
+              {/* Window Controls */}
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <span style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: OG.red, display: "flex" }} />
+                <span style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: "#eab308", display: "flex" }} />
+                <span style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: "#22c55e", display: "flex" }} />
+                <span style={{ marginLeft: "10px", color: OG.bright, letterSpacing: "1px" }}>documentation_index.json</span>
+              </div>
+              <span style={{ display: "flex", color: "rgba(155, 168, 171, 0.45)", letterSpacing: "1px" }}>~/docs</span>
             </div>
-            <div style={{ display: "flex", flexWrap: "wrap", padding: "14px 16px" }}>
-              {TOC.map((label, i) => (
-                <div key={label} style={{ display: "flex", width: "50%", alignItems: "center", gap: "8px", padding: "5px 0", fontSize: "14px" }}>
-                  <span style={{ color: OG.dark, fontWeight: "bold", fontSize: "12px", display: "flex" }}>
-                    [{String(i + 1).padStart(2, "0")}]
-                  </span>
-                  <span style={{ color: "rgba(255,255,255,0.75)", display: "flex" }}>{label}</span>
-                </div>
-              ))}
+
+            {/* Grid of Sections */}
+            <div style={{ display: "flex", flexWrap: "wrap", padding: "16px 18px" }}>
+              {TOC.map((label, i) => {
+                const isActive = i === 0 || i === 2;
+                return (
+                  <div
+                    key={label}
+                    style={{
+                      display: "flex",
+                      width: "50%",
+                      alignItems: "center",
+                      gap: "8px",
+                      padding: "6px 4px",
+                      fontSize: "13.5px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: isActive ? OG.bright : OG.dark,
+                        fontWeight: "bold",
+                        fontSize: "12px",
+                        display: "flex",
+                      }}
+                    >
+                      [{String(i + 1).padStart(2, "0")}]
+                    </span>
+                    <span
+                      style={{
+                        color: isActive ? OG.bright : "rgba(255,255,255,0.7)",
+                        fontWeight: isActive ? "bold" : "normal",
+                        display: "flex",
+                      }}
+                    >
+                      {label}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
 
-        <OgFooter prompt="$ less documentation.md" caption="cp-base/docs" />
+        <OgFooter prompt="$ cat /docs/readme.md" caption="Informatics Template Lib" />
       </OgShell>
     ),
     { ...OG_SIZE, fonts }

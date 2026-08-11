@@ -9,9 +9,9 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "All Templates",
   description: "Browse the complete collection of optimized, copy-paste ready competitive programming templates across graphs, data structures, math, strings, and dynamic programming.",
-  keywords: ["all templates", "competitive programming", "algorithms list", "data structures list", "cp-base templates"],
+  keywords: ["all templates", "competitive programming", "algorithms list", "data structures list", "itl templates"],
   openGraph: {
-    title: "All Templates | CP-Base",
+    title: "All Templates | Informatics Template Lib",
     description: "Browse the complete collection of optimized, copy-paste ready competitive programming templates across graphs, data structures, math, strings, and dynamic programming.",
     type: "website",
     images: ["/opengraph-image"],
@@ -33,7 +33,7 @@ export default async function TemplatesPage({ searchParams }: { searchParams: Pr
       <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
         <div className="border border-border bg-card p-8 max-w-md w-full">
           <div className="text-xs space-y-2 text-left">
-            <div className="text-muted-foreground">$ cp-base --status</div>
+            <div className="text-muted-foreground">$ itl --status</div>
             <div className="text-error animate-blink">[ERR] Something went wrong</div>
             <div className="text-muted-foreground">Please try again later.</div>
             <div className="flex items-center gap-1 mt-3">
@@ -63,7 +63,7 @@ export default async function TemplatesPage({ searchParams }: { searchParams: Pr
       <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
         <div className="border border-border bg-card p-8 max-w-md w-full">
           <div className="text-xs space-y-2 text-left">
-            <div className="text-muted-foreground">$ cp-base --status</div>
+            <div className="text-muted-foreground">$ itl --status</div>
             <div className="text-error animate-blink">[ERR] Something went wrong</div>
             <div className="text-muted-foreground">Please try again later.</div>
             <div className="flex items-center gap-1 mt-3">

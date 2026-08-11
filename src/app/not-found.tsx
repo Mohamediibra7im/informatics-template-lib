@@ -39,7 +39,7 @@ export default function NotFound() {
           </div>
 
           <div className="space-y-1 text-muted-foreground/45 text-[11px]">
-            <div>[  0.000000] Booting CP-Base Core kernel...</div>
+            <div>[  0.000000] Booting ITL Core kernel...</div>
             <div>[  0.003102] Loading algorithms and template schemas... done</div>
             <div>[  0.009482] Initializing virtual routes... done</div>
             <div className="text-destructive font-bold">[  0.012548] [ERROR] route pointer resolved to NULL pointer exception!</div>
@@ -49,7 +49,7 @@ export default function NotFound() {
           </div>
 
           <div className="flex items-center gap-1 mt-4 text-[11px] text-primary/70">
-            <span>guest@cp-base:~$</span>
+            <span>guest@itl:~$</span>
             <span>locate {pathname}</span>
             <span className="inline-block h-3 w-1.5 bg-primary animate-blink ml-0.5" />
           </div>

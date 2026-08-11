@@ -131,9 +131,9 @@ struct SegTree {
               mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             }`}
           >
-            <span className="glow-text-strong">CP</span>
-            <span className="text-muted-foreground/30">-</span>
-            <span className="glow-text-strong">BASE</span>
+            <span className="text-muted-foreground/30">[</span>
+            <span className="glow-text-strong">ITL</span>
+            <span className="text-muted-foreground/30">]</span>
           </h1>
 
           {/* Subtitle */}
@@ -142,7 +142,7 @@ struct SegTree {
               mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             }`}
           >
-            Ultra-optimized, copy-paste ready competitive programming templates. Curated structures, complexity-optimized algorithms, and ready to deploy in real-time contests.
+            <strong className="text-primary">Informatics Template Lib</strong> — ultra-optimized, copy-paste ready competitive programming templates. Curated structures, complexity-optimized algorithms, and ready to deploy in real-time contests.
           </p>
 
           {/* Stats Dashboard */}
@@ -211,7 +211,7 @@ struct SegTree {
                   <span className="h-2.5 w-2.5 rounded-full bg-success/60" />
                 </div>
                 <span className="text-[10px] text-muted-foreground/35 select-none ml-2">
-                  guest@cp-base:~ (bash)
+                  guest@itl:~ (bash)
                 </span>
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground/20 text-[9px] uppercase tracking-widest select-none">
@@ -228,7 +228,7 @@ struct SegTree {
                 <div key={idx} className="animate-boot-line">
                   {step.type === "input" && (
                     <div className="flex items-start gap-1.5 text-muted-foreground/60">
-                      <span className="text-primary font-bold">guest@cp-base:~$</span>
+                      <span className="text-primary font-bold">guest@itl:~$</span>
                       <span className="text-foreground">{step.text}</span>
                     </div>
                   )}
@@ -257,7 +257,7 @@ struct SegTree {
               {/* Active Typing Input */}
               {terminalSteps[currentStepIndex]?.type === "input" && (
                 <TypedLine
-                  prefix="guest@cp-base:~$"
+                  prefix="guest@itl:~$"
                   text={terminalSteps[currentStepIndex].text}
                   onComplete={handleInputComplete}
                 />
@@ -274,7 +274,7 @@ struct SegTree {
               {/* Inactive blinking cursor state at end */}
               {currentStepIndex >= terminalSteps.length && (
                 <div className="flex items-start gap-1.5">
-                  <span className="text-primary font-bold">guest@cp-base:~$</span>
+                  <span className="text-primary font-bold">guest@itl:~$</span>
                   <span className="inline-block h-3.5 w-1.5 bg-primary animate-blink" />
                 </div>
               )}

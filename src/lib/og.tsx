@@ -1,7 +1,7 @@
 /**
  * Shared building blocks for the `opengraph-image.tsx` route handlers.
  * Slate palette + JetBrains Mono + the terminal chrome (glows, grid, frame,
- * header, footer) that every CP-Base OG card wears, so each route only has to
+ * header, footer) that every ITL OG card wears, so each route only has to
  * describe its own middle section.
  */
 import type { ReactNode } from "react";
@@ -22,7 +22,7 @@ export const ogBaseUrl =
   process.env.NEXT_PUBLIC_SITE_URL ||
   (process.env.VERCEL_URL
     ? `https://${process.env.VERCEL_URL}`
-    : "https://cp-base.vercel.app");
+    : "https://itl-hub.vercel.app");
 
 export async function loadOgFonts() {
   const load = async (weight: 400 | 700) => {
@@ -104,7 +104,6 @@ export function OgBackdrop({ accent = OG.muted }: { accent?: string }) {
   );
 }
 
-/** CP▮BASE wordmark on the left, an optional slot on the right. */
 export function OgHeader({ right }: { right?: ReactNode }) {
   return (
     <div
@@ -123,17 +122,17 @@ export function OgHeader({ right }: { right?: ReactNode }) {
             backgroundColor: OG.muted,
             color: OG.bg,
             padding: "3px 10px",
-            fontSize: "15px",
+            fontSize: "14px",
             fontWeight: "bold",
             display: "flex",
             alignItems: "center",
-            boxShadow: "0 0 10px rgba(155, 168, 171, 0.5)",
+            boxShadow: "0 0 12px rgba(155, 168, 171, 0.4)",
           }}
         >
-          CP
+          ITL
         </div>
-        <div style={{ fontSize: "20px", fontWeight: "bold", color: OG.bright, letterSpacing: "4px", display: "flex" }}>
-          BASE
+        <div style={{ fontSize: "16px", fontWeight: "bold", color: OG.bright, letterSpacing: "3px", display: "flex" }}>
+          INFORMATICS TEMPLATE LIB
         </div>
       </div>
       {right ? <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>{right}</div> : <div style={{ display: "flex" }} />}
@@ -179,7 +178,7 @@ export function OgFooter({ prompt, caption }: { prompt: string; caption?: string
         <span style={{ display: "flex", width: "7px", height: "13px", backgroundColor: OG.muted, marginLeft: "6px" }} />
       </div>
       <div style={{ fontSize: "11px", color: "rgba(255, 255, 255, 0.2)", display: "flex" }}>
-        {caption ?? `cp-base ${new Date().getFullYear()}`}
+        {caption ?? `itl ${new Date().getFullYear()}`}
       </div>
     </div>
   );

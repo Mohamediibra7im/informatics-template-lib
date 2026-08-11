@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const db = getDb();
   if (!db) {
     return {
-      title: "Category | CP-Base",
+      title: "Category | Informatics Template Lib",
       openGraph: { images: ["/opengraph-image"] },
       twitter: { card: "summary_large_image" },
     };
@@ -23,30 +23,30 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const [category] = await db.select().from(categories).where(eq(categories.slug, slug));
     if (!category || category.hidden) {
       return {
-        title: "Category Not Found | CP-Base",
+        title: "Category Not Found | Informatics Template Lib",
         openGraph: { images: ["/opengraph-image"] },
         twitter: { card: "summary_large_image" },
       };
     }
 
     return {
-      title: `${category.name} | CP-Base`,
+      title: `${category.name} | Informatics Template Lib`,
       description: category.description || `Browse competitive programming templates for ${category.name}.`,
       openGraph: {
-        title: `${category.name} Templates | CP-Base`,
+        title: `${category.name} Templates | Informatics Template Lib`,
         description: category.description || `Browse competitive programming templates for ${category.name}.`,
         images: ["/opengraph-image"],
       },
       twitter: {
         card: "summary_large_image",
-        title: `${category.name} Templates | CP-Base`,
+        title: `${category.name} Templates | Informatics Template Lib`,
         description: category.description || `Browse competitive programming templates for ${category.name}.`,
       },
     };
   } catch (err) {
     console.error("Error generating category metadata:", err);
     return {
-      title: "Category | CP-Base",
+      title: "Category | Informatics Template Lib",
       openGraph: { images: ["/opengraph-image"] },
       twitter: { card: "summary_large_image" },
     };

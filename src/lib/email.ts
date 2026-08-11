@@ -10,7 +10,12 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const from = process.env.SMTP_FROM || "CP-Base <noreply@cp-base.net>";
+// From must be an address the SMTP account is authorized to send as, otherwise
+// providers (Gmail, etc.) rewrite it and SPF/DKIM fail → spam. Default to the
+// authenticated user; only set SMTP_FROM when sending from a verified domain.
+const from =
+  process.env.SMTP_FROM ||
+  `Informatics Template Lib <${process.env.SMTP_USER ?? "noreply@localhost"}>`;
 // Replies should reach a monitored inbox, not the (unmonitored) From/noreply.
 const replyTo = process.env.ADMIN_EMAIL || process.env.SMTP_USER || undefined;
 
@@ -18,7 +23,7 @@ const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL ||
   (process.env.VERCEL_URL
     ? `https://${process.env.VERCEL_URL}`
-    : "https://cp-base.vercel.app");
+    : "https://itl-hub.vercel.app");
 
 // Escape user-controlled values before interpolating them into email HTML so a
 // crafted contributor name / template title / note can't inject markup.
@@ -75,7 +80,7 @@ function wrap(title: string, body: string) {
     <div style="max-width:600px;margin:0 auto;padding:32px 24px">
         <div style="border:1px solid #9BA8AB;padding:16px 20px;margin-bottom:24px;background:#11212D">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-                <span style="color:#9BA8AB;font-weight:bold;font-size:14px">CP-Base</span>
+                <span style="color:#9BA8AB;font-weight:bold;font-size:14px">ITL</span>
                 <span style="color:#555;font-size:11px">// mainframe notification</span>
             </div>
             <h2 style="color:#9BA8AB;margin:0;font-size:18px">${title}</h2>
@@ -84,7 +89,7 @@ function wrap(title: string, body: string) {
             ${body}
         </div>
         <div style="margin-top:20px;text-align:center;font-size:11px;color:#555">
-            <a href="${baseUrl}" style="color:#9BA8AB;text-decoration:none">cp-base</a>
+            <a href="${baseUrl}" style="color:#9BA8AB;text-decoration:none">itl</a>
             <span style="margin:0 8px">|</span>
             <span>Automated system notification</span>
         </div>
@@ -108,14 +113,14 @@ export async function sendApprovalEmail(
   const html = wrap(
     "Contribution Approved",
     `<p>Hey <strong style="color:#9BA8AB">${safeName}</strong>,</p>
-    <p>Your ${action} for <strong>"${safeTitle}"</strong> has been <span style="color:#9BA8AB;font-weight:bold">approved</span> and is now live on CP-Base.</p>
+    <p>Your ${action} for <strong>"${safeTitle}"</strong> has been <span style="color:#9BA8AB;font-weight:bold">approved</span> and is now live on Informatics Template Lib.</p>
     <p style="margin-top:16px">
       <a href="${link}" style="display:inline-block;padding:8px 20px;border:1px solid #9BA8AB;color:#9BA8AB;text-decoration:none;font-weight:bold;font-size:12px;letter-spacing:1px">[ VIEW TEMPLATE ]</a>
     </p>
     <p style="color:#888;font-size:12px;margin-top:20px">Thanks for contributing to the CP community!</p>`
   );
 
-  await send(to, `[CP-Base] Your ${action} was approved!`, html);
+  await send(to, `[ITL] Your ${action} was approved!`, html);
 }
 
 export async function sendRejectionEmail(
@@ -139,7 +144,7 @@ export async function sendRejectionEmail(
     <p style="color:#888;font-size:12px;margin-top:16px">Feel free to revise and resubmit. We appreciate your effort!</p>`
   );
 
-  await send(to, `[CP-Base] Update on your submission "${templateTitle}"`, html);
+  await send(to, `[ITL] Update on your submission "${templateTitle}"`, html);
 }
 
 // Admin requested changes before this contribution can be accepted. The button
@@ -170,7 +175,7 @@ export async function sendChangesRequestedEmail(
     <p style="color:#888;font-size:12px;margin-top:20px">Your original submission is pre-filled on that page — just apply the changes and resubmit.</p>`
   );
 
-  await send(to, `[CP-Base] Changes requested on your submission "${templateTitle}"`, html);
+  await send(to, `[ITL] Changes requested on your submission "${templateTitle}"`, html);
 }
 
 // Notify the admin that a new contribution is awaiting review. Recipient is
@@ -210,7 +215,7 @@ export async function sendNewContributionNotification(
     </p>`
   );
 
-  await send(to, `[CP-Base] New ${action} pending review`, html);
+  await send(to, `[ITL] New ${action} pending review`, html);
 }
 
 export async function sendVerificationEmail(
@@ -220,7 +225,7 @@ export async function sendVerificationEmail(
 ) {
   const html = wrap(
     "Verify Your Email",
-    `<p>Welcome to <strong style="color:#9BA8AB">CP-Base</strong>, ${escapeHtml(username)}!</p>
+    `<p>Welcome to <strong style="color:#9BA8AB">Informatics Template Lib</strong>, ${escapeHtml(username)}!</p>
     <p>Please verify your email address to activate your account. Use the following 6-digit verification code:</p>
     <div style="margin:24px 0;text-align:center">
       <span style="display:inline-block;padding:12px 32px;background:#11212D;border:2px solid #9BA8AB;color:#9BA8AB;font-size:24px;font-weight:bold;letter-spacing:4px">${code}</span>
@@ -228,5 +233,5 @@ export async function sendVerificationEmail(
     <p style="font-size:12px;color:#888">This code will expire in 1 hour. If you did not sign up for this account, please ignore this email.</p>`
   );
 
-  await send(to, `[CP-Base] Email Verification Code: ${code}`, html);
+  await send(to, `[ITL] Email Verification Code: ${code}`, html);
 }

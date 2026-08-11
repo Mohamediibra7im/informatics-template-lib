@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Terminal, Search, X, Braces, Library, Menu, GitPullRequest, LogIn, LayoutDashboard, LogOut, BookOpen, Zap, Rows3, Hash, Volume2, VolumeX } from "lucide-react";
+import { Search, X, Braces, Library, Menu, GitPullRequest, LogIn, LayoutDashboard, LogOut, BookOpen, Zap, Rows3, Hash, Volume2, VolumeX } from "lucide-react";
 import { useTerminalTheme } from "./theme-provider";
 import { useAuth } from "./auth-provider";
+import { BrandLogo } from "./brand-logo";
 import {
   Sheet,
   SheetContent,
@@ -206,19 +207,7 @@ export function NavBar() {
           <>
             {/* Left: Logo + Nav links */}
             <div className="flex items-center gap-8">
-              {/* Logo */}
-              <Link
-                href="/"
-                onClick={playClick}
-                className="flex items-center gap-2 group shrink-0"
-              >
-                <div className="relative flex items-center justify-center h-5 w-5 border border-primary/30 bg-primary/5">
-                  <Terminal className="h-3 w-3 text-primary" />
-                </div>
-                <span className="text-xs font-bold tracking-[0.2em] text-primary uppercase">
-                  CP-Base
-                </span>
-              </Link>
+              <BrandLogo size="md" />
 
               {/* Nav links */}
               <nav className="hidden sm:flex items-center gap-1">
@@ -367,8 +356,7 @@ export function NavBar() {
                     <div>
                       <SheetHeader className="mb-6 p-0">
                         <SheetTitle className="text-left font-mono text-xs font-bold tracking-[0.2em] text-primary uppercase flex items-center gap-2">
-                          <Terminal className="h-3.5 w-3.5" />
-                          CP-BASE MENU
+                          <BrandLogo size="sm" />
                         </SheetTitle>
                       </SheetHeader>
 
@@ -597,7 +585,7 @@ export function NavBar() {
                     </div>
 
                     <div className="mt-8 font-mono text-[9px] text-muted-foreground/30 flex justify-between items-center border-t border-border/50 pt-4 shrink-0">
-                      <span>cp-base --version 1.0</span>
+                      <span>itl --version 1.0</span>
                       <span>[online]</span>
                     </div>
                   </SheetContent>

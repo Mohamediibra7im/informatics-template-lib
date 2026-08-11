@@ -136,7 +136,7 @@ function VerifyContent() {
         {/* Terminal Logs */}
         <div className="p-4 bg-background/20 border-b border-primary/10 text-[10px] text-muted-foreground/50 space-y-1 font-mono">
           <div className="flex items-center gap-1">
-            <span className="text-primary font-bold">user@cp-base:~$</span>
+            <span className="text-primary font-bold">user@itl:~$</span>
             <span>emailverify --send</span>
           </div>
           <div className="text-success/70">[OK] Verification email dispatched to:</div>

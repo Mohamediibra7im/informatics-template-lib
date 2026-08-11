@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Terminal, Clock, ArrowUpRight } from "lucide-react";
+import { Clock, ArrowUpRight } from "lucide-react";
 import { useTerminalTheme } from "./theme-provider";
+import { BrandLogo } from "./brand-logo";
 
 export function Footer() {
   const year = new Date().getFullYear();
@@ -28,19 +29,10 @@ export function Footer() {
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-border/30">
           
           <div className="space-y-1.5 max-w-2xl">
-            <div className="flex items-center gap-2.5">
-              <Link
-                href="/"
-                onClick={playClick}
-                className="flex items-center gap-2 text-foreground hover:text-primary transition-colors font-bold tracking-wider"
-              >
-                <div className="flex items-center justify-center h-6 w-6 border border-border bg-card text-primary">
-                  <Terminal className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-sm">CP-BASE</span>
-              </Link>
+            <div className="flex items-center gap-3">
+              <BrandLogo size="md" />
               <span className="text-border">|</span>
-              <span className="text-[10px] text-muted-foreground/70 uppercase tracking-widest font-semibold">
+              <span className="text-[10px] text-muted-foreground/70 uppercase tracking-widest font-semibold font-mono">
                 Verified Algorithm Vault
               </span>
             </div>
@@ -117,7 +109,7 @@ export function Footer() {
         {/* Bottom Signature Line */}
         <div className="pt-4 border-t border-border/30 flex flex-col sm:flex-row items-center justify-between gap-3 text-[10.5px] sm:text-[11px] text-muted-foreground/65 text-center sm:text-left">
           <div className="flex items-center justify-center sm:justify-start gap-2">
-            <span>© {year} CP-BASE. All rights reserved.</span>
+            <span>© {year} ITL. All rights reserved.</span>
           </div>
 
           <div className="flex flex-wrap items-center justify-center sm:justify-end gap-x-1 gap-y-0.5">

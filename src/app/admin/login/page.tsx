@@ -97,7 +97,7 @@ export default function AdminLogin() {
         {/* Immersive Terminal Logs */}
         <div className="p-4 bg-background/20 border-b border-primary/10 text-[10px] text-muted-foreground/50 space-y-1 font-mono select-text selection:bg-primary/15 selection:text-primary">
           <div className="flex items-center gap-1">
-            <span className="text-primary font-bold">guest@cp-base:~$</span>
+            <span className="text-primary font-bold">guest@itl:~$</span>
             <span>sudo login --admin</span>
           </div>
           <div>[BOOT] loading ssh_auth_subsystem... <span className="text-success font-bold">[ OK ]</span></div>

@@ -105,7 +105,7 @@ ${c.code ? `<b>Contest Code:</b> ${c.code}\n` : ""}
 <b>Contest Link:</b> ${c.url}
 
 <b>Reference & Boilerplates:</b>
-https://cp-base.vercel.app/`;
+https://itl-hub.vercel.app/`;
 
     return `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
       title
@@ -155,9 +155,9 @@ Start Time:
 Contest Link: ${c.url}
 
 Reference & Boilerplates:
-https://cp-base.vercel.app/`;
+https://itl-hub.vercel.app/`;
 
-    const htmlDescription = `<!DOCTYPE html><html><body><b><u>Competitive Programming Contest Details</u></b><br><br><b>Contest:</b>      ${c.name}<br><b>Platform:</b>     ${platformName}<br><b>Duration:</b>     ${formatDuration(c.duration)}<br><b>Rated:</b>        ${c.rated || "Yes / See contest site"}<br>${c.code ? `<b>Contest Code:</b> ${c.code}<br>` : ""}<b>Start Time:</b><br>- Local:      ${startLocal}<br>- UTC:        ${startUTC}<br><br><b>Contest Link:</b> <a href="${c.url}">${c.url}</a><br><br><b>Reference & Boilerplates:</b><br><a href="https://cp-base.vercel.app/">https://cp-base.vercel.app/</a></body></html>`;
+    const htmlDescription = `<!DOCTYPE html><html><body><b><u>Competitive Programming Contest Details</u></b><br><br><b>Contest:</b>      ${c.name}<br><b>Platform:</b>     ${platformName}<br><b>Duration:</b>     ${formatDuration(c.duration)}<br><b>Rated:</b>        ${c.rated || "Yes / See contest site"}<br>${c.code ? `<b>Contest Code:</b> ${c.code}<br>` : ""}<b>Start Time:</b><br>- Local:      ${startLocal}<br>- UTC:        ${startUTC}<br><br><b>Contest Link:</b> <a href="${c.url}">${c.url}</a><br><br><b>Reference & Boilerplates:</b><br><a href="https://itl-hub.vercel.app/">https://itl-hub.vercel.app/</a></body></html>`;
 
     const escapedPlainDesc = plainDescription
       .replace(/\n/g, "\\n")
@@ -171,12 +171,12 @@ https://cp-base.vercel.app/`;
 
     const escapedTitle = title.replace(/[,;]/g, (m) => `\\${m}`);
 
-    const uid = `${activeTab}-${startISO}-${c.name.replace(/[^a-zA-Z0-9]/g, "")}`.toLowerCase().substring(0, 64) + "@cpbase";
+    const uid = `${activeTab}-${startISO}-${c.name.replace(/[^a-zA-Z0-9]/g, "")}`.toLowerCase().substring(0, 64) + "@itl";
 
     const icsContent = [
       "BEGIN:VCALENDAR",
       "VERSION:2.0",
-      "PRODID:-//CP-Base//Contest Calendar//EN",
+      "PRODID:-//ITL//Contest Calendar//EN",
       "BEGIN:VEVENT",
       `UID:${uid}`,
       `DTSTAMP:${stampISO}`,

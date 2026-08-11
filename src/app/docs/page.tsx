@@ -55,7 +55,7 @@ const sections: Section[] = [
   { id: "contest-calendar", label: "Contest Calendar", icon: <Calendar className="h-3.5 w-3.5" />, cmd: "cron contests --watch" },
   { id: "cp-profiles", label: "CP Profiles", icon: <Trophy className="h-3.5 w-3.5" />, cmd: "whoami --cf-stats" },
   { id: "public-profile", label: "Public Profile", icon: <UserCircle className="h-3.5 w-3.5" />, cmd: "cat ~/profile/public.json" },
-  { id: "settings", label: "Settings & Preferences", icon: <Settings className="h-3.5 w-3.5" />, cmd: "nano ~/.cp-base/config" },
+  { id: "settings", label: "Settings & Preferences", icon: <Settings className="h-3.5 w-3.5" />, cmd: "nano ~/.itl/config" },
 ];
 
 /* ── Reusable sub-components ─────────────────────────────────────── */
@@ -200,14 +200,14 @@ export default function DocsPage() {
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
             <span className="text-primary">$</span>
-            <span className="text-foreground font-bold">man cp-base</span>
+            <span className="text-foreground font-bold">man itl</span>
             <span className="inline-block h-3 w-1.5 bg-primary animate-blink ml-1" />
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">
             DOCUMENTATION
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground/60 leading-relaxed mt-2 max-w-2xl">
-            Complete guide to every feature in CP-Base. Learn how to maximize your competitive programming workflow — from template browsing to progress tracking and contest scheduling.
+            Complete guide to every feature in ITL. Learn how to maximize your competitive programming workflow — from template browsing to progress tracking and contest scheduling.
           </p>
 
           {/* Quick stats */}
@@ -308,10 +308,10 @@ export default function DocsPage() {
               <SectionHeader section={sections[0]} />
               <div className="text-[11px] sm:text-xs text-muted-foreground/60 leading-relaxed space-y-4">
                 <p>
-                  <strong className="text-foreground">CP-Base</strong> is a competitive programming template library designed to help you find, copy, and organize optimized algorithm implementations for contests. Think of it as your personal algorithm toolbox — always accessible, always ready.
+                  <strong className="text-foreground">Informatics Template Lib (ITL)</strong> is a competitive programming template library designed to help you find, copy, and organize optimized algorithm implementations for contests. Think of it as your personal algorithm toolbox — always accessible, always ready.
                 </p>
                 <p>
-                  Whether you&apos;re preparing for Codeforces rounds, AtCoder contests, LeetCode weeklies, or CodeChef challenges, CP-Base centralizes every template you need in one searchable hub.
+                  Whether you&apos;re preparing for Codeforces rounds, AtCoder contests, LeetCode weeklies, or CodeChef challenges, ITL centralizes every template you need in one searchable hub.
                 </p>
 
                 <div className="border border-border/40 bg-background/30 p-4 space-y-3">
@@ -422,7 +422,7 @@ export default function DocsPage() {
               <SectionHeader section={sections[3]} />
               <div className="text-[11px] sm:text-xs text-muted-foreground/60 leading-relaxed space-y-4">
                 <p>
-                  Creating a free account unlocks the full power of CP-Base. Here&apos;s what you get:
+                  Creating a free account unlocks the full power of ITL. Here&apos;s what you get:
                 </p>
 
                 <div className="grid sm:grid-cols-2 gap-3">
@@ -456,7 +456,7 @@ export default function DocsPage() {
               <SectionHeader section={sections[4]} />
               <div className="text-[11px] sm:text-xs text-muted-foreground/60 leading-relaxed space-y-4">
                 <p>
-                  Your dashboard is the command center. The <strong className="text-foreground">Overview tab</strong> gives you a bird&apos;s-eye view of your entire CP-Base activity:
+                  Your dashboard is the command center. The <strong className="text-foreground">Overview tab</strong> gives you a bird&apos;s-eye view of your entire ITL activity:
                 </p>
 
                 <div className="border border-border/40 bg-background/30 p-4">
@@ -550,7 +550,7 @@ export default function DocsPage() {
               <SectionHeader section={sections[7]} />
               <div className="text-[11px] sm:text-xs text-muted-foreground/60 leading-relaxed space-y-4">
                 <p>
-                  Progress tracking is one of the most powerful features in CP-Base. It transforms the platform from a passive copy-paste library into an <strong className="text-foreground">active study system</strong>.
+                  Progress tracking is one of the most powerful features in ITL. It transforms the platform from a passive copy-paste library into an <strong className="text-foreground">active study system</strong>.
                 </p>
 
                 <div className="border border-border/40 bg-background/30 p-4">
@@ -648,7 +648,7 @@ export default function DocsPage() {
               <SectionHeader section={sections[9]} />
               <div className="text-[11px] sm:text-xs text-muted-foreground/60 leading-relaxed space-y-4">
                 <p>
-                  CP-Base grows through community contributions. Logged-in users can submit two types of contributions:
+                  ITL grows through community contributions. Logged-in users can submit two types of contributions:
                 </p>
 
                 <div className="grid sm:grid-cols-2 gap-3">
@@ -708,7 +708,7 @@ export default function DocsPage() {
               <SectionHeader section={sections[10]} />
               <div className="text-[11px] sm:text-xs text-muted-foreground/60 leading-relaxed space-y-4">
                 <p>
-                  CP-Base aggregates <strong className="text-foreground">live upcoming contests</strong> from all major competitive programming platforms into a single unified timeline:
+                  ITL aggregates <strong className="text-foreground">live upcoming contests</strong> from all major competitive programming platforms into a single unified timeline:
                 </p>
 
                 <div className="flex flex-wrap gap-2 my-3">
@@ -744,7 +744,7 @@ export default function DocsPage() {
               <SectionHeader section={sections[11]} />
               <div className="text-[11px] sm:text-xs text-muted-foreground/60 leading-relaxed space-y-4">
                 <p>
-                  Link your competitive programming handles to see your <strong className="text-foreground">rating statistics</strong> directly in your CP-Base dashboard:
+                  Link your competitive programming handles to see your <strong className="text-foreground">rating statistics</strong> directly in your ITL dashboard:
                 </p>
 
                 <div className="border border-border/40 bg-background/30 p-4">
@@ -838,7 +838,7 @@ export default function DocsPage() {
               <SectionHeader section={sections[13]} />
               <div className="text-[11px] sm:text-xs text-muted-foreground/60 leading-relaxed space-y-4">
                 <p>
-                  CP-Base offers several customization options to tailor the experience to your preferences:
+                  ITL offers several customization options to tailor the experience to your preferences:
                 </p>
 
                 <div className="grid sm:grid-cols-2 gap-3">
