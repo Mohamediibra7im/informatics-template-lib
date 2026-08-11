@@ -8,6 +8,9 @@ import { CyberDotGrid } from "./cyber-dot-grid";
 import { RetroSettings } from "./retro-settings";
 import { CliConsole } from "./cli-console";
 
+import { SelectionProvider } from "./selection-context";
+import { MultiSelectBar } from "./multi-select-bar";
+
 function AppContent({ children }: { children: React.ReactNode }) {
   const { playBoot, playClick } = useTerminalTheme();
 
@@ -52,6 +55,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
     <>
       <CyberDotGrid />
       {children}
+      <MultiSelectBar />
       <RetroSettings />
       <CliConsole />
     </>
@@ -62,9 +66,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <AppContent>
-          {children}
-        </AppContent>
+        <SelectionProvider>
+          <AppContent>
+            {children}
+          </AppContent>
+        </SelectionProvider>
         <Toaster richColors position="top-center" className="font-mono text-xs" />
       </AuthProvider>
     </ThemeProvider>

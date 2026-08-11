@@ -1,5 +1,5 @@
 import { getDb, schema } from "@/db";
-import { eq, sql, and } from "drizzle-orm";
+import { eq, sql, and, count } from "drizzle-orm";
 import { CategoryCard } from "@/components/category-card";
 import { Braces, Terminal } from "lucide-react";
 import { TerminalBreadcrumb } from "@/components/terminal";
@@ -65,12 +65,19 @@ export default async function CategoriesPage() {
       orderBy: (c, { asc }) => [asc(c.order)],
     });
 
-    for (const cat of cats) {
-      const [row] = await db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(schema.templates)
-        .where(and(eq(schema.templates.categoryId, cat.id), eq(schema.templates.hidden, false)));
-      countMap[cat.id] = row?.count ?? 0;
+    const categoryCounts = await db
+      .select({
+        categoryId: schema.templates.categoryId,
+        count: count(schema.templates.id),
+      })
+      .from(schema.templates)
+      .where(eq(schema.templates.hidden, false))
+      .groupBy(schema.templates.categoryId);
+
+    for (const row of categoryCounts) {
+      if (row.categoryId !== null) {
+        countMap[row.categoryId] = Number(row.count) || 0;
+      }
     }
 
     totalTemplates = Object.values(countMap).reduce((a, b) => a + b, 0);

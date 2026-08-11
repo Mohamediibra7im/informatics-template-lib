@@ -14,6 +14,7 @@ import {
   ExternalLink,
   Plus,
   ChevronRight,
+  Printer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -89,6 +90,15 @@ export function CollectionsTab({
                 <span>Back to all collections</span>
               </button>
               <div className="flex items-center gap-2">
+                <Link href={`/editor?collectionId=${activeCollection.id}`}>
+                  <Button
+                    size="sm"
+                    className="font-mono text-[10px] uppercase font-extrabold h-7.5 px-3 bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer"
+                  >
+                    <Printer className="h-3.5 w-3.5 mr-1.5" />
+                    Print Collection PDF
+                  </Button>
+                </Link>
                 {editingCollId !== activeCollection.id && (
                   <Button
                     variant="outline"

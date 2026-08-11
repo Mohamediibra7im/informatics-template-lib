@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight, Heart } from "lucide-react";
+import { ArrowUpRight, Heart, CheckSquare, Square } from "lucide-react";
 import type { InferSelectModel } from "drizzle-orm";
 import type { templates as templatesTable, categories as categoriesTable } from "@/db/schema";
 import { useTerminalTheme } from "./theme-provider";
+import { useSelection } from "./selection-context";
 
 type Template = InferSelectModel<typeof templatesTable>;
 type Category = InferSelectModel<typeof categoriesTable>;
@@ -12,23 +13,85 @@ type TemplateWithCategory = Template & { category?: Pick<Category, "name" | "slu
 
 export function TemplateCard({ template }: { template: TemplateWithCategory }) {
   const { playClick } = useTerminalTheme();
+  const { isSelected, toggleSelect, selectedIds } = useSelection();
+
+  const selected = isSelected(template.id);
+  const inSelectionMode = selectedIds.size > 0;
+
+  // When selection mode is active (1+ templates selected), clicking anywhere on the card toggles selection.
+  const handleCardClick = (e: React.MouseEvent) => {
+    if (inSelectionMode) {
+      e.preventDefault();
+      e.stopPropagation();
+      playClick();
+      toggleSelect(template.id);
+    } else {
+      playClick();
+    }
+  };
+
+  // Clicking explicit checkbox toggle
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    playClick();
+    toggleSelect(template.id);
+  };
 
   return (
-    <Link href={`/template/${template.slug}`} onClick={playClick} className="block h-full">
-      <div className="group relative flex flex-col border border-border bg-card hover:border-primary/50 hover:shadow-[0_0_20px_var(--primary-glow-ultra-weak)] transition-all duration-300 overflow-hidden h-full min-h-[170px] font-mono">
-        
+    <Link
+      href={`/template/${template.slug}`}
+      onClick={handleCardClick}
+      className="block h-full relative group/card select-none"
+    >
+      <div
+        className={`group relative flex flex-col border bg-card hover:shadow-[0_0_20px_var(--primary-glow-ultra-weak)] transition-all duration-300 overflow-hidden h-full min-h-[170px] font-mono ${
+          selected
+            ? "border-primary bg-primary/[0.06] shadow-[0_0_15px_var(--primary-glow-weak)]"
+            : inSelectionMode
+            ? "border-border/80 hover:border-primary/50 cursor-pointer"
+            : "border-border hover:border-primary/50"
+        }`}
+      >
         {/* Terminal Header */}
         <div className="flex items-center justify-between px-3 py-1.5 border-b border-border/40 bg-muted/10 shrink-0">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleCheckboxClick}
+              className={`flex items-center gap-1 text-[10px] font-mono transition-colors cursor-pointer ${
+                selected
+                  ? "text-primary font-bold"
+                  : "text-muted-foreground/50 hover:text-primary"
+              }`}
+              title={selected ? "Deselect template" : "Select template"}
+            >
+              {selected ? (
+                <CheckSquare className="h-3.5 w-3.5 text-primary shrink-0" />
+              ) : (
+                <Square className="h-3.5 w-3.5 opacity-50 group-hover/card:opacity-100 transition-opacity shrink-0" />
+              )}
+            </button>
+
             <div className="flex gap-1 shrink-0">
               <span className="h-1.5 w-1.5 rounded-full bg-destructive/40" />
               <span className="h-1.5 w-1.5 rounded-full bg-warning/40" />
               <span className="h-1.5 w-1.5 rounded-full bg-success/40" />
             </div>
-            <span className="text-[9px] text-muted-foreground/30 truncate max-w-[140px]">
+            <span className="text-[9px] text-muted-foreground/40 truncate max-w-[130px]">
               template_{template.slug}.cpp
             </span>
           </div>
+
+          {selected ? (
+            <span className="text-[8px] font-extrabold uppercase px-1 py-0.2 bg-primary/20 text-primary border border-primary/30">
+              SELECTED
+            </span>
+          ) : inSelectionMode ? (
+            <span className="text-[8px] font-bold text-muted-foreground/40 group-hover/card:text-primary transition-colors">
+              CLICK TO SELECT
+            </span>
+          ) : null}
         </div>
 
         <div className="p-4 flex flex-col flex-1">
@@ -87,7 +150,7 @@ export function TemplateCard({ template }: { template: TemplateWithCategory }) {
 
             {/* Hover visual prompt */}
             <span className="text-[9px] text-muted-foreground/30 group-hover:text-primary transition-all duration-300 flex items-center gap-0.5 select-none shrink-0">
-              <span className="text-primary/50">$</span> cat {template.slug.slice(0, 10)}{template.slug.length > 10 ? '..' : ''}
+              <span className="text-primary/50">$</span> {inSelectionMode ? "select" : "cat"} {template.slug.slice(0, 8)}{template.slug.length > 8 ? '..' : ''}
               <span className="inline-block h-2.5 w-1 bg-primary animate-blink opacity-0 group-hover:opacity-100" />
             </span>
           </div>

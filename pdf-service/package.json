@@ -1,0 +1,14 @@
+{
+  "name": "pdf-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LaTeX (tectonic) PDF renderer for ICPC Team Reference documents",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "selfcheck": "node selfcheck.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

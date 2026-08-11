@@ -1,5 +1,5 @@
 import { getDb, schema } from "@/db";
-import { eq, sql, and } from "drizzle-orm";
+import { eq, sql, and, count } from "drizzle-orm";
 import { Terminal, Code2, Calendar, Trophy, ArrowRight, Play, TerminalSquare, Compass, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { ContestCalendar } from "@/components/contest-calendar";
@@ -40,12 +40,19 @@ export default async function Home() {
       orderBy: (c, { asc }) => [asc(c.order)],
     });
 
-    for (const cat of cats) {
-      const [row] = await db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(schema.templates)
-        .where(and(eq(schema.templates.categoryId, cat.id), eq(schema.templates.hidden, false)));
-      countMap[cat.id] = row?.count ?? 0;
+    const categoryCounts = await db
+      .select({
+        categoryId: schema.templates.categoryId,
+        count: count(schema.templates.id),
+      })
+      .from(schema.templates)
+      .where(eq(schema.templates.hidden, false))
+      .groupBy(schema.templates.categoryId);
+
+    for (const row of categoryCounts) {
+      if (row.categoryId !== null) {
+        countMap[row.categoryId] = Number(row.count) || 0;
+      }
     }
 
     totalTemplates = Object.values(countMap).reduce((a, b) => a + b, 0);
