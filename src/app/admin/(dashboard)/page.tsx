@@ -14,6 +14,7 @@ import { SectionsTab } from "./_components/sections-tab";
 import { StatsTab } from "./_components/stats-tab";
 import { ContributionsTab } from "./_components/contributions-tab";
 import { UsersTab } from "./_components/users-tab";
+import { AnnouncementTab } from "./_components/announcement-tab";
 
 interface Template {
   id: number;
@@ -108,7 +109,9 @@ interface ImportItem {
 }
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<"templates" | "categories" | "sections" | "stats" | "contributions" | "users">("templates");
+  const [activeTab, setActiveTab] = useState<
+    "templates" | "categories" | "sections" | "stats" | "contributions" | "users" | "announcements"
+  >("templates");
   
   // Users State
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -849,6 +852,16 @@ export default function AdminDashboard() {
         >
           $ ls users/
         </button>
+        <button
+          onClick={() => { playClick(); setActiveTab("announcements"); }}
+          className={`px-3 py-1.5 border text-[11px] font-mono font-bold uppercase tracking-wider transition-all rounded-none cursor-pointer flex items-center gap-1.5 ${
+            activeTab === "announcements"
+              ? "border-primary bg-primary/10 text-primary shadow-[0_0_10px_var(--primary-glow-weak)]"
+              : "border-border text-muted-foreground/45 hover:text-foreground"
+          }`}
+        >
+          $ broadcast announcements/
+        </button>
       </div>
 
       {/* VIEW: Templates */}
@@ -1082,6 +1095,9 @@ export default function AdminDashboard() {
 
       {/* VIEW: Contributions Review */}
       {activeTab === "contributions" && <ContributionsTab loadingContributions={loadingContributions} contribFilter={contribFilter} setContribFilter={setContribFilter} pendingContribCount={pendingContribCount} filteredContributions={filteredContributions} expandedContribution={expandedContribution} setExpandedContribution={setExpandedContribution} playClick={playClick} playBeep={playBeep} onApprove={approveContribution} onReject={(c) => setRejectModal({ id: c.id, adminNote: "" })} onRequestChanges={(c) => setRequestChangesModal({ id: c.id, adminNote: "" })} onDelete={(c) => setDeleteContribTarget(c)} />}
+
+      {/* VIEW: Announcement System */}
+      {activeTab === "announcements" && <AnnouncementTab />}
 
       {/* Retro Delete warning modal overlay (Templates) */}
       {deleteTarget && (

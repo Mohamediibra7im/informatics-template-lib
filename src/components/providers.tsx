@@ -10,6 +10,7 @@ import { CliConsole } from "./cli-console";
 
 import { SelectionProvider } from "./selection-context";
 import { MultiSelectBar } from "./multi-select-bar";
+import { AnnouncementPopup } from "./announcement-popup";
 
 function AppContent({ children }: { children: React.ReactNode }) {
   const { playBoot, playClick } = useTerminalTheme();
@@ -58,6 +59,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
       <MultiSelectBar />
       <RetroSettings />
       <CliConsole />
+      <AnnouncementPopup />
     </>
   );
 }
