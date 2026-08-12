@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useSelection } from "./selection-context";
 import { useAuth } from "./auth-provider";
 import { useTerminalTheme } from "./theme-provider";
@@ -24,6 +24,7 @@ interface Collection {
 
 export function MultiSelectBar() {
   const router = useRouter();
+  const pathname = usePathname();
   const { user } = useAuth();
   const { playClick, playSuccess } = useTerminalTheme();
   const { selectedIds, clearSelection } = useSelection();
@@ -58,11 +59,12 @@ export function MultiSelectBar() {
     }
   };
 
-  if (count === 0) return null;
+  if (count === 0 || pathname === "/editor") return null;
 
   const handlePrint = () => {
     playClick();
     const ids = Array.from(selectedIds).join(",");
+    clearSelection();
     router.push(`/editor?ids=${ids}`);
   };
 
@@ -139,32 +141,36 @@ export function MultiSelectBar() {
 
   return (
     <>
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-fade-in font-mono print:hidden">
-        <div className="flex items-center gap-3 px-4 py-2.5 border border-primary/40 bg-card/95 backdrop-blur-md shadow-[0_0_35px_rgba(0,0,0,0.8)] rounded-none">
-          <div className="flex items-center gap-2 pr-2 border-r border-border text-xs font-extrabold text-foreground">
-            <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+      <div className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 animate-fade-in font-mono print:hidden w-[calc(100vw-1.5rem)] max-w-fit sm:w-auto">
+        <div className="flex items-center justify-between sm:justify-start gap-1.5 sm:gap-3 px-2.5 sm:px-4 py-2 sm:py-2.5 border border-primary/40 bg-card/95 backdrop-blur-md shadow-[0_0_35px_rgba(0,0,0,0.8)] rounded-none w-full max-w-full">
+          <div className="flex items-center gap-1.5 sm:gap-2 pr-1.5 sm:pr-2 border-r border-border text-xs font-extrabold text-foreground shrink-0">
+            <span className="h-2 w-2 rounded-full bg-primary animate-pulse shrink-0" />
             <span>{count}</span>
-            <span className="text-muted-foreground uppercase text-[10px] tracking-wider">selected</span>
+            <span className="text-muted-foreground uppercase text-[10px] tracking-wider hidden sm:inline">selected</span>
+            <span className="text-muted-foreground uppercase text-[9px] tracking-wider sm:hidden">sel</span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <Button
               size="sm"
               onClick={handlePrint}
-              className="font-mono text-xs font-extrabold uppercase bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer h-8 px-3"
+              className="font-mono text-[11px] sm:text-xs font-extrabold uppercase bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer h-8 px-2 sm:px-3 shrink-0"
             >
-              <Printer className="h-3.5 w-3.5 mr-1.5" />
-              <span>Print Book</span>
+              <Printer className="h-3.5 w-3.5 mr-1 sm:mr-1.5 shrink-0" />
+              <span className="hidden sm:inline">Print Book</span>
+              <span className="sm:hidden">Print</span>
             </Button>
 
             <Button
               size="sm"
               variant="outline"
               onClick={handleAddToCollection}
-              className="font-mono text-xs font-bold uppercase border-border hover:border-primary/50 text-foreground cursor-pointer h-8 px-3"
+              className="font-mono text-[11px] sm:text-xs font-bold uppercase border-border hover:border-primary/50 text-foreground cursor-pointer h-8 px-2 sm:px-3 shrink-0"
             >
-              <FolderPlus className="h-3.5 w-3.5 mr-1.5 text-primary" />
-              <span>Add to Collection</span>
+              <FolderPlus className="h-3.5 w-3.5 mr-1 sm:mr-1.5 text-primary shrink-0" />
+              <span className="hidden md:inline">Add to Collection</span>
+              <span className="hidden sm:inline md:hidden">Collection</span>
+              <span className="sm:hidden">+ Collection</span>
             </Button>
 
             <button
@@ -172,7 +178,7 @@ export function MultiSelectBar() {
                 playClick();
                 clearSelection();
               }}
-              className="p-1 text-muted-foreground hover:text-foreground transition-colors ml-1"
+              className="p-1 text-muted-foreground hover:text-foreground transition-colors ml-0.5 sm:ml-1 shrink-0"
               title="Clear selection"
             >
               <X className="h-4 w-4" />
@@ -183,7 +189,7 @@ export function MultiSelectBar() {
 
       {/* Add to Collection Modal */}
       <Dialog open={openCollectionModal} onOpenChange={setOpenCollectionModal}>
-        <DialogContent className="border border-primary/30 bg-card p-6 font-mono max-w-md">
+        <DialogContent className="border border-primary/30 bg-card p-4 sm:p-6 font-mono max-w-[calc(100vw-2rem)] sm:max-w-md w-full">
           <DialogHeader>
             <DialogTitle className="text-sm font-bold uppercase tracking-wider text-primary flex items-center gap-2">
               <FolderPlus className="h-4 w-4" />

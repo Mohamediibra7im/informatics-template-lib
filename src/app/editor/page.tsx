@@ -42,6 +42,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { computeCodeHash } from "@/lib/hash-utils";
 import MonacoCodeEditor from "@/components/forms/monaco-code-editor";
 import { highlightCodeLine } from "@/lib/syntax-highlighter";
@@ -96,6 +102,7 @@ function EditorPageContent() {
   const [editSectionName, setEditSectionName] = useState("");
   const [editingCodeTopicId, setEditingCodeTopicId] = useState<number | null>(null);
 
+  const [mobileCategoryOpen, setMobileCategoryOpen] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [viewMode, setViewMode] = useState<"studio" | "preview">("studio");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -244,8 +251,7 @@ function EditorPageContent() {
     localStorage.setItem("itl-pdf-settings", JSON.stringify(newSettings));
   };
 
-  // Build the service payload from current sections + settings (shared by
-  // download and live preview).
+  // Build the service payload from current sections + settings
   const buildPdfPayload = () => {
     const layoutCols = { "1-col": 1, "2-col": 2, "3-col": 3 } as const;
     return {
@@ -259,8 +265,6 @@ function EditorPageContent() {
         showLineNumbers: settings.showLineNumbers,
         showCodeHashes: settings.showCodeHashes,
         pageBreakPerTemplate: settings.pageBreakPerTemplate,
-        // theme picker removed — always colored (syntax highlighted). Ignoring
-        // any stale settings.theme from older localStorage.
         theme: "light",
       },
       sections: sections.map((sec) => ({
@@ -281,7 +285,7 @@ function EditorPageContent() {
     };
   };
 
-  // Generate PDF via the LaTeX service and download the returned file
+  // Generate PDF via LaTeX service and download
   const handleGeneratePdf = async () => {
     playClick();
 
@@ -331,7 +335,7 @@ function EditorPageContent() {
     }
   };
 
-  // Generate the PDF and show it inline (real output, not an HTML mimic)
+  // Generate PDF and show inline
   const refreshPreview = async () => {
     if (totalTopicsCount === 0) {
       setPreviewError("Add at least one topic to preview");
@@ -363,21 +367,18 @@ function EditorPageContent() {
     }
   };
 
-  // Enter preview mode and render the PDF (triggered from the toggle)
   const openPreview = () => {
     playClick();
     setViewMode("preview");
     refreshPreview();
   };
 
-  // clean up the blob URL on unmount
   useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
 
   const handleAddSection = () => {
     playClick();
@@ -393,14 +394,12 @@ function EditorPageContent() {
     toast.success(`Created category: ${title}`);
   };
 
-  // Delete section
   const handleDeleteSection = (secId: string) => {
     playClick();
     setSections((prev) => prev.filter((s) => s.id !== secId));
     toast.info("Category deleted");
   };
 
-  // Rename section
   const handleRenameSection = (secId: string) => {
     playClick();
     if (!editSectionName.trim()) return;
@@ -411,7 +410,6 @@ function EditorPageContent() {
     setEditSectionName("");
   };
 
-  // Move topic within section
   const handleMoveTopic = (secId: string, topicIndex: number, direction: "up" | "down") => {
     playClick();
     setSections((prev) =>
@@ -428,7 +426,6 @@ function EditorPageContent() {
     );
   };
 
-  // Remove topic from section
   const handleRemoveTopic = (secId: string, topicId: number) => {
     playClick();
     setSections((prev) =>
@@ -440,7 +437,6 @@ function EditorPageContent() {
     );
   };
 
-  // Open add template modal
   const handleOpenAddModal = async (secId?: string) => {
     playClick();
     if (secId) setActiveSectionId(secId);
@@ -461,7 +457,6 @@ function EditorPageContent() {
     }
   };
 
-  // Add template to target section
   const handleAddTemplateToSection = async (templateId: number) => {
     playClick();
     const targetSecId = activeSectionId || sections[0]?.id;
@@ -505,7 +500,6 @@ function EditorPageContent() {
     }
   };
 
-  // Note change handler
   const handleNoteChange = (topicId: number, val: string) => {
     setSections((prev) =>
       prev.map((sec) => ({
@@ -516,7 +510,6 @@ function EditorPageContent() {
     saveUserNote(topicId, val);
   };
 
-  // Pull the template's original note into this topic's note box
   const handleLoadTemplateNote = (topicId: number, templateNote?: string) => {
     playClick();
     if (!templateNote) {
@@ -526,7 +519,6 @@ function EditorPageContent() {
     handleNoteChange(topicId, templateNote);
   };
 
-  // Edit code handler
   const handleCodeChange = (topicId: number, val: string) => {
     setSections((prev) =>
       prev.map((sec) => ({
@@ -542,7 +534,6 @@ function EditorPageContent() {
     );
   };
 
-  // Filter sections by sidebar search
   const filteredSections = sections.map((sec) => ({
     ...sec,
     topics: sec.topics.filter(
@@ -552,22 +543,203 @@ function EditorPageContent() {
     ),
   }));
 
+  // Reusable Category Tree Sidebar Content
+  const renderCategorySidebar = () => (
+    <div className="flex flex-col space-y-4 h-full">
+      {/* Search Filter */}
+      <div className="relative">
+        <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+        <Input
+          type="text"
+          placeholder="Search algorithms in book..."
+          value={sidebarFilter}
+          onChange={(e) => setSidebarFilter(e.target.value)}
+          className="font-mono text-xs pl-8 bg-background/50 border-border/70 text-foreground h-8"
+        />
+      </div>
+
+      {/* Add Category Block */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground/80">
+          <span className="flex items-center gap-1.5">
+            <Layers className="h-3.5 w-3.5 text-primary" />
+            Category Tree
+          </span>
+          <span className="text-primary font-bold">{sections.length} Active</span>
+        </div>
+
+        <div className="flex gap-1.5">
+          <Input
+            type="text"
+            placeholder="+ New category (e.g. Graph Theory)"
+            value={newSectionTitle}
+            onChange={(e) => setNewSectionTitle(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleAddSection()}
+            className="font-mono text-xs h-8 bg-background/50 border-border min-w-0 flex-1"
+          />
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleAddSection}
+            className="h-8 px-2.5 border-border hover:border-primary/50 text-primary shrink-0 cursor-pointer"
+            title="Add Category"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Section Tree List */}
+      <div className="space-y-3 flex-1 overflow-y-auto pr-1 custom-scrollbar">
+        {filteredSections.map((sec) => (
+          <div
+            key={sec.id}
+            className={`border transition-all ${
+              activeSectionId === sec.id
+                ? "border-primary/50 bg-primary/[0.04] shadow-[0_0_15px_var(--primary-glow-ultra-weak)]"
+                : "border-border/60 bg-card/30 hover:border-primary/30"
+            }`}
+          >
+            {/* Section Header */}
+            <div className="flex items-center justify-between p-2 bg-muted/20 border-b border-border/40">
+              {editingSectionId === sec.id ? (
+                <div className="flex items-center gap-1 flex-1">
+                  <Input
+                    type="text"
+                    value={editSectionName}
+                    onChange={(e) => setEditSectionName(e.target.value)}
+                    className="font-mono text-xs h-6 bg-background border-border p-1"
+                    autoFocus
+                  />
+                  <button
+                    onClick={() => handleRenameSection(sec.id)}
+                    className="p-1 text-primary hover:text-primary/80 cursor-pointer"
+                  >
+                    <Check className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <div
+                  onClick={() => {
+                    playClick();
+                    setActiveSectionId(sec.id);
+                    setMobileCategoryOpen(false);
+                  }}
+                  className="flex items-center gap-1.5 flex-1 min-w-0 cursor-pointer"
+                >
+                  <span className="font-extrabold text-xs uppercase text-foreground truncate">
+                    {sec.title}
+                  </span>
+                  <span className="text-[9px] text-muted-[#CCD0CF] font-bold shrink-0 px-1 py-0.2 bg-primary/10 border border-primary/20 text-primary">
+                    {sec.topics.length}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex items-center gap-0.5 shrink-0 ml-1">
+                <button
+                  onClick={() => {
+                    handleOpenAddModal(sec.id);
+                    setMobileCategoryOpen(false);
+                  }}
+                  className="p-1 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                  title="Add topic to this section"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingSectionId(sec.id);
+                    setEditSectionName(sec.title);
+                  }}
+                  className="p-1 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                  title="Rename category"
+                >
+                  <Pencil className="h-3 w-3" />
+                </button>
+                {sections.length > 1 && (
+                  <button
+                    onClick={() => handleDeleteSection(sec.id)}
+                    className="p-1 text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
+                    title="Delete category"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Topics in section */}
+            <div className="p-1.5 space-y-1">
+              {sec.topics.length === 0 ? (
+                <div className="text-[10px] text-muted-foreground/40 italic p-1">
+                  No topics added yet
+                </div>
+              ) : (
+                sec.topics.map((t, idx) => (
+                  <div
+                    key={t.id}
+                    className="flex items-center justify-between p-1.5 hover:bg-muted/40 text-xs rounded-none transition-colors group/topic border border-transparent hover:border-border/40"
+                  >
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span
+                        className="h-1.5 w-1.5 rounded-full bg-emerald-400 shrink-0 animate-pulse"
+                        title="Included in PDF"
+                      />
+                      <span className="truncate text-[11px] text-muted-foreground group-hover/topic:text-foreground font-medium">
+                        {t.title}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 group-hover/topic:opacity-100 transition-opacity shrink-0">
+                      <button
+                        onClick={() => handleMoveTopic(sec.id, idx, "up")}
+                        disabled={idx === 0}
+                        className="text-muted-foreground hover:text-foreground disabled:opacity-20 cursor-pointer p-0.5"
+                      >
+                        <ArrowUp className="h-3 w-3" />
+                      </button>
+                      <button
+                        onClick={() => handleMoveTopic(sec.id, idx, "down")}
+                        disabled={idx === sec.topics.length - 1}
+                        className="text-muted-foreground hover:text-foreground disabled:opacity-20 cursor-pointer p-0.5"
+                      >
+                        <ArrowDown className="h-3 w-3" />
+                      </button>
+                      <button
+                        onClick={() => handleRemoveTopic(sec.id, t.id)}
+                        className="text-muted-foreground hover:text-destructive cursor-pointer p-0.5 ml-0.5"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen font-mono flex flex-col bg-[#06141B] text-[#CCD0CF]">
       {/* ─── Ultra-Premium Cybernetic Control Header ─── */}
-      <header className="sticky top-0 z-40 border-b border-primary/20 bg-[#06141B]/90 backdrop-blur-xl px-4 py-2.5 shadow-[0_4px_25px_rgba(0,0,0,0.6)]">
-        <div className="mx-auto flex flex-wrap items-center justify-between gap-4">
+      <header className="sticky top-0 z-40 border-b border-primary/20 bg-[#06141B]/95 backdrop-blur-xl px-2.5 sm:px-4 py-1.5 sm:py-2.5 shadow-[0_4px_25px_rgba(0,0,0,0.6)] font-mono">
+        {/* Desktop Layout (md+) */}
+        <div className="hidden md:flex mx-auto items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
               onClick={() => router.back()}
               className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors font-bold cursor-pointer"
             >
               <ArrowLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">Back</span>
+              <span>Back</span>
             </button>
             <div className="h-4 w-px bg-border/60" />
             <BrandLogo size="sm" />
-            <span className="hidden md:inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase px-2 py-0.5 border border-primary/40 bg-primary/10 text-primary shadow-[0_0_10px_var(--primary-glow-weak)]">
+            <span className="hidden xl:inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase px-2 py-0.5 border border-primary/40 bg-primary/10 text-primary shadow-[0_0_10px_var(--primary-glow-weak)]">
               <Sparkles className="h-3 w-3" />
               <span>Studio v2.0</span>
             </span>
@@ -610,7 +782,6 @@ function EditorPageContent() {
               <span>Topics: <strong className="text-primary">{totalTopicsCount}</strong></span>
             </div>
 
-            {/* ICPC 25-Page Telemetry Indicator */}
             <div
               className={`flex items-center gap-1.5 px-2.5 py-1 border text-[10px] font-extrabold uppercase transition-all ${
                 isOverPageLimit
@@ -657,186 +828,129 @@ function EditorPageContent() {
             </Button>
           </div>
         </div>
-      </header>
 
-      {/* ─── Two-Pane Studio Workspace ─── */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* ── Left Sidebar Pane ── */}
-        <aside className="w-80 border-r border-border/60 bg-[#06141B]/95 flex flex-col shrink-0 overflow-y-auto p-3.5 space-y-4">
-          {/* Search Filter */}
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search algorithms in book..."
-              value={sidebarFilter}
-              onChange={(e) => setSidebarFilter(e.target.value)}
-              className="font-mono text-xs pl-8 bg-background/50 border-border/70 text-foreground h-8"
-            />
-          </div>
-
-          {/* Add Category Block */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground/80">
-              <span className="flex items-center gap-1.5">
-                <Layers className="h-3.5 w-3.5 text-primary" />
-                Category Tree
-              </span>
-              <span className="text-primary font-bold">{sections.length} Active</span>
+        {/* Mobile Layout (< md) */}
+        <div className="flex md:hidden flex-col gap-1.5">
+          {/* Top Bar: Nav, Tree Drawer, Settings, Telemetry & Download */}
+          <div className="flex items-center justify-between gap-1.5">
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => router.back()}
+                className="p-1 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                title="Back"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </button>
+              <div className="flex shrink-0 items-center justify-center rounded border border-primary/30 bg-primary/10 font-mono font-black text-primary text-[9px] h-5 w-5">
+                ITL
+              </div>
+              <button
+                onClick={() => {
+                  playClick();
+                  setMobileCategoryOpen(true);
+                }}
+                className="flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 transition-all cursor-pointer rounded-none"
+                title="Open Category Tree"
+              >
+                <Layers className="h-3 w-3 text-primary" />
+                <span>Tree ({sections.length})</span>
+              </button>
             </div>
 
-            <div className="flex gap-1.5">
-              <Input
-                type="text"
-                placeholder="+ New category (e.g. Graph Theory)"
-                value={newSectionTitle}
-                onChange={(e) => setNewSectionTitle(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAddSection()}
-                className="font-mono text-xs h-8 bg-background/50 border-border"
-              />
+            <div className="flex items-center gap-1">
               <Button
                 size="sm"
                 variant="outline"
-                onClick={handleAddSection}
-                className="h-8 px-2.5 border-border hover:border-primary/50 text-primary shrink-0 cursor-pointer"
-                title="Add Category"
+                onClick={() => setOpenSettings(true)}
+                className="font-mono text-[10px] h-6 px-1.5 border-border hover:border-primary/50 text-foreground cursor-pointer"
+                title="PDF Settings"
               >
-                <Plus className="h-4 w-4" />
+                <Settings2 className="h-3 w-3 text-primary" />
+              </Button>
+
+              <div
+                className={`flex items-center gap-1 px-1.5 py-0.5 border text-[9px] font-extrabold uppercase ${
+                  isOverPageLimit
+                    ? "border-destructive bg-destructive/15 text-destructive animate-pulse"
+                    : estimatedPages > 20
+                    ? "border-warning bg-warning/15 text-warning"
+                    : "border-primary/40 bg-primary/10 text-primary"
+                }`}
+              >
+                <span>~{estimatedPages}/25P</span>
+              </div>
+
+              <Button
+                size="sm"
+                onClick={handleGeneratePdf}
+                disabled={isGeneratingPdf}
+                className="font-mono text-[10px] font-extrabold uppercase bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer h-6 px-2 shadow-[0_0_10px_var(--primary-glow-weak)]"
+              >
+                {isGeneratingPdf ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <>
+                    <Printer className="h-3 w-3 mr-1" />
+                    <span>PDF</span>
+                  </>
+                )}
               </Button>
             </div>
           </div>
 
-          {/* Section Tree List */}
-          <div className="space-y-3 flex-1 overflow-y-auto pr-1 custom-scrollbar">
-            {filteredSections.map((sec) => (
-              <div
-                key={sec.id}
-                className={`border transition-all ${
-                  activeSectionId === sec.id
-                    ? "border-primary/50 bg-primary/[0.04] shadow-[0_0_15px_var(--primary-glow-ultra-weak)]"
-                    : "border-border/60 bg-card/30 hover:border-primary/30"
-                }`}
-              >
-                {/* Section Header */}
-                <div className="flex items-center justify-between p-2 bg-muted/20 border-b border-border/40">
-                  {editingSectionId === sec.id ? (
-                    <div className="flex items-center gap-1 flex-1">
-                      <Input
-                        type="text"
-                        value={editSectionName}
-                        onChange={(e) => setEditSectionName(e.target.value)}
-                        className="font-mono text-xs h-6 bg-background border-border p-1"
-                        autoFocus
-                      />
-                      <button
-                        onClick={() => handleRenameSection(sec.id)}
-                        className="p-1 text-primary hover:text-primary/80 cursor-pointer"
-                      >
-                        <Check className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div
-                      onClick={() => {
-                        playClick();
-                        setActiveSectionId(sec.id);
-                      }}
-                      className="flex items-center gap-1.5 flex-1 min-w-0 cursor-pointer"
-                    >
-                      <span className="font-extrabold text-xs uppercase text-foreground truncate">
-                        {sec.title}
-                      </span>
-                      <span className="text-[9px] text-muted-[#CCD0CF] font-bold shrink-0 px-1 py-0.2 bg-primary/10 border border-primary/20 text-primary">
-                        {sec.topics.length}
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-0.5 shrink-0 ml-1">
-                    <button
-                      onClick={() => handleOpenAddModal(sec.id)}
-                      className="p-1 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
-                      title="Add topic to this section"
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        setEditingSectionId(sec.id);
-                        setEditSectionName(sec.title);
-                      }}
-                      className="p-1 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
-                      title="Rename category"
-                    >
-                      <Pencil className="h-3 w-3" />
-                    </button>
-                    {sections.length > 1 && (
-                      <button
-                        onClick={() => handleDeleteSection(sec.id)}
-                        className="p-1 text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
-                        title="Delete category"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Topics in section */}
-                <div className="p-1.5 space-y-1">
-                  {sec.topics.length === 0 ? (
-                    <div className="text-[10px] text-muted-foreground/40 italic p-1">
-                      No topics added yet
-                    </div>
-                  ) : (
-                    sec.topics.map((t, idx) => (
-                      <div
-                        key={t.id}
-                        className="flex items-center justify-between p-1.5 hover:bg-muted/40 text-xs rounded-none transition-colors group/topic border border-transparent hover:border-border/40"
-                      >
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <span
-                            className="h-1.5 w-1.5 rounded-full bg-emerald-400 shrink-0 animate-pulse"
-                            title="Included in PDF"
-                          />
-                          <span className="truncate text-[11px] text-muted-foreground group-hover/topic:text-foreground font-medium">
-                            {t.title}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-0.5 opacity-0 group-hover/topic:opacity-100 transition-opacity shrink-0">
-                          <button
-                            onClick={() => handleMoveTopic(sec.id, idx, "up")}
-                            disabled={idx === 0}
-                            className="text-muted-foreground hover:text-foreground disabled:opacity-20 cursor-pointer p-0.5"
-                          >
-                            <ArrowUp className="h-3 w-3" />
-                          </button>
-                          <button
-                            onClick={() => handleMoveTopic(sec.id, idx, "down")}
-                            disabled={idx === sec.topics.length - 1}
-                            className="text-muted-foreground hover:text-foreground disabled:opacity-20 cursor-pointer p-0.5"
-                          >
-                            <ArrowDown className="h-3 w-3" />
-                          </button>
-                          <button
-                            onClick={() => handleRemoveTopic(sec.id, t.id)}
-                            className="text-muted-foreground hover:text-destructive cursor-pointer p-0.5 ml-0.5"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </button>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            ))}
+          {/* View Mode Switcher (Full Width on Mobile) */}
+          <div className="grid grid-cols-2 bg-card/80 p-0.5 border border-border/80 rounded-none text-center">
+            <button
+              onClick={() => {
+                playClick();
+                setViewMode("studio");
+              }}
+              className={`flex items-center justify-center gap-1 py-1 text-[11px] font-bold transition-all cursor-pointer ${
+                viewMode === "studio"
+                  ? "bg-primary text-primary-foreground shadow-[0_0_10px_var(--primary-glow-weak)]"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Code2 className="h-3.5 w-3.5" />
+              <span>Code Studio</span>
+            </button>
+            <button
+              onClick={openPreview}
+              className={`flex items-center justify-center gap-1 py-1 text-[11px] font-bold transition-all cursor-pointer ${
+                viewMode === "preview"
+                  ? "bg-primary text-primary-foreground shadow-[0_0_10px_var(--primary-glow-weak)]"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Eye className="h-3.5 w-3.5" />
+              <span>PDF Preview</span>
+            </button>
           </div>
+        </div>
+      </header>
+
+      {/* Mobile Category Tree Drawer Sheet */}
+      <Sheet open={mobileCategoryOpen} onOpenChange={setMobileCategoryOpen}>
+        <SheetContent side="left" className="w-80 max-w-[85vw] bg-[#06141B] border-r border-primary/30 p-4 font-mono">
+          <SheetHeader className="mb-3 p-0">
+            <SheetTitle className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-2">
+              <Layers className="h-4 w-4" />
+              <span>Category Tree ({sections.length})</span>
+            </SheetTitle>
+          </SheetHeader>
+          {renderCategorySidebar()}
+        </SheetContent>
+      </Sheet>
+
+      {/* ─── Two-Pane Studio Workspace ─── */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* ── Left Sidebar Pane (Desktop) ── */}
+        <aside className="hidden md:flex w-80 border-r border-border/60 bg-[#06141B]/95 flex-col shrink-0 overflow-y-auto p-3.5 space-y-4">
+          {renderCategorySidebar()}
         </aside>
 
         {/* ── Center Content Workspace ── */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#06141B]/40">
+        <main className="flex-1 w-full max-w-full overflow-y-auto p-3 sm:p-6 bg-[#06141B]/40">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-24 text-muted-foreground gap-3">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -892,9 +1006,9 @@ function EditorPageContent() {
             /* ── VIEW MODE: Interactive Code & Section Studio ── */
             <div className="mx-auto max-w-4xl space-y-6">
               {/* Document Info Card */}
-              <div className="border border-border/80 bg-card/60 p-5 space-y-3 backdrop-blur-md shadow-xl">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/50 pb-3">
-                  <div className="space-y-1 flex-1">
+              <div className="border border-border/80 bg-card/60 p-3.5 sm:p-5 space-y-3 backdrop-blur-md shadow-xl">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border-b border-border/50 pb-3">
+                  <div className="space-y-1">
                     <label className="text-[10px] uppercase font-bold text-primary tracking-wider flex items-center gap-1.5">
                       <Edit3 className="h-3.5 w-3.5" />
                       Document Header Metadata
@@ -906,11 +1020,11 @@ function EditorPageContent() {
                         handleSaveSettings({ ...settings, customTitle: e.target.value })
                       }
                       placeholder="ICPC Team Reference Document"
-                      className="font-mono text-sm font-bold bg-background/50 border-border text-foreground h-9"
+                      className="font-mono text-xs sm:text-sm font-bold bg-background/50 border-border text-foreground h-8 sm:h-9"
                     />
                   </div>
 
-                  <div className="space-y-1 flex-1">
+                  <div className="space-y-1">
                     <label className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
                       Team Name & University
                     </label>
@@ -921,18 +1035,18 @@ function EditorPageContent() {
                         handleSaveSettings({ ...settings, teamName: e.target.value })
                       }
                       placeholder="Informatics Template Lib — Contest Reference"
-                      className="font-mono text-xs bg-background/50 border-border text-foreground h-9"
+                      className="font-mono text-xs bg-background/50 border-border text-foreground h-8 sm:h-9"
                     />
                   </div>
                 </div>
 
                 <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground pt-1 font-mono">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs">
                     <span className="text-primary font-bold">{sections.length} categories</span>
                     <span>·</span>
                     <span className="text-primary font-bold">{totalTopicsCount} algorithms</span>
                     <span>·</span>
-                    <span className="uppercase text-[10px] px-1.5 py-0.5 border border-primary/30 bg-primary/10 text-primary font-bold">
+                    <span className="uppercase text-[9px] sm:text-[10px] px-1.5 py-0.5 border border-primary/30 bg-primary/10 text-primary font-bold">
                       {settings.layout}
                     </span>
                   </div>
@@ -950,7 +1064,7 @@ function EditorPageContent() {
 
               {/* Sections List in Studio */}
               {totalTopicsCount === 0 ? (
-                <div className="text-center text-xs text-muted-foreground py-20 border border-dashed border-border/50 bg-card/20 space-y-3">
+                <div className="text-center text-xs text-muted-foreground py-16 sm:py-20 border border-dashed border-border/50 bg-card/20 space-y-3 px-4">
                   <FileCode className="h-10 w-10 text-muted-foreground/40 mx-auto" />
                   <div>
                     No templates added yet. Add algorithms from the sidebar or click{" "}
@@ -967,19 +1081,19 @@ function EditorPageContent() {
                   <div key={sec.id} className="space-y-3">
                     {/* Category Title Header */}
                     <div className="flex items-center justify-between border-b border-primary/30 pb-1.5">
-                      <h2 className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-primary flex items-center gap-2">
-                        <span className="px-1.5 py-0.5 border border-primary/40 bg-primary/10 text-primary text-[10px]">
+                      <h2 className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-primary flex items-center gap-2 min-w-0">
+                        <span className="px-1.5 py-0.5 border border-primary/40 bg-primary/10 text-primary text-[10px] shrink-0">
                           {secIdx + 1}
                         </span>
-                        <span>{sec.title}</span>
+                        <span className="truncate">{sec.title}</span>
                       </h2>
-                      <span className="text-[10px] text-muted-foreground font-mono">
+                      <span className="text-[10px] text-muted-foreground font-mono shrink-0 ml-2">
                         {sec.topics.length} topic{sec.topics.length === 1 ? "" : "s"}
                       </span>
                     </div>
 
                     {/* Topic Cards */}
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4">
                       {sec.topics.map((tmpl, tIdx) => {
                         const codeObj =
                           tmpl.codes.find((c) => c.language === tmpl.selectedLang) ||
@@ -988,19 +1102,19 @@ function EditorPageContent() {
                         return (
                           <div
                             key={tmpl.id}
-                            className="border border-border/70 bg-card/40 p-4 space-y-3 shadow-lg hover:border-primary/40 transition-all"
+                            className="border border-border/70 bg-card/40 p-3 sm:p-4 space-y-3 shadow-lg hover:border-primary/40 transition-all"
                           >
                             {/* Card Header Bar */}
                             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/40 pb-2">
-                              <div className="flex items-center gap-2">
-                                <span className="font-mono text-xs text-primary font-bold">
+                              <div className="flex items-center gap-2 min-w-0 flex-1">
+                                <span className="font-mono text-xs text-primary font-bold shrink-0">
                                   {secIdx + 1}.{tIdx + 1}
                                 </span>
-                                <h3 className="font-bold text-xs sm:text-sm text-foreground">
+                                <h3 className="font-bold text-xs sm:text-sm text-foreground break-words min-w-0 flex-1">
                                   {tmpl.title}
                                 </h3>
                                 {tmpl.complexity && (
-                                  <span className="text-[10px] text-info font-mono font-bold px-1.5 py-0.2 border border-info/30 bg-info/10">
+                                  <span className="text-[10px] text-info font-mono font-bold px-1.5 py-0.2 border border-info/30 bg-info/10 shrink-0">
                                     O({tmpl.complexity})
                                   </span>
                                 )}
@@ -1137,7 +1251,7 @@ function EditorPageContent() {
 
       {/* ── Add Template Dialog ── */}
       <Dialog open={openAddModal} onOpenChange={setOpenAddModal}>
-        <DialogContent className="border border-primary/30 bg-card p-6 font-mono max-w-lg">
+        <DialogContent className="border border-primary/30 bg-card p-4 sm:p-6 font-mono max-w-[calc(100vw-2rem)] sm:max-w-lg w-full">
           <DialogHeader>
             <DialogTitle className="text-sm font-bold uppercase tracking-wider text-primary flex items-center gap-2">
               <Plus className="h-4 w-4" />

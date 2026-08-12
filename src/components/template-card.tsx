@@ -78,17 +78,17 @@ export function TemplateCard({ template }: { template: TemplateWithCategory }) {
               <span className="h-1.5 w-1.5 rounded-full bg-warning/40" />
               <span className="h-1.5 w-1.5 rounded-full bg-success/40" />
             </div>
-            <span className="text-[9px] text-muted-foreground/40 truncate max-w-[130px]">
+            <span className="text-[9px] text-muted-foreground/40 truncate max-w-[100px] xs:max-w-[140px] sm:max-w-[160px]">
               template_{template.slug}.cpp
             </span>
           </div>
 
           {selected ? (
-            <span className="text-[8px] font-extrabold uppercase px-1 py-0.2 bg-primary/20 text-primary border border-primary/30">
+            <span className="text-[8px] font-extrabold uppercase px-1 py-0.2 bg-primary/20 text-primary border border-primary/30 shrink-0">
               SELECTED
             </span>
           ) : inSelectionMode ? (
-            <span className="text-[8px] font-bold text-muted-foreground/40 group-hover/card:text-primary transition-colors">
+            <span className="text-[8px] font-bold text-muted-foreground/40 group-hover/card:text-primary transition-colors shrink-0">
               CLICK TO SELECT
             </span>
           ) : null}
@@ -109,7 +109,7 @@ export function TemplateCard({ template }: { template: TemplateWithCategory }) {
           <div className="flex items-center justify-between mb-2 text-[10px]">
             <div className="flex items-center gap-1.5 min-w-0">
               {template.category && (
-                <span className="text-info font-bold">
+                <span className="text-info font-bold shrink-0">
                   [{template.category.name}]
                 </span>
               )}
@@ -120,7 +120,7 @@ export function TemplateCard({ template }: { template: TemplateWithCategory }) {
               )}
             </div>
             {(template.likeCount ?? 0) > 0 && (
-              <span className="flex items-center gap-1 text-[9px] text-destructive font-mono select-none">
+              <span className="flex items-center gap-1 text-[9px] text-destructive font-mono select-none shrink-0 ml-1">
                 <Heart className="h-2.5 w-2.5 fill-destructive text-destructive" />
                 <span>{template.likeCount}</span>
               </span>
@@ -133,16 +133,16 @@ export function TemplateCard({ template }: { template: TemplateWithCategory }) {
           </p>
 
           {/* Tags / Actions Row */}
-          <div className="flex items-center justify-between mt-auto pt-2.5 border-t border-border/30">
+          <div className="flex items-center justify-between gap-2 mt-auto pt-2.5 border-t border-border/30">
             {/* Tags */}
-            <div className="flex flex-wrap gap-1 max-w-[150px]">
+            <div className="flex flex-wrap gap-1 min-w-0 flex-1">
               {template.tags.slice(0, 3).map((tag) => (
-                <span key={tag} className="text-[9px] text-muted-foreground/35 border border-border/50 px-1 py-0 select-none">
+                <span key={tag} className="text-[9px] text-muted-foreground/35 border border-border/50 px-1 py-0 select-none truncate max-w-[100px]">
                   #{tag}
                 </span>
               ))}
               {template.tags.length > 3 && (
-                <span className="text-[9px] text-muted-foreground/25 font-bold">
+                <span className="text-[9px] text-muted-foreground/25 font-bold shrink-0">
                   +{template.tags.length - 3}
                 </span>
               )}

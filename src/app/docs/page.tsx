@@ -29,6 +29,9 @@ import {
   Globe,
   UserCircle,
   Image as ImageIcon,
+  FileText,
+  Sliders,
+  Printer,
 } from "lucide-react";
 import { useTerminalTheme } from "@/components/theme-provider";
 
@@ -49,6 +52,7 @@ const sections: Section[] = [
   { id: "dashboard-overview", label: "Dashboard Overview", icon: <LayoutDashboard className="h-3.5 w-3.5" />, cmd: "cat dashboard/overview.log" },
   { id: "my-templates", label: "My Templates", icon: <Library className="h-3.5 w-3.5" />, cmd: "ls ~/templates --saved" },
   { id: "collections", label: "Collections", icon: <FolderOpen className="h-3.5 w-3.5" />, cmd: "ls ~/collections/" },
+  { id: "reference-generation", label: "Reference Generation", icon: <FileText className="h-3.5 w-3.5" />, cmd: "itl pdf compile --layout=2-col" },
   { id: "progress-tracking", label: "Progress Tracking", icon: <BarChart3 className="h-3.5 w-3.5" />, cmd: "track --status pipeline" },
   { id: "statistics", label: "Statistics & Analytics", icon: <Activity className="h-3.5 w-3.5" />, cmd: "stats --readiness-score" },
   { id: "contributing", label: "Contributing", icon: <GitPullRequest className="h-3.5 w-3.5" />, cmd: "git push origin contribution" },
@@ -541,13 +545,76 @@ export default function DocsPage() {
               </div>
             </section>
 
-            {/* ━━━ 8. Progress Tracking ━━━ */}
+            {/* ━━━ 8. Reference Generation ━━━ */}
+            <section
+              id="reference-generation"
+              ref={(el) => { sectionRefs.current["reference-generation"] = el; }}
+              className="border border-border bg-card/35 backdrop-blur-md p-5 sm:p-7 shadow-xl animate-fade-in"
+            >
+              <SectionHeader section={sections[7]} />
+              <div className="text-[11px] sm:text-xs text-muted-foreground/60 leading-relaxed space-y-4">
+                <p>
+                  The <strong className="text-foreground">ICPC Team Reference Builder</strong> (<code className="text-primary/80">/editor</code>) lets you compile your algorithm templates into a print-ready, contest-compliant LaTeX PDF reference booklet (similar to Stanford, MIT, or KACTL reference documents).
+                </p>
+
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <FeatureRow
+                    icon={<FileText className="h-3.5 w-3.5" />}
+                    title="Live PDF Preview"
+                    desc="Real-time split-view live rendering powered by Tectonic LaTeX compilation. See exact page layouts and formatting before exporting."
+                  />
+                  <FeatureRow
+                    icon={<Sliders className="h-3.5 w-3.5" />}
+                    title="Multi-Column Density"
+                    desc="Toggle between 1-column, 2-column, or 3-column layout density to fit maximum code into contest page limits (e.g. 25-page ICPC limit)."
+                  />
+                  <FeatureRow
+                    icon={<FolderOpen className="h-3.5 w-3.5" />}
+                    title="Collection & Template Load"
+                    desc="Import saved collections directly from your dashboard or add individual templates into your custom reference booklet with one click."
+                  />
+                  <FeatureRow
+                    icon={<Printer className="h-3.5 w-3.5" />}
+                    title="KACTL Code Hashes"
+                    desc="Automatically generate MD5 verification hashes for each code section to ensure zero typing errors when copying code during live contests."
+                  />
+                </div>
+
+                <div className="border border-border/40 bg-background/30 p-4">
+                  <div className="text-[10px] text-primary font-bold uppercase tracking-wider mb-3">PDF Layout & Formatter Settings</div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-muted-foreground/50">
+                    <div className="flex items-center gap-2"><ChevronRight className="h-3 w-3 text-primary/50" /> <strong className="text-foreground/70">Document Title & Branding:</strong> Customize title, team name, and institution.</div>
+                    <div className="flex items-center gap-2"><ChevronRight className="h-3 w-3 text-primary/50" /> <strong className="text-foreground/70">Column Layout:</strong> 1, 2, or 3 columns per page.</div>
+                    <div className="flex items-center gap-2"><ChevronRight className="h-3 w-3 text-primary/50" /> <strong className="text-foreground/70">Font Size:</strong> Small, Medium, or Large typography density.</div>
+                    <div className="flex items-center gap-2"><ChevronRight className="h-3 w-3 text-primary/50" /> <strong className="text-foreground/70">Notes & Hints:</strong> Custom problem notes in text, lined notebook, or clean mode.</div>
+                    <div className="flex items-center gap-2"><ChevronRight className="h-3 w-3 text-primary/50" /> <strong className="text-foreground/70">Line Numbers & Page Breaks:</strong> Toggle line numbers and page-break per template.</div>
+                    <div className="flex items-center gap-2"><ChevronRight className="h-3 w-3 text-primary/50" /> <strong className="text-foreground/70">Export Theme:</strong> Monochrome (print-friendly), Dark, or Light themes.</div>
+                  </div>
+                </div>
+
+                <div className="text-[10px] text-foreground font-bold uppercase tracking-wider mt-2">How to Generate a Reference Document</div>
+                <StepList steps={[
+                  "Navigate to the ICPC Reference Builder at /editor (or click 'Add to Reference' from any template page).",
+                  "Load a saved collection from your dashboard or pick templates manually.",
+                  "Customize algorithm code, add custom hints or edge cases in the notes area.",
+                  "Click 'PDF Settings' to tune column density, KACTL hashes, titles, and font size.",
+                  "Toggle 'Live PDF Preview' to inspect the rendered PDF output.",
+                  "Click 'Generate PDF' to compile and download your contest-ready reference booklet.",
+                ]} />
+
+                <Tip>
+                  <strong>ICPC Contest Ready:</strong> Use <strong>2-Column</strong> or <strong>3-Column</strong> mode with <strong>Small Font Size</strong> and <strong>Monochrome Theme</strong> to maximize code density and ensure your reference booklet easily stays within official page limits while producing clean, high-contrast printouts.
+                </Tip>
+              </div>
+            </section>
+
+            {/* ━━━ 9. Progress Tracking ━━━ */}
             <section
               id="progress-tracking"
               ref={(el) => { sectionRefs.current["progress-tracking"] = el; }}
               className="border border-border bg-card/35 backdrop-blur-md p-5 sm:p-7 shadow-xl animate-fade-in"
             >
-              <SectionHeader section={sections[7]} />
+              <SectionHeader section={sections[8]} />
               <div className="text-[11px] sm:text-xs text-muted-foreground/60 leading-relaxed space-y-4">
                 <p>
                   Progress tracking is one of the most powerful features in ITL. It transforms the platform from a passive copy-paste library into an <strong className="text-foreground">active study system</strong>.
@@ -594,13 +661,13 @@ export default function DocsPage() {
               </div>
             </section>
 
-            {/* ━━━ 9. Statistics & Analytics ━━━ */}
+            {/* ━━━ 10. Statistics & Analytics ━━━ */}
             <section
               id="statistics"
               ref={(el) => { sectionRefs.current["statistics"] = el; }}
               className="border border-border bg-card/35 backdrop-blur-md p-5 sm:p-7 shadow-xl animate-fade-in"
             >
-              <SectionHeader section={sections[8]} />
+              <SectionHeader section={sections[9]} />
               <div className="text-[11px] sm:text-xs text-muted-foreground/60 leading-relaxed space-y-4">
                 <p>
                   The <strong className="text-foreground">Statistics tab</strong> in your dashboard visualizes your progress data:
@@ -639,13 +706,13 @@ export default function DocsPage() {
               </div>
             </section>
 
-            {/* ━━━ 10. Contributing ━━━ */}
+            {/* ━━━ 11. Contributing ━━━ */}
             <section
               id="contributing"
               ref={(el) => { sectionRefs.current["contributing"] = el; }}
               className="border border-border bg-card/35 backdrop-blur-md p-5 sm:p-7 shadow-xl animate-fade-in"
             >
-              <SectionHeader section={sections[9]} />
+              <SectionHeader section={sections[10]} />
               <div className="text-[11px] sm:text-xs text-muted-foreground/60 leading-relaxed space-y-4">
                 <p>
                   ITL grows through community contributions. Logged-in users can submit two types of contributions:
@@ -699,13 +766,13 @@ export default function DocsPage() {
               </div>
             </section>
 
-            {/* ━━━ 11. Contest Calendar ━━━ */}
+            {/* ━━━ 12. Contest Calendar ━━━ */}
             <section
               id="contest-calendar"
               ref={(el) => { sectionRefs.current["contest-calendar"] = el; }}
               className="border border-border bg-card/35 backdrop-blur-md p-5 sm:p-7 shadow-xl animate-fade-in"
             >
-              <SectionHeader section={sections[10]} />
+              <SectionHeader section={sections[11]} />
               <div className="text-[11px] sm:text-xs text-muted-foreground/60 leading-relaxed space-y-4">
                 <p>
                   ITL aggregates <strong className="text-foreground">live upcoming contests</strong> from all major competitive programming platforms into a single unified timeline:
@@ -735,13 +802,13 @@ export default function DocsPage() {
               </div>
             </section>
 
-            {/* ━━━ 12. CP Profiles ━━━ */}
+            {/* ━━━ 13. CP Profiles ━━━ */}
             <section
               id="cp-profiles"
               ref={(el) => { sectionRefs.current["cp-profiles"] = el; }}
               className="border border-border bg-card/35 backdrop-blur-md p-5 sm:p-7 shadow-xl animate-fade-in"
             >
-              <SectionHeader section={sections[11]} />
+              <SectionHeader section={sections[12]} />
               <div className="text-[11px] sm:text-xs text-muted-foreground/60 leading-relaxed space-y-4">
                 <p>
                   Link your competitive programming handles to see your <strong className="text-foreground">rating statistics</strong> directly in your ITL dashboard:
@@ -770,13 +837,13 @@ export default function DocsPage() {
               </div>
             </section>
 
-            {/* ━━━ 13. Public Profile ━━━ */}
+            {/* ━━━ 14. Public Profile ━━━ */}
             <section
               id="public-profile"
               ref={(el) => { sectionRefs.current["public-profile"] = el; }}
               className="border border-border bg-card/35 backdrop-blur-md p-5 sm:p-7 shadow-xl animate-fade-in"
             >
-              <SectionHeader section={sections[12]} />
+              <SectionHeader section={sections[13]} />
               <div className="text-[11px] sm:text-xs text-muted-foreground/60 leading-relaxed space-y-4">
                 <p>
                   Every account has a <strong className="text-foreground">public profile page</strong> at
@@ -829,13 +896,13 @@ export default function DocsPage() {
               </div>
             </section>
 
-            {/* ━━━ 14. Settings & Preferences ━━━ */}
+            {/* ━━━ 15. Settings & Preferences ━━━ */}
             <section
               id="settings"
               ref={(el) => { sectionRefs.current["settings"] = el; }}
               className="border border-border bg-card/35 backdrop-blur-md p-5 sm:p-7 shadow-xl animate-fade-in"
             >
-              <SectionHeader section={sections[13]} />
+              <SectionHeader section={sections[14]} />
               <div className="text-[11px] sm:text-xs text-muted-foreground/60 leading-relaxed space-y-4">
                 <p>
                   ITL offers several customization options to tailor the experience to your preferences:
