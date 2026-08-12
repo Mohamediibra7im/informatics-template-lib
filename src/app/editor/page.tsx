@@ -361,12 +361,14 @@ function EditorPageContent() {
     }
   };
 
-  // Auto-render when entering preview; clean up the blob URL on unmount
-  useEffect(() => {
-    if (viewMode === "preview" && !previewUrl && !previewLoading) refreshPreview();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewMode]);
+  // Enter preview mode and render the PDF (triggered from the toggle)
+  const openPreview = () => {
+    playClick();
+    setViewMode("preview");
+    refreshPreview();
+  };
 
+  // clean up the blob URL on unmount
   useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -586,10 +588,7 @@ function EditorPageContent() {
               <span>Code Studio</span>
             </button>
             <button
-              onClick={() => {
-                playClick();
-                setViewMode("preview");
-              }}
+              onClick={openPreview}
               className={`flex items-center gap-1.5 px-3 py-1 text-xs font-bold transition-all cursor-pointer ${
                 viewMode === "preview"
                   ? "bg-primary text-primary-foreground shadow-[0_0_10px_var(--primary-glow-weak)]"
