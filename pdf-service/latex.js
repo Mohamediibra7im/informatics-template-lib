@@ -1,7 +1,7 @@
 // Builds a KACTL-style LaTeX document from a reference payload.
 // Code is emitted via \lstinputlisting (snippet files) so it is NEVER parsed
 // as TeX — no escaping of code, and TeX injection through code is impossible.
-// Only metadata (titles, subtitle, notes) is escaped.
+// Titles/subtitle are escaped; notes go through a small Markdown+math converter.
 
 const LATEX_SPECIALS = [
   [/\\/g, "\\textbackslash{}"],
@@ -20,6 +20,64 @@ function esc(s) {
   let out = String(s ?? "");
   for (const [re, rep] of LATEX_SPECIALS) out = out.replace(re, rep);
   return out;
+}
+
+// Convert note Markdown (+ inline $math$) to LaTeX.
+// Inline $...$ and `code` are extracted BEFORE escaping (so math backslashes
+// survive and code stays literal), stashed behind NUL-delimited placeholders
+// that pass through esc() untouched, then restored last.
+// Supports: # headings, **bold**, *italic*, `code`, - / * bullet lists,
+// blank-line paragraphs. Unknown LaTeX/KaTeX macros inside $...$ pass through.
+function mdToLatex(md) {
+  const raw = String(md ?? "");
+  const holds = [];
+  // \x00 never appears in user text and is ignored by esc()
+  const hold = (tex) => `\x00${holds.push(tex) - 1}\x00`;
+
+  // 1. protect math first, then inline code
+  const s = raw
+    .replace(/\$([^$]+)\$/g, (_, m) => hold(`$${m}$`))
+    .replace(/`([^`]+)`/g, (_, c) => hold(`\\texttt{${esc(c)}}`));
+
+  // inline formatting: escape, apply bold/italic, restore protected spans
+  const inline = (text) => {
+    let t = esc(text);
+    t = t.replace(/\*\*([^*]+)\*\*/g, "\\textbf{$1}");
+    t = t.replace(/(^|[^*])\*([^*]+)\*(?!\*)/g, "$1\\textit{$2}");
+    t = t.replace(/\x00(\d+)\x00/g, (_, i) => holds[Number(i)]);
+    return t;
+  };
+
+  // 2. block structure, line by line
+  const out = [];
+  let inList = false;
+  const closeList = () => { if (inList) { out.push("\\end{itemize}"); inList = false; } };
+
+  for (const line of s.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed) { closeList(); out.push(""); continue; }
+
+    const heading = trimmed.match(/^#{1,6}\s+(.*)$/);
+    if (heading) {
+      closeList();
+      // space above so it separates from the previous block; none below so the
+      // following bullets/text read as belonging to this heading
+      out.push(`\\vspace{4pt}\\textbf{${inline(heading[1])}}\\nopagebreak\\par`);
+      continue;
+    }
+
+    const bullet = trimmed.match(/^[-*]\s+(.*)$/);
+    if (bullet) {
+      if (!inList) { out.push("\\begin{itemize}[leftmargin=1.2em,itemsep=0pt,topsep=2pt]"); inList = true; }
+      out.push(`\\item ${inline(bullet[1])}`);
+      continue;
+    }
+
+    closeList();
+    out.push(inline(trimmed) + "\\par");
+  }
+  closeList();
+  return out.join("\n");
 }
 
 const FONT_SIZE = { small: "\\footnotesize", medium: "\\small", large: "\\normalsize" };
@@ -69,6 +127,8 @@ function preamble(options) {
 \\usepackage{multicol}
 \\usepackage{listings}
 \\usepackage{xcolor}
+\\usepackage{amsmath,amssymb}
+\\usepackage{enumitem}
 \\usepackage{fancyhdr}
 \\usepackage{lastpage}
 \\usepackage[hidelinks]{hyperref}
@@ -151,19 +211,20 @@ function body(payload, snippets) {
     out.push(`\\section{${esc(sec.title || "Section")}}`);
     (sec.topics || []).forEach((t, ti) => {
       let heading = esc(t.title || "Untitled");
-      if (t.complexity) heading += ` $O(${esc(t.complexity)})$`;
-      if (options.showCodeHashes && t.hash) heading += ` \\texttt{\\small[${esc(t.hash)}]}`;
+      if (t.complexity) heading += ` O(${esc(t.complexity)})`;
       out.push(`\\subsection{${heading}}`);
 
       const name = `snippets/s${si}_t${ti}.txt`;
       snippets.push({ name, code: t.code || "// (no code)" });
       const lang = lstLanguage(t.language);
       const langOpt = lang ? `[language=${lang}]` : "";
+
+      // notes above code (rendered as normal small text)
+      if (t.notes) {
+        out.push(`\\begingroup\\small\\setlength{\\parindent}{0pt}\n${mdToLatex(t.notes)}\n\\endgroup`);
+      }
       out.push(`\\lstinputlisting${langOpt}{${name}}`);
 
-      if (t.notes) {
-        out.push(`{\\small\\itshape\\color{cmt} ${esc(t.notes)}\\par}`);
-      }
       if (options.pageBreakPerTemplate) out.push("\\newpage");
     });
   });
@@ -181,4 +242,4 @@ function buildLatex(payload) {
   return { tex, snippets };
 }
 
-module.exports = { buildLatex, esc };
+module.exports = { buildLatex, esc, mdToLatex };

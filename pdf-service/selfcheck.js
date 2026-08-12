@@ -5,8 +5,27 @@ const fs = require("fs/promises");
 const os = require("os");
 const path = require("path");
 const assert = require("assert");
-const { buildLatex } = require("./latex");
+const { buildLatex, mdToLatex } = require("./latex");
 const { spawn } = require("child_process");
+
+// --- mdToLatex unit checks (the note parser is the non-trivial logic) ---
+{
+  // math backslashes survive, not mangled to \{}Sigma
+  const m = mdToLatex("children up to $\\Sigma$ nodes");
+  assert(m.includes("$\\Sigma$"), `math not preserved: ${m}`);
+  assert(!m.includes("\\{}Sigma"), `math got escaped: ${m}`);
+  // heading -> bold, not literal ##
+  assert(mdToLatex("## How It Works").includes("\\textbf{"), "heading not bold");
+  assert(!mdToLatex("## How It Works").includes("\\#\\#"), "heading left literal");
+  // bullets -> itemize
+  assert(mdToLatex("- a\n- b").includes("\\begin{itemize}"), "bullets not list");
+  // inline code -> texttt, literal underscores inside
+  assert(mdToLatex("`a_b`").includes("\\texttt{a\\_b}"), "inline code wrong");
+  // bold + a real number nearby must not collide with placeholders
+  const n = mdToLatex("up to **26** children and $s$ chars");
+  assert(n.includes("\\textbf{26}") && n.includes("$s$"), `collision: ${n}`);
+  console.log("mdToLatex checks ok");
+}
 
 const SAMPLE = {
   title: "ICPC Team Reference",
@@ -23,7 +42,7 @@ const SAMPLE = {
         {
           title: "Fenwick Tree", complexity: "\\log n", hash: "A1B2", language: "cpp",
           code: "struct BIT {\n  vector<int> t;\n  // add & to test escaping in code path\n  void upd(int i,int v){ for(;i<t.size();i+=i&-i) t[i]+=v; }\n};",
-          notes: "Point update, prefix query. Special chars: 50% & $x$.",
+          notes: "## Overview\nPoint update, prefix query. Special chars: 50% & $x$.\n\n## Complexity\n- All ops $O(\\log n)$\n- Space $O(n)$ with up to **26** children",
         },
         { title: "Union Find", language: "cpp", code: "int f[N];\nint find(int x){return f[x]==x?x:f[x]=find(f[x]);}" },
       ],

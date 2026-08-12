@@ -49,10 +49,30 @@ npm run selfcheck   # builds + compiles a sample, asserts %PDF
 npm start           # listen on :8080
 ```
 
-## Deploy (Cloud Run example)
+## Auth
+
+When `PDF_SERVICE_TOKEN` is set, `POST /generate` requires
+`Authorization: Bearer <token>`. Set it (and the matching `PDF_SERVICE_TOKEN`
+in the Next app) whenever the renderer is publicly reachable. Unset = open
+(loopback/dev only).
+
+## Deploy (Fly.io — free/cheap, scales to zero)
 
 ```bash
-gcloud run deploy pdf-service --source . --region me-central1 --allow-unauthenticated
+cd pdf-service
+fly launch --no-deploy                          # edit app name / region in fly.toml
+fly secrets set PDF_SERVICE_TOKEN=$(openssl rand -hex 32)
+fly deploy
+fly status                                       # note the https://<app>.fly.dev URL
 ```
 
-Then set `PDF_SERVICE_URL=https://<service-url>` in the Next.js app env.
+Then in the Next app env (Vercel dashboard or VPS `.env`):
+
+```
+PDF_SERVICE_URL=https://<app>.fly.dev
+PDF_SERVICE_TOKEN=<same value you set with fly secrets>
+```
+
+Railway/Render work identically: deploy the Dockerfile, set `PDF_SERVICE_TOKEN`
+as an env var, and point `PDF_SERVICE_URL` at the service URL.
+

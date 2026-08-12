@@ -3,6 +3,7 @@
 // streams the PDF back. Stateless; each request uses its own temp dir.
 
 const http = require("http");
+const crypto = require("crypto");
 const fs = require("fs/promises");
 const os = require("os");
 const path = require("path");
@@ -13,6 +14,19 @@ const PORT = process.env.PORT || 8080;
 // Bind loopback only by default — on a VPS this must not face the internet.
 const HOST = process.env.HOST || "127.0.0.1";
 const MAX_BODY = 8 * 1024 * 1024; // 8 MB payload cap
+// Shared secret. When set, /generate requires "Authorization: Bearer <token>".
+// Required for public hosting (Fly/Railway); optional for loopback/dev.
+const TOKEN = process.env.PDF_SERVICE_TOKEN || "";
+
+// constant-time bearer check; returns true when TOKEN unset (local/dev)
+function authorized(req) {
+  if (!TOKEN) return true;
+  const header = req.headers["authorization"] || "";
+  const got = header.startsWith("Bearer ") ? header.slice(7) : "";
+  const a = Buffer.from(got);
+  const b = Buffer.from(TOKEN);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -89,6 +103,11 @@ const server = http.createServer(async (req, res) => {
     return;
   }
   if (req.method === "POST" && req.url === "/generate") {
+    if (!authorized(req)) {
+      res.writeHead(401, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "unauthorized" }));
+      return;
+    }
     try {
       const raw = await readBody(req);
       const payload = JSON.parse(raw);

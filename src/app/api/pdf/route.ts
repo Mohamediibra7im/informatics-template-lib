@@ -51,13 +51,23 @@ export async function POST(request: Request) {
   try {
     const res = await fetch(`${serviceUrl.replace(/\/$/, "")}/generate`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(process.env.PDF_SERVICE_TOKEN
+          ? { Authorization: `Bearer ${process.env.PDF_SERVICE_TOKEN}` }
+          : {}),
+      },
       body: JSON.stringify(payload),
       // compile can take a few seconds on cold start
       signal: AbortSignal.timeout(60_000),
     });
 
     if (!res.ok) {
+      // log upstream reason server-side (pm2/next logs); never leak to client
+      const detail = await res.text().catch(() => "");
+      console.error(
+        `pdf-service ${res.status} ${res.statusText} @ ${serviceUrl}: ${detail.slice(0, 300)}`
+      );
       return NextResponse.json({ error: "PDF generation failed" }, { status: 502 });
     }
 
@@ -69,7 +79,8 @@ export async function POST(request: Request) {
         "Content-Length": String(buf.byteLength),
       },
     });
-  } catch {
+  } catch (err) {
+    console.error(`pdf-service fetch failed @ ${serviceUrl}:`, err);
     return NextResponse.json({ error: "PDF service unavailable" }, { status: 502 });
   }
 }

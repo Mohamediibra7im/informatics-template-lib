@@ -26,5 +26,8 @@ RUN useradd -m appuser && chown -R appuser /app
 USER appuser
 
 ENV PORT=8080
+# Container is fronted by the platform proxy (Fly/Railway) — bind all interfaces.
+# Auth is enforced via PDF_SERVICE_TOKEN (set as a platform secret).
+ENV HOST=0.0.0.0
 EXPOSE 8080
 CMD ["node", "server.js"]

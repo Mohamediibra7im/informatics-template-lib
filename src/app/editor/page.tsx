@@ -16,10 +16,16 @@ import {
   BookOpen,
   Check,
   Edit3,
-  Hash,
   Pencil,
   AlertTriangle,
   Layers,
+  Search,
+  Eye,
+  Code2,
+  Sparkles,
+  ChevronDown,
+  ChevronRight,
+  Sliders,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +43,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { computeCodeHash } from "@/lib/hash-utils";
+import MonacoCodeEditor from "@/components/forms/monaco-code-editor";
+import { highlightCodeLine } from "@/lib/syntax-highlighter";
 import { toast } from "sonner";
 
 interface TemplateCode {
@@ -81,12 +89,18 @@ function EditorPageContent() {
   >([]);
   const [loadingAvailable, setLoadingAvailable] = useState(false);
   const [searchFilter, setSearchFilter] = useState("");
+  const [sidebarFilter, setSidebarFilter] = useState("");
 
   const [newSectionTitle, setNewSectionTitle] = useState("");
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
   const [editSectionName, setEditSectionName] = useState("");
+  const [editingCodeTopicId, setEditingCodeTopicId] = useState<number | null>(null);
 
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [viewMode, setViewMode] = useState<"studio" | "preview">("studio");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
 
   // Load PDF settings from localStorage
   useEffect(() => {
@@ -155,7 +169,7 @@ function EditorPageContent() {
               const codeObj = t.codes?.find((c) => c.language === lang) || t.codes?.[0];
               return {
                 ...t,
-                userNotes: getSavedUserNotes(t.id) || t.notes || "",
+                userNotes: getSavedUserNotes(t.id) || "",
                 selectedLang: lang,
                 hash: computeCodeHash(codeObj?.code || ""),
               };
@@ -220,26 +234,21 @@ function EditorPageContent() {
   // Compute total counts
   const totalTopicsCount = sections.reduce((acc, sec) => acc + sec.topics.length, 0);
 
+  // Estimate page count
+  const estimatedPages = Math.max(1, Math.ceil(totalTopicsCount / 3) + 2);
+  const isOverPageLimit = estimatedPages > 25;
+
   // Handle PDF Settings Save
   const handleSaveSettings = (newSettings: PdfSettings) => {
     setSettings(newSettings);
     localStorage.setItem("itl-pdf-settings", JSON.stringify(newSettings));
   };
 
-  // Generate PDF via the LaTeX service and download the returned file
-  const handleGeneratePdf = async () => {
-    playClick();
-
-    if (totalTopicsCount === 0) {
-      toast.error("Add at least one topic before generating");
-      return;
-    }
-
-    setIsGeneratingPdf(true);
-    toast.info("Generating ICPC Team Reference PDF...", { id: "pdf-toast" });
-
+  // Build the service payload from current sections + settings (shared by
+  // download and live preview).
+  const buildPdfPayload = () => {
     const layoutCols = { "1-col": 1, "2-col": 2, "3-col": 3 } as const;
-    const payload = {
+    return {
       title: settings.customTitle || "ICPC Team Reference",
       subtitle: [settings.teamName, settings.institution].filter(Boolean).join(" — "),
       date: new Date().toISOString().split("T")[0],
@@ -268,6 +277,21 @@ function EditorPageContent() {
         }),
       })),
     };
+  };
+
+  // Generate PDF via the LaTeX service and download the returned file
+  const handleGeneratePdf = async () => {
+    playClick();
+
+    if (totalTopicsCount === 0) {
+      toast.error("Add at least one topic before generating");
+      return;
+    }
+
+    setIsGeneratingPdf(true);
+    toast.info("Generating ICPC Team Reference PDF...", { id: "pdf-toast" });
+
+    const payload = buildPdfPayload();
 
     try {
       const cleanTitle = (settings.customTitle || "ICPC_Team_Reference").replace(/[^a-zA-Z0-9_-]/g, "_");
@@ -305,7 +329,52 @@ function EditorPageContent() {
     }
   };
 
-  // Add new section
+  // Generate the PDF and show it inline (real output, not an HTML mimic)
+  const refreshPreview = async () => {
+    if (totalTopicsCount === 0) {
+      setPreviewError("Add at least one topic to preview");
+      setPreviewUrl(null);
+      return;
+    }
+    setPreviewLoading(true);
+    setPreviewError(null);
+    try {
+      const res = await fetch("/api/pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildPdfPayload()),
+      });
+      if (!res.ok) {
+        const { error } = await res.json().catch(() => ({ error: "" }));
+        setPreviewError(error || "Failed to render preview");
+        return;
+      }
+      const blob = await res.blob();
+      setPreviewUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return URL.createObjectURL(blob);
+      });
+    } catch {
+      setPreviewError("PDF service unavailable");
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  // Auto-render when entering preview; clean up the blob URL on unmount
+  useEffect(() => {
+    if (viewMode === "preview" && !previewUrl && !previewLoading) refreshPreview();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewMode]);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
   const handleAddSection = () => {
     playClick();
     const title = newSectionTitle.trim() || `Section ${sections.length + 1}`;
@@ -317,14 +386,14 @@ function EditorPageContent() {
     setSections([...sections, newSec]);
     setActiveSectionId(newSec.id);
     setNewSectionTitle("");
-    toast.success(`Created section: ${title}`);
+    toast.success(`Created category: ${title}`);
   };
 
   // Delete section
   const handleDeleteSection = (secId: string) => {
     playClick();
     setSections((prev) => prev.filter((s) => s.id !== secId));
-    toast.info("Section deleted");
+    toast.info("Category deleted");
   };
 
   // Rename section
@@ -413,7 +482,7 @@ function EditorPageContent() {
           const codeObj = data.codes?.find((c) => c.language === lang) || data.codes?.[0];
           const newTopic: EditorTopic = {
             ...data,
-            userNotes: getSavedUserNotes(data.id) || data.notes || "",
+            userNotes: getSavedUserNotes(data.id) || "",
             selectedLang: lang,
             hash: computeCodeHash(codeObj?.code || ""),
           };
@@ -443,44 +512,125 @@ function EditorPageContent() {
     saveUserNote(topicId, val);
   };
 
+  // Pull the template's original note into this topic's note box
+  const handleLoadTemplateNote = (topicId: number, templateNote?: string) => {
+    playClick();
+    if (!templateNote) {
+      toast.info("This template has no saved note");
+      return;
+    }
+    handleNoteChange(topicId, templateNote);
+  };
+
+  // Edit code handler
+  const handleCodeChange = (topicId: number, val: string) => {
+    setSections((prev) =>
+      prev.map((sec) => ({
+        ...sec,
+        topics: sec.topics.map((t) => {
+          if (t.id !== topicId) return t;
+          const codes = t.codes.map((c) =>
+            c.language === t.selectedLang ? { ...c, code: val } : c
+          );
+          return { ...t, codes, hash: computeCodeHash(val) };
+        }),
+      }))
+    );
+  };
+
+  // Filter sections by sidebar search
+  const filteredSections = sections.map((sec) => ({
+    ...sec,
+    topics: sec.topics.filter(
+      (t) =>
+        t.title.toLowerCase().includes(sidebarFilter.toLowerCase()) ||
+        sec.title.toLowerCase().includes(sidebarFilter.toLowerCase())
+    ),
+  }));
+
   return (
-    <div className="min-h-screen font-mono flex flex-col bg-background text-foreground">
-      {/* ─── Top ICPC Header Toolbar ─── */}
-      <header className="sticky top-0 z-40 border-b border-border/80 bg-background/95 backdrop-blur-md px-4 py-2.5 print:hidden">
+    <div className="min-h-screen font-mono flex flex-col bg-[#06141B] text-[#CCD0CF]">
+      {/* ─── Ultra-Premium Cybernetic Control Header ─── */}
+      <header className="sticky top-0 z-40 border-b border-primary/20 bg-[#06141B]/90 backdrop-blur-xl px-4 py-2.5 shadow-[0_4px_25px_rgba(0,0,0,0.6)]">
         <div className="mx-auto flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
               onClick={() => router.back()}
-              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground font-bold cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors font-bold cursor-pointer"
             >
               <ArrowLeft className="h-4 w-4" />
               <span className="hidden sm:inline">Back</span>
             </button>
             <div className="h-4 w-px bg-border/60" />
             <BrandLogo size="sm" />
-            <span className="hidden md:inline-block text-xs font-bold text-primary">
-              ICPC Reference Builder
+            <span className="hidden md:inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase px-2 py-0.5 border border-primary/40 bg-primary/10 text-primary shadow-[0_0_10px_var(--primary-glow-weak)]">
+              <Sparkles className="h-3 w-3" />
+              <span>Studio v2.0</span>
             </span>
           </div>
 
-          {/* Telemetry Counter */}
+          {/* View Mode Switcher */}
+          <div className="flex items-center bg-card/80 p-0.5 border border-border/80 rounded-none">
+            <button
+              onClick={() => {
+                playClick();
+                setViewMode("studio");
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1 text-xs font-bold transition-all cursor-pointer ${
+                viewMode === "studio"
+                  ? "bg-primary text-primary-foreground shadow-[0_0_10px_var(--primary-glow-weak)]"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Code2 className="h-3.5 w-3.5" />
+              <span>Code Studio</span>
+            </button>
+            <button
+              onClick={() => {
+                playClick();
+                setViewMode("preview");
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1 text-xs font-bold transition-all cursor-pointer ${
+                viewMode === "preview"
+                  ? "bg-primary text-primary-foreground shadow-[0_0_10px_var(--primary-glow-weak)]"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Eye className="h-3.5 w-3.5" />
+              <span>PDF Preview</span>
+            </button>
+          </div>
+
+          {/* Telemetry Hub */}
           <div className="flex items-center gap-3 text-xs font-mono">
-            <span className="text-muted-foreground">
-              <strong className="text-foreground">{sections.length}</strong> categories ·{" "}
-              <strong className="text-foreground">{totalTopicsCount}</strong> topics
-            </span>
-            <div className="px-2 py-0.5 border border-primary/30 bg-primary/10 text-primary text-[10px] font-bold">
-              LaTeX PDF
+            <div className="hidden lg:flex items-center gap-2 text-[11px] text-muted-foreground bg-card/40 px-2.5 py-1 border border-border/50">
+              <span>Categories: <strong className="text-primary">{sections.length}</strong></span>
+              <span>·</span>
+              <span>Topics: <strong className="text-primary">{totalTopicsCount}</strong></span>
+            </div>
+
+            {/* ICPC 25-Page Telemetry Indicator */}
+            <div
+              className={`flex items-center gap-1.5 px-2.5 py-1 border text-[10px] font-extrabold uppercase transition-all ${
+                isOverPageLimit
+                  ? "border-destructive bg-destructive/15 text-destructive animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+                  : estimatedPages > 20
+                  ? "border-warning bg-warning/15 text-warning"
+                  : "border-primary/40 bg-primary/10 text-primary"
+              }`}
+            >
+              {isOverPageLimit && <AlertTriangle className="h-3.5 w-3.5" />}
+              <span>~{estimatedPages} / 25 Pages Used</span>
             </div>
           </div>
 
-          {/* Action Buttons */}
+          {/* Action Studio Toolbar */}
           <div className="flex items-center gap-2">
             <Button
               size="sm"
               variant="outline"
               onClick={() => setOpenSettings(true)}
-              className="font-mono text-xs font-bold border-border hover:border-primary/50 cursor-pointer h-8 px-3"
+              className="font-mono text-xs font-bold border-border hover:border-primary/50 text-foreground cursor-pointer h-8 px-3"
             >
               <Settings2 className="h-3.5 w-3.5 mr-1.5 text-primary" />
               <span>Settings</span>
@@ -490,12 +640,12 @@ function EditorPageContent() {
               size="sm"
               onClick={handleGeneratePdf}
               disabled={isGeneratingPdf}
-              className="font-mono text-xs font-extrabold uppercase bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer h-8 px-4 shadow-[0_0_15px_var(--primary-glow-weak)]"
+              className="font-mono text-xs font-extrabold uppercase bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer h-8 px-4 shadow-[0_0_20px_var(--primary-glow-weak)]"
             >
               {isGeneratingPdf ? (
                 <>
                   <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
-                  <span>Generating PDF...</span>
+                  <span>Compiling PDF...</span>
                 </>
               ) : (
                 <>
@@ -508,49 +658,62 @@ function EditorPageContent() {
         </div>
       </header>
 
-      {/* ─── Two-Pane ICPC Workspace ─── */}
+      {/* ─── Two-Pane Studio Workspace ─── */}
       <div className="flex-1 flex overflow-hidden">
         {/* ── Left Sidebar Pane ── */}
-        <aside className="w-72 border-r border-border/80 bg-card/40 flex flex-col shrink-0 overflow-y-auto p-3 space-y-4 print:hidden">
+        <aside className="w-80 border-r border-border/60 bg-[#06141B]/95 flex flex-col shrink-0 overflow-y-auto p-3.5 space-y-4">
+          {/* Search Filter */}
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search algorithms in book..."
+              value={sidebarFilter}
+              onChange={(e) => setSidebarFilter(e.target.value)}
+              className="font-mono text-xs pl-8 bg-background/50 border-border/70 text-foreground h-8"
+            />
+          </div>
+
+          {/* Add Category Block */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-              <span className="flex items-center gap-1">
+            <div className="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground/80">
+              <span className="flex items-center gap-1.5">
                 <Layers className="h-3.5 w-3.5 text-primary" />
-                Categories & Topics
+                Category Tree
               </span>
+              <span className="text-primary font-bold">{sections.length} Active</span>
             </div>
 
-            {/* Inline Add Section Input */}
             <div className="flex gap-1.5">
               <Input
                 type="text"
-                placeholder="+ New category..."
+                placeholder="+ New category (e.g. Graph Theory)"
                 value={newSectionTitle}
                 onChange={(e) => setNewSectionTitle(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAddSection()}
-                className="font-mono text-xs h-7.5 bg-background/50 border-border"
+                className="font-mono text-xs h-8 bg-background/50 border-border"
               />
               <Button
                 size="sm"
                 variant="outline"
                 onClick={handleAddSection}
-                className="h-7.5 px-2 border-border hover:border-primary/50 shrink-0"
+                className="h-8 px-2.5 border-border hover:border-primary/50 text-primary shrink-0 cursor-pointer"
                 title="Add Category"
               >
-                <Plus className="h-3.5 w-3.5 text-primary" />
+                <Plus className="h-4 w-4" />
               </Button>
             </div>
           </div>
 
           {/* Section Tree List */}
-          <div className="space-y-3 flex-1 overflow-y-auto pr-1">
-            {sections.map((sec) => (
+          <div className="space-y-3 flex-1 overflow-y-auto pr-1 custom-scrollbar">
+            {filteredSections.map((sec) => (
               <div
                 key={sec.id}
                 className={`border transition-all ${
                   activeSectionId === sec.id
-                    ? "border-primary/50 bg-primary/[0.03]"
-                    : "border-border/60 bg-background/20"
+                    ? "border-primary/50 bg-primary/[0.04] shadow-[0_0_15px_var(--primary-glow-ultra-weak)]"
+                    : "border-border/60 bg-card/30 hover:border-primary/30"
                 }`}
               >
                 {/* Section Header */}
@@ -566,7 +729,7 @@ function EditorPageContent() {
                       />
                       <button
                         onClick={() => handleRenameSection(sec.id)}
-                        className="p-1 text-primary hover:text-primary/80"
+                        className="p-1 text-primary hover:text-primary/80 cursor-pointer"
                       >
                         <Check className="h-3.5 w-3.5" />
                       </button>
@@ -582,8 +745,8 @@ function EditorPageContent() {
                       <span className="font-extrabold text-xs uppercase text-foreground truncate">
                         {sec.title}
                       </span>
-                      <span className="text-[9px] text-muted-foreground font-bold shrink-0">
-                        ({sec.topics.length})
+                      <span className="text-[9px] text-muted-[#CCD0CF] font-bold shrink-0 px-1 py-0.2 bg-primary/10 border border-primary/20 text-primary">
+                        {sec.topics.length}
                       </span>
                     </div>
                   )}
@@ -591,7 +754,7 @@ function EditorPageContent() {
                   <div className="flex items-center gap-0.5 shrink-0 ml-1">
                     <button
                       onClick={() => handleOpenAddModal(sec.id)}
-                      className="p-1 text-muted-foreground hover:text-primary transition-colors"
+                      className="p-1 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
                       title="Add topic to this section"
                     >
                       <Plus className="h-3.5 w-3.5" />
@@ -601,16 +764,16 @@ function EditorPageContent() {
                         setEditingSectionId(sec.id);
                         setEditSectionName(sec.title);
                       }}
-                      className="p-1 text-muted-foreground hover:text-primary transition-colors"
-                      title="Rename section"
+                      className="p-1 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                      title="Rename category"
                     >
                       <Pencil className="h-3 w-3" />
                     </button>
                     {sections.length > 1 && (
                       <button
                         onClick={() => handleDeleteSection(sec.id)}
-                        className="p-1 text-muted-foreground hover:text-destructive transition-colors"
-                        title="Delete section"
+                        className="p-1 text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
+                        title="Delete category"
                       >
                         <Trash2 className="h-3 w-3" />
                       </button>
@@ -621,21 +784,21 @@ function EditorPageContent() {
                 {/* Topics in section */}
                 <div className="p-1.5 space-y-1">
                   {sec.topics.length === 0 ? (
-                    <div className="text-[10px] text-muted-foreground/50 italic p-1">
+                    <div className="text-[10px] text-muted-foreground/40 italic p-1">
                       No topics added yet
                     </div>
                   ) : (
                     sec.topics.map((t, idx) => (
                       <div
                         key={t.id}
-                        className="flex items-center justify-between p-1 hover:bg-muted/30 text-xs rounded transition-colors group/topic"
+                        className="flex items-center justify-between p-1.5 hover:bg-muted/40 text-xs rounded-none transition-colors group/topic border border-transparent hover:border-border/40"
                       >
                         <div className="flex items-center gap-1.5 min-w-0">
                           <span
-                            className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0"
+                            className="h-1.5 w-1.5 rounded-full bg-emerald-400 shrink-0 animate-pulse"
                             title="Included in PDF"
                           />
-                          <span className="truncate text-[11px] text-muted-foreground group-hover/topic:text-foreground">
+                          <span className="truncate text-[11px] text-muted-foreground group-hover/topic:text-foreground font-medium">
                             {t.title}
                           </span>
                         </div>
@@ -644,20 +807,20 @@ function EditorPageContent() {
                           <button
                             onClick={() => handleMoveTopic(sec.id, idx, "up")}
                             disabled={idx === 0}
-                            className="text-muted-foreground hover:text-foreground disabled:opacity-30"
+                            className="text-muted-foreground hover:text-foreground disabled:opacity-20 cursor-pointer p-0.5"
                           >
                             <ArrowUp className="h-3 w-3" />
                           </button>
                           <button
                             onClick={() => handleMoveTopic(sec.id, idx, "down")}
                             disabled={idx === sec.topics.length - 1}
-                            className="text-muted-foreground hover:text-foreground disabled:opacity-30"
+                            className="text-muted-foreground hover:text-foreground disabled:opacity-20 cursor-pointer p-0.5"
                           >
                             <ArrowDown className="h-3 w-3" />
                           </button>
                           <button
                             onClick={() => handleRemoveTopic(sec.id, t.id)}
-                            className="text-muted-foreground hover:text-destructive ml-0.5"
+                            className="text-muted-foreground hover:text-destructive cursor-pointer p-0.5 ml-0.5"
                           >
                             <Trash2 className="h-3 w-3" />
                           </button>
@@ -671,83 +834,286 @@ function EditorPageContent() {
           </div>
         </aside>
 
-        {/* ── Main Content: reference outline (PDF is generated by LaTeX) ── */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-900/50">
+        {/* ── Center Content Workspace ── */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#06141B]/40">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-24 text-muted-foreground gap-3">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <span className="text-xs uppercase tracking-widest">
-                Building ICPC Reference Booklet...
+              <span className="text-xs uppercase tracking-widest font-bold text-primary">
+                Loading ICPC Studio Workspace...
               </span>
             </div>
-          ) : (
-            <div className="mx-auto max-w-3xl space-y-6">
-              <div className="border border-border/60 bg-card/40 p-4 space-y-1">
-                <div className="text-lg font-bold text-foreground">
-                  {settings.customTitle || "ICPC Team Reference"}
+          ) : viewMode === "preview" ? (
+            /* ── VIEW MODE: real generated PDF, embedded ── */
+            <div className="mx-auto max-w-4xl h-full min-h-[80vh] flex flex-col">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] uppercase tracking-widest font-bold text-primary">
+                  Live PDF Preview
+                </span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={refreshPreview}
+                  disabled={previewLoading}
+                  className="h-7 px-3 text-[11px] font-bold border-border hover:border-primary/50"
+                >
+                  {previewLoading ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <>Refresh</>
+                  )}
+                </Button>
+              </div>
+
+              {previewLoading ? (
+                <div className="flex-1 flex flex-col items-center justify-center gap-3 text-muted-foreground border border-border/50 bg-card/30">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <span className="text-xs uppercase tracking-widest">Compiling PDF…</span>
                 </div>
-                {(settings.teamName || settings.institution) && (
-                  <div className="text-xs text-muted-foreground">
-                    {[settings.teamName, settings.institution].filter(Boolean).join(" — ")}
+              ) : previewError ? (
+                <div className="flex-1 flex flex-col items-center justify-center gap-2 text-destructive border border-destructive/30 bg-destructive/5">
+                  <AlertTriangle className="h-6 w-6" />
+                  <span className="text-xs">{previewError}</span>
+                </div>
+              ) : previewUrl ? (
+                <iframe
+                  src={previewUrl}
+                  title="PDF preview"
+                  className="flex-1 w-full border border-border/60 bg-white rounded-sm"
+                />
+              ) : (
+                <div className="flex-1 flex items-center justify-center text-xs text-muted-foreground border border-dashed border-border/50">
+                  No preview yet.
+                </div>
+              )}
+            </div>
+          ) : (
+            /* ── VIEW MODE: Interactive Code & Section Studio ── */
+            <div className="mx-auto max-w-4xl space-y-6">
+              {/* Document Info Card */}
+              <div className="border border-border/80 bg-card/60 p-5 space-y-3 backdrop-blur-md shadow-xl">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/50 pb-3">
+                  <div className="space-y-1 flex-1">
+                    <label className="text-[10px] uppercase font-bold text-primary tracking-wider flex items-center gap-1.5">
+                      <Edit3 className="h-3.5 w-3.5" />
+                      Document Header Metadata
+                    </label>
+                    <Input
+                      type="text"
+                      value={settings.customTitle}
+                      onChange={(e) =>
+                        handleSaveSettings({ ...settings, customTitle: e.target.value })
+                      }
+                      placeholder="ICPC Team Reference Document"
+                      className="font-mono text-sm font-bold bg-background/50 border-border text-foreground h-9"
+                    />
                   </div>
-                )}
-                <div className="text-[11px] text-muted-foreground/70 pt-1">
-                  {sections.length} categories · {totalTopicsCount} topics ·{" "}
-                  {settings.layout.replace("-col", " column")} · compiled to PDF via LaTeX
+
+                  <div className="space-y-1 flex-1">
+                    <label className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+                      Team Name & University
+                    </label>
+                    <Input
+                      type="text"
+                      value={settings.teamName}
+                      onChange={(e) =>
+                        handleSaveSettings({ ...settings, teamName: e.target.value })
+                      }
+                      placeholder="Informatics Template Lib — Contest Reference"
+                      className="font-mono text-xs bg-background/50 border-border text-foreground h-9"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground pt-1 font-mono">
+                  <div className="flex items-center gap-2">
+                    <span className="text-primary font-bold">{sections.length} categories</span>
+                    <span>·</span>
+                    <span className="text-primary font-bold">{totalTopicsCount} algorithms</span>
+                    <span>·</span>
+                    <span className="uppercase text-[10px] px-1.5 py-0.5 border border-primary/30 bg-primary/10 text-primary font-bold">
+                      {settings.layout}
+                    </span>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleOpenAddModal()}
+                    className="font-mono text-xs font-bold border-border hover:border-primary/50 text-primary h-7 px-2.5 cursor-pointer"
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1" />
+                    <span>Add Algorithm</span>
+                  </Button>
                 </div>
               </div>
 
+              {/* Sections List in Studio */}
               {totalTopicsCount === 0 ? (
-                <div className="text-center text-xs text-muted-foreground py-16 border border-dashed border-border/50">
-                  Add topics from the sidebar, then hit{" "}
-                  <span className="text-primary font-bold">Generate PDF</span>.
+                <div className="text-center text-xs text-muted-foreground py-20 border border-dashed border-border/50 bg-card/20 space-y-3">
+                  <FileCode className="h-10 w-10 text-muted-foreground/40 mx-auto" />
+                  <div>
+                    No templates added yet. Add algorithms from the sidebar or click{" "}
+                    <button
+                      onClick={() => handleOpenAddModal()}
+                      className="text-primary font-bold hover:underline cursor-pointer"
+                    >
+                      + Add Algorithm
+                    </button>.
+                  </div>
                 </div>
               ) : (
                 sections.map((sec, secIdx) => (
-                  <div key={sec.id} className="space-y-2">
-                    <h2 className="text-sm font-bold text-foreground border-b border-border/50 pb-1">
-                      {secIdx + 1}. {sec.title}
-                      <span className="text-[10px] text-muted-foreground font-normal ml-2">
-                        ({sec.topics.length})
+                  <div key={sec.id} className="space-y-3">
+                    {/* Category Title Header */}
+                    <div className="flex items-center justify-between border-b border-primary/30 pb-1.5">
+                      <h2 className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-primary flex items-center gap-2">
+                        <span className="px-1.5 py-0.5 border border-primary/40 bg-primary/10 text-primary text-[10px]">
+                          {secIdx + 1}
+                        </span>
+                        <span>{sec.title}</span>
+                      </h2>
+                      <span className="text-[10px] text-muted-foreground font-mono">
+                        {sec.topics.length} topic{sec.topics.length === 1 ? "" : "s"}
                       </span>
-                    </h2>
+                    </div>
 
-                    <div className="space-y-2">
+                    {/* Topic Cards */}
+                    <div className="space-y-4">
                       {sec.topics.map((tmpl, tIdx) => {
                         const codeObj =
                           tmpl.codes.find((c) => c.language === tmpl.selectedLang) ||
                           tmpl.codes[0];
+
                         return (
                           <div
                             key={tmpl.id}
-                            className="border border-border/40 bg-background/30 p-2.5 text-xs space-y-1.5"
+                            className="border border-border/70 bg-card/40 p-4 space-y-3 shadow-lg hover:border-primary/40 transition-all"
                           >
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="font-bold text-foreground truncate">
-                                {secIdx + 1}.{tIdx + 1}. {tmpl.title}
+                            {/* Card Header Bar */}
+                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/40 pb-2">
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono text-xs text-primary font-bold">
+                                  {secIdx + 1}.{tIdx + 1}
+                                </span>
+                                <h3 className="font-bold text-xs sm:text-sm text-foreground">
+                                  {tmpl.title}
+                                </h3>
                                 {tmpl.complexity && (
-                                  <span className="text-muted-foreground font-normal ml-1">
+                                  <span className="text-[10px] text-info font-mono font-bold px-1.5 py-0.2 border border-info/30 bg-info/10">
                                     O({tmpl.complexity})
                                   </span>
                                 )}
-                              </span>
-                              <span className="flex items-center gap-2 shrink-0 text-[10px] text-muted-foreground">
-                                <span className="uppercase">{codeObj?.language || "cpp"}</span>
-                                {settings.showCodeHashes && tmpl.hash && (
-                                  <span className="font-mono text-primary/70">[{tmpl.hash}]</span>
-                                )}
-                              </span>
+                              </div>
+
+                              <div className="flex items-center gap-2 shrink-0 text-xs font-mono">
+                                {/* Move / Delete */}
+                                <div className="flex items-center gap-1 border-l border-border/50 pl-2">
+                                  <button
+                                    onClick={() => handleMoveTopic(sec.id, tIdx, "up")}
+                                    disabled={tIdx === 0}
+                                    className="text-muted-foreground hover:text-foreground disabled:opacity-20 cursor-pointer p-0.5"
+                                    title="Move up"
+                                  >
+                                    <ArrowUp className="h-3.5 w-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleMoveTopic(sec.id, tIdx, "down")}
+                                    disabled={tIdx === sec.topics.length - 1}
+                                    className="text-muted-foreground hover:text-foreground disabled:opacity-20 cursor-pointer p-0.5"
+                                    title="Move down"
+                                  >
+                                    <ArrowDown className="h-3.5 w-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleRemoveTopic(sec.id, tmpl.id)}
+                                    className="text-muted-foreground hover:text-destructive cursor-pointer p-0.5 ml-1"
+                                    title="Remove algorithm"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
+                              </div>
                             </div>
 
+                            {/* User Custom Notes */}
                             {settings.notesStyle === "text" && (
-                              <textarea
-                                value={tmpl.userNotes || ""}
-                                onChange={(e) => handleNoteChange(tmpl.id, e.target.value)}
-                                placeholder="Optional note (included in PDF)..."
-                                rows={1}
-                                className="w-full resize-y bg-muted/20 border border-border/40 rounded px-2 py-1 text-[11px] text-muted-foreground focus:text-foreground focus:border-primary/40 outline-none"
-                              />
+                              <div className="space-y-1.5">
+                                <div className="flex items-center justify-between text-[10px]">
+                                  <span className="uppercase font-bold text-muted-foreground/80 flex items-center gap-1">
+                                    <Edit3 className="h-3 w-3 text-primary" />
+                                    Notes & Implementation Hints
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleLoadTemplateNote(tmpl.id, tmpl.notes)}
+                                    className="inline-flex items-center gap-1 font-bold text-primary/80 hover:text-primary border border-border/50 hover:border-primary/40 rounded px-1.5 py-0.5 cursor-pointer transition-colors"
+                                  >
+                                    <BookOpen className="h-3 w-3" />
+                                    <span>Load saved template note</span>
+                                  </button>
+                                </div>
+                                <textarea
+                                  value={tmpl.userNotes || ""}
+                                  onChange={(e) => handleNoteChange(tmpl.id, e.target.value)}
+                                  placeholder="Type custom hints or edge cases (included in PDF)..."
+                                  rows={2}
+                                  className="w-full resize-y bg-background/50 border border-border/60 rounded-none px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground/40 focus:border-primary/50 outline-none font-mono"
+                                />
+                              </div>
                             )}
+
+                            {/* Code Container */}
+                            <div className="space-y-1.5">
+                              <div className="flex items-center justify-between text-[10px]">
+                                <span className="uppercase font-bold text-muted-foreground/70">
+                                  Implementation Code ({codeObj?.language || "cpp"})
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    playClick();
+                                    setEditingCodeTopicId((prev) => (prev === tmpl.id ? null : tmpl.id));
+                                  }}
+                                  className="inline-flex items-center gap-1 font-bold text-primary/90 hover:text-primary border border-border/50 hover:border-primary/40 rounded px-1.5 py-0.5 cursor-pointer transition-colors"
+                                >
+                                  {editingCodeTopicId === tmpl.id ? (
+                                    <>
+                                      <Check className="h-3 w-3" />
+                                      <span>Done Editing</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Pencil className="h-3 w-3" />
+                                      <span>Edit Code Snippet</span>
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+
+                              {editingCodeTopicId === tmpl.id ? (
+                                <MonacoCodeEditor
+                                  value={codeObj?.code || ""}
+                                  language={codeObj?.language || "cpp"}
+                                  onChange={(v) => handleCodeChange(tmpl.id, v)}
+                                  height={260}
+                                />
+                              ) : (
+                                <div className="bg-[#06141B] rounded border border-border/60 p-3 text-[11px] font-mono leading-relaxed overflow-x-auto max-h-60">
+                                  <pre className="whitespace-pre font-mono">
+                                    <code>
+                                      {(codeObj?.code || "// No code snippet").split("\n").map((line, lIdx) => (
+                                        <div key={lIdx} className="flex">
+                                          <span className="select-none text-muted-foreground/30 pr-3 shrink-0 w-8 text-right">
+                                            {lIdx + 1}
+                                          </span>
+                                          <span className="flex-1">{highlightCodeLine(line)}</span>
+                                        </div>
+                                      ))}
+                                    </code>
+                                  </pre>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         );
                       })}
@@ -793,7 +1159,7 @@ function EditorPageContent() {
                 <span>Loading algorithm index...</span>
               </div>
             ) : (
-              <div className="max-h-60 overflow-y-auto space-y-1 pr-1">
+              <div className="max-h-60 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
                 {availableTemplates
                   .filter((t) =>
                     t.title.toLowerCase().includes(searchFilter.toLowerCase())
@@ -805,7 +1171,7 @@ function EditorPageContent() {
                     return (
                       <div
                         key={tmpl.id}
-                        className="flex items-center justify-between p-2 border border-border/50 bg-background/30 text-xs"
+                        className="flex items-center justify-between p-2 border border-border/50 bg-background/30 text-xs hover:border-primary/40 transition-colors"
                       >
                         <div className="min-w-0 pr-2">
                           <div className="font-bold text-foreground truncate">
@@ -822,7 +1188,7 @@ function EditorPageContent() {
                           variant={inBook ? "ghost" : "outline"}
                           disabled={inBook}
                           onClick={() => handleAddTemplateToSection(tmpl.id)}
-                          className="font-mono text-[10px] h-7 px-2.5 shrink-0 border-border hover:border-primary/50"
+                          className="font-mono text-[10px] h-7 px-2.5 shrink-0 border-border hover:border-primary/50 cursor-pointer"
                         >
                           {inBook ? (
                             <span className="text-muted-foreground">Added</span>
