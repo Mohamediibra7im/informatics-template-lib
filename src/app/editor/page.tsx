@@ -259,7 +259,9 @@ function EditorPageContent() {
         showLineNumbers: settings.showLineNumbers,
         showCodeHashes: settings.showCodeHashes,
         pageBreakPerTemplate: settings.pageBreakPerTemplate,
-        theme: settings.theme,
+        // theme picker removed — always colored (syntax highlighted). Ignoring
+        // any stale settings.theme from older localStorage.
+        theme: "light",
       },
       sections: sections.map((sec) => ({
         title: sec.title,
