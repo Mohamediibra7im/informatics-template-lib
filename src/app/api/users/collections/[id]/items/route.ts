@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
-import { userCollectionItems, userCollections, userCollectionMembers, templates } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { userCollectionItems, userCollections, userCollectionMembers, templates, userTemplates, users } from "@/db/schema";
+import { eq, and, inArray, desc } from "drizzle-orm";
 import { getSessionFromCookie } from "@/lib/auth";
 
 async function verifyCollectionAccess(db: any, collectionId: number, userId: number) {
@@ -64,7 +64,79 @@ export async function GET(
     .innerJoin(templates, eq(userCollectionItems.templateId, templates.id))
     .where(eq(userCollectionItems.collectionId, collectionId));
 
-  return NextResponse.json({ collection: { ...collection, isOwner }, items });
+  if (items.length === 0) {
+    return NextResponse.json({ collection: { ...collection, isOwner }, items: [] });
+  }
+
+  const templateIds = items.map((i) => i.templateId);
+
+  const members = await db
+    .select({ userId: userCollectionMembers.userId })
+    .from(userCollectionMembers)
+    .where(eq(userCollectionMembers.collectionId, collectionId));
+
+  const allMemberUserIds = Array.from(
+    new Set([collection.userId, ...members.map((m) => m.userId)])
+  );
+
+  const customCodes = await db
+    .select({
+      userId: userTemplates.userId,
+      username: users.username,
+      templateId: userTemplates.templateId,
+      customCode: userTemplates.customCode,
+      language: userTemplates.language,
+      updatedAt: userTemplates.updatedAt,
+    })
+    .from(userTemplates)
+    .innerJoin(users, eq(userTemplates.userId, users.id))
+    .where(
+      and(
+        inArray(userTemplates.userId, allMemberUserIds),
+        inArray(userTemplates.templateId, templateIds)
+      )
+    )
+    .orderBy(desc(userTemplates.updatedAt));
+
+  const customCodeMap = new Map<
+    number,
+    { customCode: string; language: string; updatedBy: string; isShared: boolean }
+  >();
+
+  for (const cc of customCodes) {
+    if (!customCodeMap.has(cc.templateId)) {
+      customCodeMap.set(cc.templateId, {
+        customCode: cc.customCode,
+        language: cc.language,
+        updatedBy: cc.username,
+        isShared: cc.userId !== session.userId,
+      });
+    }
+  }
+
+  for (const cc of customCodes) {
+    if (cc.userId === session.userId) {
+      customCodeMap.set(cc.templateId, {
+        customCode: cc.customCode,
+        language: cc.language,
+        updatedBy: cc.username,
+        isShared: false,
+      });
+    }
+  }
+
+  const itemsWithCustom = items.map((i) => {
+    const custom = customCodeMap.get(i.templateId);
+    return {
+      ...i,
+      customCode: custom?.customCode || null,
+      customLanguage: custom?.language || null,
+      updatedBy: custom?.updatedBy || null,
+      isCustom: !!custom,
+    };
+  });
+
+  return NextResponse.json({ collection: { ...collection, isOwner }, items: itemsWithCustom });
 }
 
 export async function POST(

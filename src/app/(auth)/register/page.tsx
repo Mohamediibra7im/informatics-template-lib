@@ -240,7 +240,7 @@ function RegisterContent() {
 
 export default function RegisterPage() {
   return (
-    <Suspense>
+    <Suspense fallback={null}>
       <RegisterContent />
     </Suspense>
   );

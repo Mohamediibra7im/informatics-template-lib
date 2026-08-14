@@ -9,7 +9,7 @@ import {
   userTemplates,
   templateCodes,
 } from "@/db/schema";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, desc } from "drizzle-orm";
 import { getSessionFromCookie } from "@/lib/auth";
 import JSZip from "jszip";
 
@@ -91,20 +91,32 @@ export async function GET(
 
   const templateIds = items.map((item) => item.templateId);
 
-  // 3. Fetch user custom code overrides for C++
+  // 3. Fetch custom code overrides across all collection members/owner for C++
+  const members = await db
+    .select({ userId: userCollectionMembers.userId })
+    .from(userCollectionMembers)
+    .where(eq(userCollectionMembers.collectionId, collectionId));
+
+  const allMemberUserIds = Array.from(
+    new Set([collection.userId, ...members.map((m) => m.userId)])
+  );
+
   const userCustomCodes = await db
     .select({
+      userId: userTemplates.userId,
       templateId: userTemplates.templateId,
       customCode: userTemplates.customCode,
       language: userTemplates.language,
+      updatedAt: userTemplates.updatedAt,
     })
     .from(userTemplates)
     .where(
       and(
-        eq(userTemplates.userId, session.userId),
+        inArray(userTemplates.userId, allMemberUserIds),
         inArray(userTemplates.templateId, templateIds)
       )
-    );
+    )
+    .orderBy(desc(userTemplates.updatedAt));
 
   // 4. Fetch default template codes for C++
   const defaultCodes = await db
@@ -118,8 +130,17 @@ export async function GET(
 
   // Build maps for efficient lookup
   const userCodeMap = new Map<number, string>();
+  // First set latest update from any collection collaborator
   for (const uc of userCustomCodes) {
     if (isCppLanguage(uc.language) && uc.customCode.trim()) {
+      if (!userCodeMap.has(uc.templateId)) {
+        userCodeMap.set(uc.templateId, uc.customCode);
+      }
+    }
+  }
+  // If current session user has an explicit custom override, prioritize it
+  for (const uc of userCustomCodes) {
+    if (uc.userId === session.userId && isCppLanguage(uc.language) && uc.customCode.trim()) {
       userCodeMap.set(uc.templateId, uc.customCode);
     }
   }

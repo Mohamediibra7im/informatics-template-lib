@@ -56,6 +56,7 @@ export function TemplatePersonalization({
   const [collections, setCollections] = useState<CollectionSummary[]>([]);
   const [inCollections, setInCollections] = useState<number[]>([]); // Array of collection IDs this template belongs to
   const [customCode, setCustomCode] = useState<string | null>(null);
+  const [sharedBy, setSharedBy] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editorValue, setEditorValue] = useState("");
   const [isCustomActive, setIsCustomActive] = useState(false);
@@ -83,15 +84,17 @@ export function TemplatePersonalization({
 
       if (templRes.ok) {
         const d = await templRes.json();
-        const foundTempl = d.templates?.find((t: { templateId: number; customCode: string }) => t.templateId === templateId);
+        const foundTempl = d.templates?.find((t: { templateId: number; customCode: string; isShared?: boolean; updatedBy?: string }) => t.templateId === templateId);
         if (foundTempl) {
           setCustomCode(foundTempl.customCode);
           setEditorValue(foundTempl.customCode);
           setIsCustomActive(true);
+          setSharedBy(foundTempl.isShared && foundTempl.updatedBy ? foundTempl.updatedBy : null);
         } else {
           setCustomCode(null);
           setEditorValue(defaultCode);
           setIsCustomActive(false);
+          setSharedBy(null);
         }
       }
 
@@ -359,27 +362,34 @@ export function TemplatePersonalization({
 
           {/* Custom Version Toggles */}
           {customCode !== null && (
-            <div className="flex gap-0.5 border border-border bg-muted/10 p-0.5 rounded-none">
-              <button
-                onClick={() => handleToggleCodeSource(false)}
-                className={`px-2.5 py-1 text-[9px] uppercase font-bold transition-all ${
-                  !isCustomActive
-                    ? "bg-primary/15 text-primary"
-                    : "text-muted-foreground/45 hover:text-foreground"
-                }`}
-              >
-                Original
-              </button>
-              <button
-                onClick={() => handleToggleCodeSource(true)}
-                className={`px-2.5 py-1 text-[9px] uppercase font-bold transition-all ${
-                  isCustomActive
-                    ? "bg-primary/15 text-primary"
-                    : "text-muted-foreground/45 hover:text-foreground"
-                }`}
-              >
-                Custom
-              </button>
+            <div className="flex items-center gap-1.5">
+              {sharedBy && isCustomActive && (
+                <span className="text-[9px] font-mono text-primary/80 bg-primary/10 px-2 py-0.5 border border-primary/20">
+                  Shared by @{sharedBy}
+                </span>
+              )}
+              <div className="flex gap-0.5 border border-border bg-muted/10 p-0.5 rounded-none">
+                <button
+                  onClick={() => handleToggleCodeSource(false)}
+                  className={`px-2.5 py-1 text-[9px] uppercase font-bold transition-all ${
+                    !isCustomActive
+                      ? "bg-primary/15 text-primary"
+                      : "text-muted-foreground/45 hover:text-foreground"
+                  }`}
+                >
+                  Original
+                </button>
+                <button
+                  onClick={() => handleToggleCodeSource(true)}
+                  className={`px-2.5 py-1 text-[9px] uppercase font-bold transition-all ${
+                    isCustomActive
+                      ? "bg-primary/15 text-primary"
+                      : "text-muted-foreground/45 hover:text-foreground"
+                  }`}
+                >
+                  Custom
+                </button>
+              </div>
             </div>
           )}
 

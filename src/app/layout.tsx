@@ -42,7 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" data-scroll-behavior="smooth" className={`${jetbrainsMono.variable} h-full antialiased dark`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col font-mono">
         <Providers>
-          <Suspense>
+          <Suspense fallback={null}>
             <NavBar />
           </Suspense>
           <main className="flex-1">{children}</main>

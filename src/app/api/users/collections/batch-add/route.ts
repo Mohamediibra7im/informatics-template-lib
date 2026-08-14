@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
-import { userCollections, userCollectionItems } from "@/db/schema";
+import { userCollections, userCollectionItems, userCollectionMembers } from "@/db/schema";
 import { and, eq, inArray } from "drizzle-orm";
 import { getSessionFromCookie } from "@/lib/auth";
 
@@ -17,14 +17,35 @@ export async function POST(request: Request) {
     const db = getDb();
     if (!db) return NextResponse.json({ error: "Database unavailable" }, { status: 500 });
 
-    // Verify ownership of the collection
+    // Verify ownership or membership of the collection
     const [collection] = await db
       .select()
       .from(userCollections)
-      .where(and(eq(userCollections.id, collectionId), eq(userCollections.userId, session.userId)));
+      .where(eq(userCollections.id, collectionId))
+      .limit(1);
 
     if (!collection) {
       return NextResponse.json({ error: "Collection not found" }, { status: 404 });
+    }
+
+    const isOwner = collection.userId === session.userId;
+    let isMember = false;
+    if (!isOwner) {
+      const [membership] = await db
+        .select()
+        .from(userCollectionMembers)
+        .where(
+          and(
+            eq(userCollectionMembers.collectionId, collectionId),
+            eq(userCollectionMembers.userId, session.userId)
+          )
+        )
+        .limit(1);
+      isMember = !!membership;
+    }
+
+    if (!isOwner && !isMember) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Fetch existing items to avoid duplicates
