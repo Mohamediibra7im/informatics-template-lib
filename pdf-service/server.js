@@ -88,7 +88,20 @@ async function generate(payload) {
     const pdf = await fs.readFile(path.join(dir, "main.pdf"));
     return { status: 200, pdf };
   } catch (e) {
-    // last lines of the tectonic log only — no internal paths to the client
+    // Extract line number from error message and dump context
+    const lineMatch = e.message.match(/main\.tex:(\d+)/);
+    if (lineMatch) {
+      const errorLine = parseInt(lineMatch[1], 10);
+      const texLines = tex.split("\n");
+      const start = Math.max(0, errorLine - 10);
+      const end = Math.min(texLines.length, errorLine + 5);
+      console.error(`=== TeX ERROR at line ${errorLine} ===`);
+      for (let i = start; i < end; i++) {
+        const marker = i + 1 === errorLine ? " >>>" : "    ";
+        console.error(`${marker} ${i + 1}: ${texLines[i]}`);
+      }
+      console.error("=== END TeX CONTEXT ===");
+    }
     console.error("compile failed:", e.message);
     return { status: 500, error: "LaTeX compilation failed", details: e.message };
   } finally {

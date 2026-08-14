@@ -478,8 +478,17 @@ function formatComplexity(comp) {
   const m = c.match(/^O\((.*)\)$/i);
   if (m) c = m[1].trim();
 
+  // Unicode → TeX math
   c = c.replace(/—/g, "---").replace(/–/g, "--").replace(/→/g, "\\to ").replace(/←/g, "\\leftarrow ");
-  c = c.replace(/_([a-zA-Z0-9])/g, "_{$1}").replace(/\^([a-zA-Z0-9])/g, "^{$1}");
+  // Escape % inside math (it would act as a TeX comment and eat the closing $)
+  c = c.replace(/%/g, "\\%");
+  // Strip remaining non-ASCII to avoid font issues
+  c = c.replace(/[^\x00-\x7F]/g, "");
+  // Multi-character subscripts/superscripts: n_max → n_{max}, 2^nk → 2^{nk}
+  c = c.replace(/_([a-zA-Z0-9]+)/g, "_{$1}").replace(/\^([a-zA-Z0-9]+)/g, "^{$1}");
+  // Common math operators: standalone log, min, max, etc. → \log, \min, \max
+  // Negative lookbehind avoids double-escaping already-TeX'd operators like \log
+  c = c.replace(/(?<!\\)\b(log|ln|min|max|gcd|lcm|sin|cos|tan|exp|sqrt)\b/g, "\\$1");
 
   return ` $O(${c})$`;
 }
