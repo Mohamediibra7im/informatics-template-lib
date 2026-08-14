@@ -72,35 +72,29 @@ function esc(s) {
   return str;
 }
 
-// Convert note Markdown (+ inline $math$) to LaTeX.
-// Inline $...$ and `code` are extracted BEFORE escaping (so math backslashes
-// survive and code stays literal), stashed behind NUL-delimited placeholders
-// that pass through esc() untouched, then restored last.
-// Supports: # headings, **bold**, *italic*, ***bold-italic***, ~~strikethrough~~, `code`,
-// - / * bullet lists, 1. numbered lists, > blockquotes, --- horizontal rules, tables, blank-line paragraphs.
-function mdToLatex(md) {
-  const raw = String(md ?? "");
+// Inline formatting: protect math & code spans, escape text, apply bold/italic/strikethrough
+function inline(text) {
+  const raw = String(text ?? "");
   const holds = [];
-  // \x00 never appears in user text and is ignored by esc()
   const hold = (tex) => `\x00${holds.push(tex) - 1}\x00`;
 
-  // 1. protect display math, single-line inline math, and inline code
   const s = raw
     .replace(/\$\$([^\$]+?)\$\$/g, (_, m) => hold(`\\[${m}\\]`))
     .replace(/\$([^\s$](?:[^\$\r\n]*[^\s$])?)\$/g, (_, m) => hold(`$${m}$`))
     .replace(/`([^`]+)`/g, (_, c) => hold(`\\texttt{${esc(c)}}`));
 
-  // inline formatting: escape, apply strikethrough, bold, italic, restore protected spans
-  const inline = (text) => {
-    let t = esc(text);
-    t = t.replace(/\\textasciitilde{}\\textasciitilde{}(.+?)\\textasciitilde{}\\textasciitilde{}/g, "\\sout{$1}");
-    t = t.replace(/\*\*\*([^*]+)\*\*\*/g, "\\textbf{\\textit{$1}}");
-    t = t.replace(/\*\*([^*]+)\*\*/g, "\\textbf{$1}");
-    t = t.replace(/(^|[^*])\*([^*]+)\*(?!\*)/g, "$1\\textit{$2}");
-    t = t.replace(/\x00(\d+)\x00/g, (_, i) => holds[Number(i)]);
-    return t;
-  };
+  let t = esc(s);
+  t = t.replace(/\\textasciitilde{}\\textasciitilde{}(.+?)\\textasciitilde{}\\textasciitilde{}/g, "\\sout{$1}");
+  t = t.replace(/\*\*\*([^*]+)\*\*\*/g, "\\textbf{\\textit{$1}}");
+  t = t.replace(/\*\*([^*]+)\*\*/g, "\\textbf{$1}");
+  t = t.replace(/(^|[^*])\*([^*]+)\*(?!\*)/g, "$1\\textit{$2}");
+  t = t.replace(/\x00(\d+)\x00/g, (_, i) => holds[Number(i)]);
+  return t;
+}
 
+// Convert note Markdown (+ inline $math$) to LaTeX.
+function mdToLatex(md) {
+  const raw = String(md ?? "");
   const parseTableCells = (rowStr) => {
     let s = rowStr.trim();
     if (s.startsWith("|")) s = s.slice(1);
@@ -113,7 +107,7 @@ function mdToLatex(md) {
     return cells.length > 0 && cells.every((c) => /^:?-+:?$/.test(c));
   };
 
-  const lines = s.split(/\r?\n/);
+  const lines = raw.split(/\r?\n/);
   const out = [];
   let inList = null; // null | "ul" | "ol" | "quote"
 
@@ -397,6 +391,23 @@ function preamble(options) {
 }
 
 // Emits body. `snippets` is filled with {name, code} for the caller to write.
+function formatComplexity(comp) {
+  if (!comp) return "";
+  let c = String(comp).trim();
+  if (!c) return "";
+  if (c.startsWith("$") && c.endsWith("$")) {
+    c = c.slice(1, -1).replace(/—/g, "---").replace(/–/g, "--");
+    return ` $${c}$`;
+  }
+  const m = c.match(/^O\((.*)\)$/i);
+  if (m) c = m[1].trim();
+  c = c.replace(/—/g, "---").replace(/–/g, "--");
+  if (/[\\[\]{}^_$%]/.test(c)) {
+    return ` $O(${c})$`;
+  }
+  return ` $O(${esc(c)})$`;
+}
+
 function body(payload, snippets) {
   const { title, subtitle, options, sections } = payload;
   const out = [];
@@ -406,8 +417,8 @@ function body(payload, snippets) {
   out.push("\\thispagestyle{empty}");
   out.push("\\vspace*{\\fill}");
   out.push("\\begin{center}");
-  out.push(`{\\Huge\\bfseries ${esc(title || "ICPC Team Reference")}\\par}`);
-  if (subtitle) out.push(`\\vspace{1em}{\\large ${esc(subtitle)}\\par}`);
+  out.push(`{\\Huge\\bfseries ${inline(title || "ICPC Team Reference")}\\par}`);
+  if (subtitle) out.push(`\\vspace{1em}{\\large ${inline(subtitle)}\\par}`);
   out.push("\\vspace{1.5em}{\\small " + esc(payload.date || "") + "\\par}");
   out.push("\\end{center}");
   out.push("\\vspace*{\\fill}");
@@ -423,21 +434,9 @@ function body(payload, snippets) {
   if (cols > 1) out.push(`\\begin{multicols}{${cols}}`);
 
   sections.forEach((sec, si) => {
-    out.push(`\\section{${esc(sec.title || "Section")}}`);
+    out.push(`\\section{${inline(sec.title || "Section")}}`);
     (sec.topics || []).forEach((t, ti) => {
-      let heading = esc(t.title || "Untitled");
-      if (t.complexity) {
-        let comp = String(t.complexity).trim();
-        const m = comp.match(/^O\((.*)\)$/i);
-        if (m) comp = m[1].trim();
-        if (comp) {
-          if (/[\\[\]{}^_$%]/.test(comp)) {
-            heading += ` $O(${comp})$`;
-          } else {
-            heading += ` $O(${esc(comp)})$`;
-          }
-        }
-      }
+      const heading = inline(t.title || "Untitled") + formatComplexity(t.complexity);
       out.push(`\\subsection{${heading}}`);
 
       const name = `snippets/s${si}_t${ti}.txt`;
