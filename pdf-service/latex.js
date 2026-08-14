@@ -37,7 +37,7 @@ const UNICODE_MAP = [
   [/∩/g, "$\\cap$"],
   [/∑/g, "$\\sum$"],
   [/∏/g, "$\\prod$"],
-  [/√/g, "$\\sqrt$"],
+  [/√/g, "$\\surd$"],
   [/≈/g, "$\\approx$"],
   [/≡/g, "$\\equiv$"],
   [/⇒/g, "$\\Rightarrow$"],
@@ -326,7 +326,7 @@ function preamble(options) {
 \\DeclareUnicodeCharacter{2229}{\\ensuremath{\\cap}}
 \\DeclareUnicodeCharacter{2211}{\\ensuremath{\\sum}}
 \\DeclareUnicodeCharacter{220F}{\\ensuremath{\\prod}}
-\\DeclareUnicodeCharacter{221A}{\\ensuremath{\\sqrt}}
+\\DeclareUnicodeCharacter{221A}{\\ensuremath{\\surd}}
 \\DeclareUnicodeCharacter{2248}{\\ensuremath{\\approx}}
 \\DeclareUnicodeCharacter{2261}{\\ensuremath{\\equiv}}
 \\DeclareUnicodeCharacter{21D2}{\\ensuremath{\\Rightarrow}}
@@ -397,7 +397,7 @@ function preamble(options) {
     {∩}{{$\\cap$}}1
     {∑}{{$\\sum$}}1
     {∏}{{$\\prod$}}1
-    {√}{{$\\sqrt$}}1
+    {√}{{$\\surd$}}1
     {≈}{{$\\approx$}}1
     {≡}{{$\\equiv$}}1
     {⇒}{{$\\Rightarrow$}}1
