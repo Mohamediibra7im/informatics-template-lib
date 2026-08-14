@@ -72,13 +72,21 @@ function esc(s) {
   return str;
 }
 
-// Inline formatting: protect math & code spans, escape text, apply bold/italic/strikethrough
+// Inline formatting: protect fenced code blocks, math & code spans, escape text, apply bold/italic/strikethrough
 function inline(text) {
   const raw = String(text ?? "");
   const holds = [];
   const hold = (tex) => `\x00${holds.push(tex) - 1}\x00`;
 
-  const s = raw
+  // 1. Protect fenced code blocks (```lang ... ```)
+  let s = raw.replace(/```(\w*)\r?\n([\s\S]*?)\r?\n?```/g, (_, lang, code) => {
+    const l = lstLanguage(lang);
+    const langOpt = l ? `[language=${l}]` : "";
+    return hold(`\\begin{lstlisting}${langOpt}\n${code}\n\\end{lstlisting}`);
+  });
+
+  // 2. Protect display math, single-line inline math, and inline code
+  s = s
     .replace(/\$\$([^\$]+?)\$\$/g, (_, m) => hold(`\\[${m}\\]`))
     .replace(/\$([^\s$](?:[^\$\r\n]*[^\s$])?)\$/g, (_, m) => hold(`$${m}$`))
     .replace(/`([^`]+)`/g, (_, c) => hold(`\\texttt{${esc(c)}}`));
@@ -95,6 +103,19 @@ function inline(text) {
 // Convert note Markdown (+ inline $math$) to LaTeX.
 function mdToLatex(md) {
   const raw = String(md ?? "");
+  const holds = [];
+  const hold = (tex) => `\x00${holds.push(tex) - 1}\x00`;
+
+  // 1. Protect fenced code blocks (```lang ... ```)
+  let s = raw.replace(/```(\w*)\r?\n([\s\S]*?)\r?\n?```/g, (_, lang, code) => {
+    const l = lstLanguage(lang);
+    const langOpt = l ? `[language=${l}]` : "";
+    return hold(`\\begin{lstlisting}${langOpt}\n${code}\n\\end{lstlisting}`);
+  });
+
+  // 2. Protect display math ($$...$$)
+  s = s.replace(/\$\$([^\$]+?)\$\$/g, (_, m) => hold(`\\[${m}\\]`));
+
   const parseTableCells = (rowStr) => {
     let s = rowStr.trim();
     if (s.startsWith("|")) s = s.slice(1);
@@ -107,7 +128,7 @@ function mdToLatex(md) {
     return cells.length > 0 && cells.every((c) => /^:?-+:?$/.test(c));
   };
 
-  const lines = raw.split(/\r?\n/);
+  const lines = s.split(/\r?\n/);
   const out = [];
   let inList = null; // null | "ul" | "ol" | "quote"
 
@@ -122,6 +143,16 @@ function mdToLatex(md) {
     const line = lines[i];
     const trimmed = line.trim();
     if (!trimmed) { closeList(); out.push(""); continue; }
+
+    // Stashed hold on its own line (e.g. fenced code block or display math)
+    if (trimmed.startsWith("\x00") && trimmed.endsWith("\x00")) {
+      closeList();
+      const idx = Number(trimmed.slice(1, -1));
+      if (!isNaN(idx) && holds[idx] !== undefined) {
+        out.push(holds[idx]);
+        continue;
+      }
+    }
 
     // Horizontal rule
     if (/^(---|\*\*\*|___)$/.test(trimmed)) {
@@ -200,7 +231,9 @@ function mdToLatex(md) {
     out.push(inline(trimmed) + "\\par");
   }
   closeList();
-  return out.join("\n");
+  let res = out.join("\n");
+  res = res.replace(/\x00(\d+)\x00/g, (_, i) => holds[Number(i)] ?? "");
+  return res;
 }
 
 const FONT_SIZE = { small: "\\footnotesize", medium: "\\small", large: "\\normalsize" };
