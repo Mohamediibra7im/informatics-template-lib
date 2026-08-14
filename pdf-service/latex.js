@@ -46,6 +46,17 @@ const UNICODE_MAP = [
   [/⊗/g, "$\\otimes$"],
   [/✓/g, "$\\checkmark$"],
   [/✔/g, "$\\checkmark$"],
+  [/φ/g, "$\\varphi$"],
+  [/γ/g, "$\\gamma$"],
+  [/δ/g, "$\\delta$"],
+  [/ε/g, "$\\varepsilon$"],
+  [/σ/g, "$\\sigma$"],
+  [/θ/g, "$\\theta$"],
+  [/τ/g, "$\\tau$"],
+  [/ω/g, "$\\omega$"],
+  [/Δ/g, "$\\Delta$"],
+  [/Σ/g, "$\\Sigma$"],
+  [/Ω/g, "$\\Omega$"],
 ];
 
 function esc(s) {
@@ -335,6 +346,17 @@ function preamble(options) {
 \\DeclareUnicodeCharacter{2297}{\\ensuremath{\\otimes}}
 \\DeclareUnicodeCharacter{2713}{\\ensuremath{\\checkmark}}
 \\DeclareUnicodeCharacter{2714}{\\ensuremath{\\checkmark}}
+\\DeclareUnicodeCharacter{03C6}{\\ensuremath{\\varphi}}
+\\DeclareUnicodeCharacter{03B3}{\\ensuremath{\\gamma}}
+\\DeclareUnicodeCharacter{03B4}{\\ensuremath{\\delta}}
+\\DeclareUnicodeCharacter{03B5}{\\ensuremath{\\varepsilon}}
+\\DeclareUnicodeCharacter{03C3}{\\ensuremath{\\sigma}}
+\\DeclareUnicodeCharacter{03B8}{\\ensuremath{\\theta}}
+\\DeclareUnicodeCharacter{03C4}{\\ensuremath{\\tau}}
+\\DeclareUnicodeCharacter{03C9}{\\ensuremath{\\omega}}
+\\DeclareUnicodeCharacter{0394}{\\ensuremath{\\Delta}}
+\\DeclareUnicodeCharacter{03A3}{\\ensuremath{\\Sigma}}
+\\DeclareUnicodeCharacter{03A9}{\\ensuremath{\\Omega}}
 
 \\definecolor{kw}{rgb}{${c.kw}}
 \\definecolor{kwtwo}{rgb}{${c.kw2}}
@@ -405,7 +427,18 @@ function preamble(options) {
     {⊕}{{$\\oplus$}}1
     {⊗}{{$\\otimes$}}1
     {✓}{{$\\checkmark$}}1
-    {✔}{{$\\checkmark$}}1,
+    {✔}{{$\\checkmark$}}1
+    {φ}{{$\\varphi$}}1
+    {γ}{{$\\gamma$}}1
+    {δ}{{$\\delta$}}1
+    {ε}{{$\\varepsilon$}}1
+    {σ}{{$\\sigma$}}1
+    {θ}{{$\\theta$}}1
+    {τ}{{$\\tau$}}1
+    {ω}{{$\\omega$}}1
+    {Δ}{{$\\Delta$}}1
+    {Σ}{{$\\Sigma$}}1
+    {Ω}{{$\\Omega$}}1,
   morekeywords=[2]{${TYPE_KEYWORDS}},
 }
 \\lstset{style=ref}
