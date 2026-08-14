@@ -103,6 +103,7 @@ function EditorPageContent() {
   const [editingCodeTopicId, setEditingCodeTopicId] = useState<number | null>(null);
 
   const [mobileCategoryOpen, setMobileCategoryOpen] = useState(false);
+  const [highlightedTopicId, setHighlightedTopicId] = useState<number | null>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [viewMode, setViewMode] = useState<"studio" | "preview">("studio");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -543,6 +544,43 @@ function EditorPageContent() {
     ),
   }));
 
+  const handleSidebarTopicClick = (secId: string, topicId: number) => {
+    playClick();
+    setActiveSectionId(secId);
+    if (viewMode !== "studio") {
+      setViewMode("studio");
+    }
+    setMobileCategoryOpen(false);
+
+    setHighlightedTopicId(topicId);
+    setTimeout(() => {
+      setHighlightedTopicId(null);
+    }, 2500);
+
+    setTimeout(() => {
+      const el = document.getElementById(`topic-${topicId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 50);
+  };
+
+  const handleSidebarCategoryClick = (secId: string) => {
+    playClick();
+    setActiveSectionId(secId);
+    if (viewMode !== "studio") {
+      setViewMode("studio");
+    }
+    setMobileCategoryOpen(false);
+
+    setTimeout(() => {
+      const el = document.getElementById(`section-${secId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 50);
+  };
+
   // Reusable Category Tree Sidebar Content
   const renderCategorySidebar = () => (
     <div className="flex flex-col space-y-4 h-full">
@@ -620,11 +658,7 @@ function EditorPageContent() {
                 </div>
               ) : (
                 <div
-                  onClick={() => {
-                    playClick();
-                    setActiveSectionId(sec.id);
-                    setMobileCategoryOpen(false);
-                  }}
+                  onClick={() => handleSidebarCategoryClick(sec.id)}
                   className="flex items-center gap-1.5 flex-1 min-w-0 cursor-pointer"
                 >
                   <span className="font-extrabold text-xs uppercase text-foreground truncate">
@@ -681,12 +715,15 @@ function EditorPageContent() {
                     key={t.id}
                     className="flex items-center justify-between p-1.5 hover:bg-muted/40 text-xs rounded-none transition-colors group/topic border border-transparent hover:border-border/40"
                   >
-                    <div className="flex items-center gap-1.5 min-w-0">
+                    <div
+                      onClick={() => handleSidebarTopicClick(sec.id, t.id)}
+                      className="flex items-center gap-1.5 min-w-0 flex-1 cursor-pointer"
+                    >
                       <span
                         className="h-1.5 w-1.5 rounded-full bg-emerald-400 shrink-0 animate-pulse"
                         title="Included in PDF"
                       />
-                      <span className="truncate text-[11px] text-muted-foreground group-hover/topic:text-foreground font-medium">
+                      <span className="truncate text-[11px] text-muted-foreground group-hover/topic:text-primary transition-colors font-medium">
                         {t.title}
                       </span>
                     </div>
@@ -1078,7 +1115,7 @@ function EditorPageContent() {
                 </div>
               ) : (
                 sections.map((sec, secIdx) => (
-                  <div key={sec.id} className="space-y-3">
+                  <div key={sec.id} id={`section-${sec.id}`} className="space-y-3 scroll-mt-20">
                     {/* Category Title Header */}
                     <div className="flex items-center justify-between border-b border-primary/30 pb-1.5">
                       <h2 className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-primary flex items-center gap-2 min-w-0">
@@ -1098,11 +1135,17 @@ function EditorPageContent() {
                         const codeObj =
                           tmpl.codes.find((c) => c.language === tmpl.selectedLang) ||
                           tmpl.codes[0];
+                        const isHighlighted = highlightedTopicId === tmpl.id;
 
                         return (
                           <div
                             key={tmpl.id}
-                            className="border border-border/70 bg-card/40 p-3 sm:p-4 space-y-3 shadow-lg hover:border-primary/40 transition-all"
+                            id={`topic-${tmpl.id}`}
+                            className={`border bg-card/40 p-3 sm:p-4 space-y-3 shadow-lg transition-all duration-300 scroll-mt-20 ${
+                              isHighlighted
+                                ? "border-primary bg-primary/15 shadow-[0_0_30px_var(--primary-glow-weak)] ring-1 ring-primary"
+                                : "border-border/70 hover:border-primary/40"
+                            }`}
                           >
                             {/* Card Header Bar */}
                             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/40 pb-2">

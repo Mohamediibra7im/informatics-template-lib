@@ -17,11 +17,25 @@ import {
   Printer,
   FolderDown,
   Loader2,
+  Users,
+  UserPlus,
+  UserCheck,
+  Search,
+  Crown,
+  ShieldCheck,
+  LogOut,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Collection, CollectionItem } from "./types";
+import { Collection, CollectionItem, CollectionMember } from "./types";
 
 interface CollectionsTabProps {
   collections: Collection[];
@@ -109,6 +123,116 @@ export function CollectionsTab({
     setNewCollDesc("");
   };
 
+  // Team Members Modal States
+  const [membersModalOpen, setMembersModalOpen] = useState(false);
+  const [targetCollForMembers, setTargetCollForMembers] = useState<Collection | null>(null);
+  const [membersLoading, setMembersLoading] = useState(false);
+  const [membersList, setMembersList] = useState<CollectionMember[]>([]);
+  const [ownerInfo, setOwnerInfo] = useState<{ id: number; username: string; email: string } | null>(null);
+  const [isCurrentOwner, setIsCurrentOwner] = useState(true);
+
+  // Invite Search States
+  const [inviteSearchQuery, setInviteSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<{ id: number; username: string; email: string }[]>([]);
+  const [searchingUsers, setSearchingUsers] = useState(false);
+  const [invitingUser, setInvitingUser] = useState(false);
+  const [removingUserId, setRemovingUserId] = useState<number | null>(null);
+
+  const fetchMembers = async (collId: number) => {
+    try {
+      setMembersLoading(true);
+      const res = await fetch(`/api/users/collections/${collId}/members`);
+      if (res.ok) {
+        const data = await res.json();
+        setMembersList(data.collaborators || []);
+        setOwnerInfo(data.owner || null);
+        setIsCurrentOwner(data.isOwner);
+      } else {
+        toast.error("Failed to load collection team members");
+      }
+    } catch {
+      toast.error("Error loading team members");
+    } finally {
+      setMembersLoading(false);
+    }
+  };
+
+  const handleOpenMembersModal = (coll: Collection, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    playClick();
+    setTargetCollForMembers(coll);
+    setMembersModalOpen(true);
+    setInviteSearchQuery("");
+    setSearchResults([]);
+    fetchMembers(coll.id);
+  };
+
+  const handleSearchUsers = async (q: string) => {
+    setInviteSearchQuery(q);
+    if (!q.trim() || q.trim().length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    try {
+      setSearchingUsers(true);
+      const res = await fetch(`/api/users/search?q=${encodeURIComponent(q.trim())}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSearchResults(data.users || []);
+      }
+    } catch {
+      // silent catch for live search
+    } finally {
+      setSearchingUsers(false);
+    }
+  };
+
+  const handleInvite = async (usernameOrEmail: string) => {
+    if (!targetCollForMembers || !usernameOrEmail.trim()) return;
+    try {
+      setInvitingUser(true);
+      const res = await fetch(`/api/users/collections/${targetCollForMembers.id}/members`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usernameOrEmail: usernameOrEmail.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to invite user");
+      }
+      toast.success(`Successfully invited @${data.member.username} to the collection!`);
+      setMembersList((prev) => [...prev, data.member]);
+      setInviteSearchQuery("");
+      setSearchResults([]);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to invite team member");
+    } finally {
+      setInvitingUser(false);
+    }
+  };
+
+  const handleRemoveMember = async (memberUserId: number, memberUsername: string) => {
+    if (!targetCollForMembers) return;
+    try {
+      setRemovingUserId(memberUserId);
+      const res = await fetch(`/api/users/collections/${targetCollForMembers.id}/members`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ memberUserId }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to remove member");
+      }
+      toast.success(`Removed @${memberUsername}`);
+      setMembersList((prev) => prev.filter((m) => m.userId !== memberUserId));
+    } catch (err: any) {
+      toast.error(err.message || "Error removing member");
+    } finally {
+      setRemovingUserId(null);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in font-mono">
       {activeCollection ? (
@@ -124,6 +248,15 @@ export function CollectionsTab({
                 <span>Back to all collections</span>
               </button>
               <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={(e) => handleOpenMembersModal(activeCollection, e)}
+                  className="font-mono text-[10px] uppercase font-extrabold h-7.5 px-3 border-primary/40 hover:bg-primary/10 text-primary cursor-pointer"
+                >
+                  <Users className="h-3.5 w-3.5 mr-1.5 text-primary" />
+                  Team ({activeCollection.memberCount || 1})
+                </Button>
                 <Button
                   size="sm"
                   variant="outline"
@@ -379,9 +512,16 @@ export function CollectionsTab({
                             <FolderOpen className="h-3.5 w-3.5 text-primary" />
                             <span>~/collections/{c.name.toLowerCase().replace(/\s+/g, "_")}</span>
                           </div>
-                          <span className="text-[10px] text-primary group-hover:underline flex items-center gap-1 font-bold">
-                            Open <ChevronRight className="h-3.5 w-3.5" />
-                          </span>
+                          <div className="flex items-center gap-1.5">
+                            {c.isOwner === false && (
+                              <span className="text-[9px] bg-primary/10 border border-primary/30 px-1.5 py-0.5 text-primary font-bold">
+                                Shared by @{c.ownerUsername}
+                              </span>
+                            )}
+                            <span className="text-[10px] text-primary group-hover:underline flex items-center gap-1 font-bold">
+                              Open <ChevronRight className="h-3.5 w-3.5" />
+                            </span>
+                          </div>
                         </div>
 
                         <h4 className="text-sm font-extrabold text-foreground group-hover:text-primary transition-colors">
@@ -394,12 +534,22 @@ export function CollectionsTab({
                       </div>
 
                       <div className="mt-5 pt-3.5 border-t border-border/30 flex items-center justify-between text-[10px] select-none text-muted-foreground/40 font-mono">
-                        <button
-                          onClick={() => onOpenCollection(c)}
-                          className="bg-primary/10 border border-primary/30 px-2.5 py-1 text-primary text-[9px] font-bold uppercase hover:bg-primary/20 transition-colors cursor-pointer"
-                        >
-                          {Number(c.itemCount || 0)} items
-                        </button>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => onOpenCollection(c)}
+                            className="bg-primary/10 border border-primary/30 px-2.5 py-1 text-primary text-[9px] font-bold uppercase hover:bg-primary/20 transition-colors cursor-pointer"
+                          >
+                            {Number(c.itemCount || 0)} items
+                          </button>
+                          <button
+                            onClick={(e) => handleOpenMembersModal(c, e)}
+                            className="bg-muted/40 border border-border/50 hover:border-primary/40 px-2.5 py-1 text-foreground text-[9px] font-bold uppercase transition-colors cursor-pointer flex items-center gap-1"
+                            title="Team Members & Collaboration"
+                          >
+                            <Users className="h-3 w-3 text-primary" />
+                            <span>Team ({c.memberCount || 1})</span>
+                          </button>
+                        </div>
                         <div className="flex items-center gap-2">
                           <button
                             onClick={(e) => {
@@ -445,6 +595,164 @@ export function CollectionsTab({
           )}
         </div>
       )}
+
+      {/* ── Team Members & Collaboration Invite Dialog ── */}
+      <Dialog open={membersModalOpen} onOpenChange={setMembersModalOpen}>
+        <DialogContent className="sm:max-w-md bg-[#06141B] border-primary/30 text-foreground font-mono shadow-2xl p-6">
+          <DialogHeader className="border-b border-border/40 pb-3 mb-4">
+            <DialogTitle className="text-sm font-extrabold uppercase tracking-wider text-primary flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              <span>Team Collaboration — {targetCollForMembers?.name}</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-5">
+            {/* Invite Registered User Section */}
+            {isCurrentOwner ? (
+              <div className="space-y-2 border border-primary/20 bg-primary/5 p-3.5 rounded-none">
+                <label className="text-[10px] uppercase font-bold text-primary tracking-wider flex items-center gap-1.5">
+                  <UserPlus className="h-3.5 w-3.5" />
+                  <span>Invite Team Member</span>
+                </label>
+                <div className="relative">
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Input
+                        type="text"
+                        placeholder="Enter registered username or email..."
+                        value={inviteSearchQuery}
+                        onChange={(e) => handleSearchUsers(e.target.value)}
+                        className="font-mono text-xs bg-background/60 border-primary/30 h-8 pr-7"
+                      />
+                      {searchingUsers && (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin absolute right-2 top-2 text-primary" />
+                      )}
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => handleInvite(inviteSearchQuery)}
+                      disabled={invitingUser || !inviteSearchQuery.trim()}
+                      className="font-mono text-xs uppercase h-8 px-3 shrink-0 cursor-pointer"
+                    >
+                      {invitingUser ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <>
+                          <UserPlus className="h-3.5 w-3.5 mr-1" />
+                          Invite
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Autocomplete Search Dropdown */}
+                  {searchResults.length > 0 && (
+                    <div className="absolute z-50 left-0 right-0 top-full mt-1 bg-card border border-primary/40 shadow-2xl divide-y divide-border/30 max-h-48 overflow-y-auto font-mono">
+                      {searchResults.map((u) => (
+                        <div
+                          key={u.id}
+                          onClick={() => {
+                            handleInvite(u.username);
+                          }}
+                          className="p-2 text-xs flex items-center justify-between hover:bg-primary/10 cursor-pointer transition-colors"
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-bold text-primary">@{u.username}</span>
+                            <span className="text-[10px] text-muted-foreground">({u.email})</span>
+                          </div>
+                          <span className="text-[9px] uppercase font-bold text-primary flex items-center gap-1">
+                            <UserCheck className="h-3 w-3" /> Add
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <p className="text-[9.5px] text-muted-foreground/60 leading-tight">
+                  Team members can view, add, and edit templates in this collection.
+                </p>
+              </div>
+            ) : (
+              <div className="p-3 bg-muted/20 border border-border/40 text-xs text-muted-foreground/80 flex items-center justify-between">
+                <span>Owned by <strong className="text-primary">@{ownerInfo?.username}</strong></span>
+                <span className="text-[9px] uppercase bg-primary/10 border border-primary/30 px-2 py-0.5 text-primary font-bold">Collaborator</span>
+              </div>
+            )}
+
+            {/* Current Members List */}
+            <div className="space-y-2">
+              <div className="text-[10px] uppercase font-bold text-muted-foreground/70 tracking-wider flex items-center justify-between">
+                <span>Collection Members ({membersList.length + 1})</span>
+              </div>
+
+              {membersLoading ? (
+                <div className="p-6 text-center text-xs text-muted-foreground/40 animate-pulse">
+                  Loading team members...
+                </div>
+              ) : (
+                <div className="border border-border/50 bg-card/20 divide-y divide-border/30 max-h-56 overflow-y-auto">
+                  {/* Owner Row */}
+                  {ownerInfo && (
+                    <div className="p-2.5 flex items-center justify-between text-xs hover:bg-muted/10">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Crown className="h-4 w-4 text-amber-400 shrink-0" />
+                        <div className="min-w-0">
+                          <div className="font-bold text-foreground truncate">
+                            @{ownerInfo.username}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground/50 truncate">
+                            {ownerInfo.email}
+                          </div>
+                        </div>
+                      </div>
+                      <span className="text-[9px] uppercase font-extrabold px-2 py-0.5 bg-amber-400/10 border border-amber-400/30 text-amber-400 shrink-0">
+                        Owner
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Collaborators Rows */}
+                  {membersList.map((m) => (
+                    <div key={m.userId} className="p-2.5 flex items-center justify-between text-xs hover:bg-muted/10">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
+                        <div className="min-w-0">
+                          <div className="font-bold text-foreground truncate">
+                            @{m.username}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground/50 truncate">
+                            {m.email}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-[9px] uppercase font-bold px-2 py-0.5 bg-primary/10 border border-primary/30 text-primary">
+                          {m.role || "Editor"}
+                        </span>
+                        {isCurrentOwner && (
+                          <button
+                            onClick={() => handleRemoveMember(m.userId, m.username)}
+                            disabled={removingUserId === m.userId}
+                            className="text-muted-foreground/40 hover:text-destructive transition-colors p-1 cursor-pointer"
+                            title="Remove team member"
+                          >
+                            {removingUserId === m.userId ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin text-destructive" />
+                            ) : (
+                              <Trash2 className="h-3.5 w-3.5" />
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -19,12 +19,25 @@ export interface UserTemplate {
   updatedAt: string;
 }
 
+export interface CollectionMember {
+  memberId?: number;
+  userId: number;
+  username: string;
+  email: string;
+  role: string;
+  addedAt?: string;
+}
+
 export interface Collection {
   id: number;
   name: string;
   description: string | null;
   createdAt: string;
   itemCount: number;
+  isOwner?: boolean;
+  ownerId?: number;
+  ownerUsername?: string;
+  memberCount?: number;
 }
 
 export interface CollectionItem {

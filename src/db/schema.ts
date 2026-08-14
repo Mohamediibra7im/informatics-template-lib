@@ -171,6 +171,15 @@ export const userCollectionItems = pgTable("user_collection_items", {
   addedAt: timestamp("added_at").notNull().defaultNow(),
 });
 
+export const userCollectionMembers = pgTable("user_collection_members", {
+  id: serial("id").primaryKey(),
+  collectionId: integer("collection_id").notNull().references(() => userCollections.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  role: text("role").notNull().default("editor"),
+  invitedBy: integer("invited_by").references(() => users.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => [unique().on(t.collectionId, t.userId)]);
+
 export const userProgress = pgTable("user_progress", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
@@ -194,6 +203,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   profile: one(userProfiles),
   customTemplates: many(userTemplates),
   collections: many(userCollections),
+  memberships: many(userCollectionMembers),
   progress: many(userProgress),
   likes: many(templateLikes),
   contributions: many(contributions),
@@ -216,6 +226,13 @@ export const userTemplatesRelations = relations(userTemplates, ({ one }) => ({
 export const userCollectionsRelations = relations(userCollections, ({ one, many }) => ({
   user: one(users, { fields: [userCollections.userId], references: [users.id] }),
   items: many(userCollectionItems),
+  members: many(userCollectionMembers),
+}));
+
+export const userCollectionMembersRelations = relations(userCollectionMembers, ({ one }) => ({
+  collection: one(userCollections, { fields: [userCollectionMembers.collectionId], references: [userCollections.id] }),
+  user: one(users, { fields: [userCollectionMembers.userId], references: [users.id] }),
+  inviter: one(users, { fields: [userCollectionMembers.invitedBy], references: [users.id] }),
 }));
 
 export const userCollectionItemsRelations = relations(userCollectionItems, ({ one }) => ({

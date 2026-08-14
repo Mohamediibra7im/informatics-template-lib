@@ -3,6 +3,7 @@ import { getDb } from "@/db";
 import {
   userCollections,
   userCollectionItems,
+  userCollectionMembers,
   templates,
   categories,
   userTemplates,
@@ -42,15 +43,30 @@ export async function GET(
     return NextResponse.json({ error: "Database unavailable" }, { status: 500 });
   }
 
-  // 1. Verify user owns the collection
+  // 1. Verify user owns the collection or is a team member
   const [collection] = await db
     .select()
     .from(userCollections)
-    .where(and(eq(userCollections.id, collectionId), eq(userCollections.userId, session.userId)))
+    .where(eq(userCollections.id, collectionId))
     .limit(1);
 
   if (!collection) {
     return NextResponse.json({ error: "Collection not found" }, { status: 404 });
+  }
+
+  const isOwner = collection.userId === session.userId;
+  let isMember = false;
+  if (!isOwner) {
+    const [membership] = await db
+      .select()
+      .from(userCollectionMembers)
+      .where(and(eq(userCollectionMembers.collectionId, collectionId), eq(userCollectionMembers.userId, session.userId)))
+      .limit(1);
+    isMember = !!membership;
+  }
+
+  if (!isOwner && !isMember) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   // 2. Fetch collection items with template and category data
