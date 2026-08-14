@@ -423,22 +423,63 @@ function preamble(options) {
 `;
 }
 
+const CODE_UNICODE_MAP = [
+  [/→/g, "->"],
+  [/←/g, "<-"],
+  [/≤/g, "<="],
+  [/≥/g, ">="],
+  [/≠/g, "!="],
+  [/⇒/g, "=>"],
+  [/⇔/g, "<=>"],
+  [/—/g, "--"],
+  [/–/g, "--"],
+  [/…/g, "..."],
+  [/°/g, "deg"],
+  [/±/g, "+/-"],
+  [/×/g, "*"],
+  [/÷/g, "/"],
+  [/·/g, "*"],
+  [/∞/g, "inf"],
+  [/α/g, "alpha"],
+  [/β/g, "beta"],
+  [/π/g, "pi"],
+  [/λ/g, "lambda"],
+  [/µ/g, "mu"],
+  [/⊕/g, "^"],
+  [/⊗/g, "*"],
+  [/✓/g, "OK"],
+  [/✔/g, "OK"],
+  [/’/g, "'"],
+  [/‘/g, "'"],
+  [/“/g, '"'],
+  [/”/g, '"'],
+];
+
+function sanitizeCode(code) {
+  let s = String(code ?? "");
+  for (const [re, rep] of CODE_UNICODE_MAP) {
+    s = s.replace(re, rep);
+  }
+  // Strip any remaining non-ASCII characters to guarantee clean ec-lmtt8 font rendering in TeX listings
+  s = s.replace(/[^\x00-\x7F\r\n\t]/g, "");
+  return s;
+}
+
 // Emits body. `snippets` is filled with {name, code} for the caller to write.
 function formatComplexity(comp) {
   if (!comp) return "";
   let c = String(comp).trim();
   if (!c) return "";
   if (c.startsWith("$") && c.endsWith("$")) {
-    c = c.slice(1, -1).replace(/—/g, "---").replace(/–/g, "--");
-    return ` $${c}$`;
+    c = c.slice(1, -1);
   }
   const m = c.match(/^O\((.*)\)$/i);
   if (m) c = m[1].trim();
-  c = c.replace(/—/g, "---").replace(/–/g, "--");
-  if (/[\\[\]{}^_$%]/.test(c)) {
-    return ` $O(${c})$`;
-  }
-  return ` $O(${esc(c)})$`;
+
+  c = c.replace(/—/g, "---").replace(/–/g, "--").replace(/→/g, "\\to ").replace(/←/g, "\\leftarrow ");
+  c = c.replace(/_([a-zA-Z0-9])/g, "_{$1}").replace(/\^([a-zA-Z0-9])/g, "^{$1}");
+
+  return ` $O(${c})$`;
 }
 
 function body(payload, snippets) {
@@ -473,7 +514,7 @@ function body(payload, snippets) {
       out.push(`\\subsection{${heading}}`);
 
       const name = `snippets/s${si}_t${ti}.txt`;
-      snippets.push({ name, code: t.code || "// (no code)" });
+      snippets.push({ name, code: sanitizeCode(t.code || "// (no code)") });
       const lang = lstLanguage(t.language);
       const langOpt = lang ? `[language=${lang}]` : "";
 
