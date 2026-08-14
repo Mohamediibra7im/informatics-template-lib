@@ -72,6 +72,8 @@ function esc(s) {
   return str;
 }
 
+const protectMath = (m) => String(m || "").replace(/(?<!\\)%/g, "\\%");
+
 // Inline formatting: protect fenced code blocks, math & code spans, escape text, apply bold/italic/strikethrough
 function inline(text) {
   const raw = String(text ?? "");
@@ -82,14 +84,14 @@ function inline(text) {
   let s = raw.replace(/```(\w*)\r?\n([\s\S]*?)\r?\n?```/g, (_, lang, code) => {
     const l = lstLanguage(lang);
     const langOpt = l ? `[language=${l}]` : "";
-    return hold(`\\begin{lstlisting}${langOpt}\n${code}\n\\end{lstlisting}`);
+    return hold(`\\begin{lstlisting}${langOpt}\n${sanitizeCode(code)}\n\\end{lstlisting}`);
   });
 
   // 2. Protect display math, single-line inline math, and inline code
   s = s
-    .replace(/\$\$([^\$]+?)\$\$/g, (_, m) => hold(`\\[${m}\\]`))
-    .replace(/\$([^\s$](?:[^\$\r\n]*[^\s$])?)\$/g, (_, m) => hold(`$${m}$`))
-    .replace(/`([^`]+)`/g, (_, c) => hold(`\\texttt{${esc(c)}}`));
+    .replace(/\$\$([^\$]+?)\$\$/g, (_, m) => hold(`\\[${protectMath(m)}\\]`))
+    .replace(/\$([^\s$](?:[^\$\r\n]*[^\s$])?)\$/g, (_, m) => hold(`$${protectMath(m)}$`))
+    .replace(/`([^`]+)`/g, (_, c) => hold(`\\texttt{${esc(sanitizeCode(c))}}`));
 
   let t = esc(s);
   t = t.replace(/\\textasciitilde{}\\textasciitilde{}(.+?)\\textasciitilde{}\\textasciitilde{}/g, "\\sout{$1}");
@@ -110,11 +112,11 @@ function mdToLatex(md) {
   let s = raw.replace(/```(\w*)\r?\n([\s\S]*?)\r?\n?```/g, (_, lang, code) => {
     const l = lstLanguage(lang);
     const langOpt = l ? `[language=${l}]` : "";
-    return hold(`\\begin{lstlisting}${langOpt}\n${code}\n\\end{lstlisting}`);
+    return hold(`\\begin{lstlisting}${langOpt}\n${sanitizeCode(code)}\n\\end{lstlisting}`);
   });
 
   // 2. Protect display math ($$...$$)
-  s = s.replace(/\$\$([^\$]+?)\$\$/g, (_, m) => hold(`\\[${m}\\]`));
+  s = s.replace(/\$\$([^\$]+?)\$\$/g, (_, m) => hold(`\\[${protectMath(m)}\\]`));
 
   const parseTableCells = (rowStr) => {
     let s = rowStr.trim();
