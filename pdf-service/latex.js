@@ -76,8 +76,8 @@ function esc(s) {
 // Inline $...$ and `code` are extracted BEFORE escaping (so math backslashes
 // survive and code stays literal), stashed behind NUL-delimited placeholders
 // that pass through esc() untouched, then restored last.
-// Supports: # headings, **bold**, *italic*, `code`, - / * bullet lists,
-// blank-line paragraphs. Unknown LaTeX/KaTeX macros inside $...$ pass through.
+// Supports: # headings, **bold**, *italic*, ***bold-italic***, ~~strikethrough~~, `code`,
+// - / * bullet lists, 1. numbered lists, > blockquotes, --- horizontal rules, tables, blank-line paragraphs.
 function mdToLatex(md) {
   const raw = String(md ?? "");
   const holds = [];
@@ -90,19 +90,16 @@ function mdToLatex(md) {
     .replace(/\$([^\s$](?:[^\$\r\n]*[^\s$])?)\$/g, (_, m) => hold(`$${m}$`))
     .replace(/`([^`]+)`/g, (_, c) => hold(`\\texttt{${esc(c)}}`));
 
-  // inline formatting: escape, apply bold/italic, restore protected spans
+  // inline formatting: escape, apply strikethrough, bold, italic, restore protected spans
   const inline = (text) => {
     let t = esc(text);
+    t = t.replace(/\\textasciitilde{}\\textasciitilde{}(.+?)\\textasciitilde{}\\textasciitilde{}/g, "\\sout{$1}");
+    t = t.replace(/\*\*\*([^*]+)\*\*\*/g, "\\textbf{\\textit{$1}}");
     t = t.replace(/\*\*([^*]+)\*\*/g, "\\textbf{$1}");
     t = t.replace(/(^|[^*])\*([^*]+)\*(?!\*)/g, "$1\\textit{$2}");
     t = t.replace(/\x00(\d+)\x00/g, (_, i) => holds[Number(i)]);
     return t;
   };
-
-  // 2. block structure, line by line
-  const out = [];
-  let inList = false;
-  const closeList = () => { if (inList) { out.push("\\end{itemize}"); inList = false; } };
 
   const parseTableCells = (rowStr) => {
     let s = rowStr.trim();
@@ -117,10 +114,27 @@ function mdToLatex(md) {
   };
 
   const lines = s.split(/\r?\n/);
+  const out = [];
+  let inList = null; // null | "ul" | "ol" | "quote"
+
+  const closeList = () => {
+    if (inList === "ul") out.push("\\end{itemize}");
+    else if (inList === "ol") out.push("\\end{enumerate}");
+    else if (inList === "quote") out.push("\\end{quote}");
+    inList = null;
+  };
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmed = line.trim();
     if (!trimmed) { closeList(); out.push(""); continue; }
+
+    // Horizontal rule
+    if (/^(---|\*\*\*|___)$/.test(trimmed)) {
+      closeList();
+      out.push("\\vspace{3pt}\\hrulefill\\vspace{3pt}\\par");
+      continue;
+    }
 
     // Markdown table detection
     if (trimmed.includes("|") && i + 1 < lines.length && isSeparatorRow(lines[i + 1])) {
@@ -156,19 +170,35 @@ function mdToLatex(md) {
       continue;
     }
 
+    // Heading
     const heading = trimmed.match(/^#{1,6}\s+(.*)$/);
     if (heading) {
       closeList();
-      // space above so it separates from the previous block; none below so the
-      // following bullets/text read as belonging to this heading
       out.push(`\\vspace{4pt}\\textbf{${inline(heading[1])}}\\par\\nopagebreak`);
       continue;
     }
 
+    // Blockquote
+    const quote = trimmed.match(/^>\s*(.*)$/);
+    if (quote) {
+      if (inList !== "quote") { closeList(); out.push("\\begin{quote}"); inList = "quote"; }
+      out.push(inline(quote[1]) + "\\par");
+      continue;
+    }
+
+    // Bullet list
     const bullet = trimmed.match(/^[-*]\s+(.*)$/);
     if (bullet) {
-      if (!inList) { out.push("\\begin{itemize}[leftmargin=1.2em,itemsep=0pt,topsep=2pt]"); inList = true; }
+      if (inList !== "ul") { closeList(); out.push("\\begin{itemize}[leftmargin=1.2em,itemsep=0pt,topsep=2pt]"); inList = "ul"; }
       out.push(`\\item ${inline(bullet[1])}`);
+      continue;
+    }
+
+    // Numbered list
+    const num = trimmed.match(/^\d+\.\s+(.*)$/);
+    if (num) {
+      if (inList !== "ol") { closeList(); out.push("\\begin{enumerate}[leftmargin=1.2em,itemsep=0pt,topsep=2pt]"); inList = "ol"; }
+      out.push(`\\item ${inline(num[1])}`);
       continue;
     }
 
@@ -187,6 +217,8 @@ function lstLanguage(lang) {
   if (["cpp", "c++", "cc", "cxx", "c"].includes(l)) return "C++";
   if (l === "python" || l === "py") return "Python";
   if (l === "java") return "Java";
+  if (l === "rust" || l === "rs") return "Rust";
+  if (l === "go" || l === "golang") return "GnuAs";
   return ""; // plain
 }
 
@@ -227,6 +259,7 @@ function preamble(options) {
 \\usepackage{listings}
 \\usepackage{xcolor}
 \\usepackage{amsmath,amssymb}
+\\usepackage[normalem]{ulem}
 \\usepackage{enumitem}
 \\usepackage{fancyhdr}
 \\usepackage{lastpage}
