@@ -81,6 +81,8 @@ interface EditorSection {
 function EditorPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const collectionIdParam = searchParams.get("collectionId");
+  const idsParam = searchParams.get("ids");
   const { playClick, playSuccess } = useTerminalTheme();
 
   const [loading, setLoading] = useState(true);
@@ -132,9 +134,6 @@ function EditorPageContent() {
 
   // Load templates and organize into ICPC sections
   useEffect(() => {
-    const idsParam = searchParams.get("ids");
-    const collectionIdParam = searchParams.get("collectionId");
-
     const loadTemplates = async () => {
       setLoading(true);
       try {
@@ -172,11 +171,34 @@ function EditorPageContent() {
 
           if (res.ok) {
             const data: EditorTopic[] = await res.json();
+
+            // Also fetch user customized codes if logged in
+            let userCustomMap = new Map<number, string>();
+            try {
+              const uRes = await fetch("/api/users/templates");
+              if (uRes.ok) {
+                const uData = await uRes.json();
+                if (uData.templates) {
+                  for (const ut of uData.templates) {
+                    userCustomMap.set(ut.templateId, ut.customCode);
+                  }
+                }
+              }
+            } catch {
+              // ignore
+            }
+
             loadedTopics = data.map((t) => {
               const lang = t.codes?.[0]?.language || "cpp";
-              const codeObj = t.codes?.find((c) => c.language === lang) || t.codes?.[0];
+              const customCode = userCustomMap.get(t.id);
+              let updatedCodes = t.codes;
+              if (customCode) {
+                updatedCodes = t.codes.map((c) => (c.language === lang ? { ...c, code: customCode } : c));
+              }
+              const codeObj = updatedCodes?.find((c) => c.language === lang) || updatedCodes?.[0];
               return {
                 ...t,
+                codes: updatedCodes,
                 userNotes: getSavedUserNotes(t.id) || "",
                 selectedLang: lang,
                 hash: computeCodeHash(codeObj?.code || ""),
@@ -395,8 +417,18 @@ function EditorPageContent() {
     toast.success(`Created category: ${title}`);
   };
 
-  const handleDeleteSection = (secId: string) => {
+  const handleDeleteSection = async (secId: string) => {
     playClick();
+    const targetSec = sections.find((s) => s.id === secId);
+    if (targetSec && targetSec.topics.length > 0 && collectionIdParam) {
+      for (const t of targetSec.topics) {
+        fetch(`/api/users/collections/${collectionIdParam}/items`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ templateId: t.id }),
+        }).catch(() => {});
+      }
+    }
     setSections((prev) => prev.filter((s) => s.id !== secId));
     toast.info("Category deleted");
   };
@@ -427,8 +459,25 @@ function EditorPageContent() {
     );
   };
 
-  const handleRemoveTopic = (secId: string, topicId: number) => {
+  const handleRemoveTopic = async (secId: string, topicId: number) => {
     playClick();
+    if (collectionIdParam) {
+      try {
+        const delRes = await fetch(`/api/users/collections/${collectionIdParam}/items`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ templateId: topicId }),
+        });
+        if (!delRes.ok) {
+          toast.error("Failed to remove template from collection");
+          return;
+        }
+      } catch {
+        toast.error("Failed to sync removal to collection");
+        return;
+      }
+    }
+
     setSections((prev) =>
       prev.map((sec) =>
         sec.id === secId
@@ -470,6 +519,19 @@ function EditorPageContent() {
     }
 
     try {
+      if (collectionIdParam) {
+        const itemRes = await fetch(`/api/users/collections/${collectionIdParam}/items`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ templateId }),
+        });
+        if (!itemRes.ok) {
+          const errData = await itemRes.json().catch(() => ({ error: "Failed to add to collection" }));
+          toast.error(errData.error || "Failed to add template to collection");
+          return;
+        }
+      }
+
       const res = await fetch("/api/templates/batch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -520,7 +582,7 @@ function EditorPageContent() {
     handleNoteChange(topicId, templateNote);
   };
 
-  const handleCodeChange = (topicId: number, val: string) => {
+  const handleCodeChange = async (topicId: number, val: string) => {
     setSections((prev) =>
       prev.map((sec) => ({
         ...sec,
@@ -533,6 +595,19 @@ function EditorPageContent() {
         }),
       }))
     );
+
+    const topic = sections.flatMap((s) => s.topics).find((t) => t.id === topicId);
+    const lang = topic?.selectedLang || "cpp";
+
+    try {
+      await fetch("/api/users/templates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ templateId: topicId, customCode: val, language: lang }),
+      });
+    } catch {
+      // silent fail
+    }
   };
 
   const filteredSections = sections.map((sec) => ({
