@@ -90,7 +90,7 @@ async function generate(payload) {
   } catch (e) {
     // last lines of the tectonic log only — no internal paths to the client
     console.error("compile failed:", e.message);
-    return { status: 500, error: "LaTeX compilation failed" };
+    return { status: 500, error: "LaTeX compilation failed", details: e.message };
   } finally {
     fs.rm(dir, { recursive: true, force: true }).catch(() => {});
   }
@@ -120,7 +120,7 @@ const server = http.createServer(async (req, res) => {
         res.end(result.pdf);
       } else {
         res.writeHead(result.status, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: result.error }));
+        res.end(JSON.stringify({ error: result.error, details: result.details }));
       }
     } catch (e) {
       res.writeHead(400, { "Content-Type": "application/json" });
