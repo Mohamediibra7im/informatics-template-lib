@@ -57,7 +57,7 @@ function validate(p) {
 function runTectonic(dir) {
   return new Promise((resolve, reject) => {
     // tectonic: offline (cached), no shell-escape (default). Untrusted TeX safe.
-    const proc = spawn("tectonic", ["main.tex", "--outdir", dir, "--chatter", "minimal", "--offline"], {
+    const proc = spawn("tectonic", ["main.tex", "--outdir", dir, "--chatter", "minimal"], {
       cwd: dir,
       env: { ...process.env },
     });

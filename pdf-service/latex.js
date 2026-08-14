@@ -191,13 +191,13 @@ function preamble(options) {
 \\DeclareUnicodeCharacter{2192}{\\ensuremath{\\\\to}}
 \\DeclareUnicodeCharacter{2190}{\\ensuremath{\\\\leftarrow}}
 \\DeclareUnicodeCharacter{221E}{\\ensuremath{\\\\infty}}
-\\DeclareUnicodeCharacter{2014}{\\textemdash}
-\\DeclareUnicodeCharacter{2013}{\\textendash}
-\\DeclareUnicodeCharacter{2018}{\\textquoteleft}
-\\DeclareUnicodeCharacter{2019}{\\textquoteright}
-\\DeclareUnicodeCharacter{201C}{\\textquotedblleft}
-\\DeclareUnicodeCharacter{201D}{\\textquotedblright}
-\\DeclareUnicodeCharacter{2026}{\\textellipsis}
+\\DeclareUnicodeCharacter{2014}{\\\\textemdash}
+\\DeclareUnicodeCharacter{2013}{\\\\textendash}
+\\DeclareUnicodeCharacter{2018}{\\\\textquoteleft}
+\\DeclareUnicodeCharacter{2019}{\\\\textquoteright}
+\\DeclareUnicodeCharacter{201C}{\\\\textquotedblleft}
+\\DeclareUnicodeCharacter{201D}{\\\\textquotedblright}
+\\DeclareUnicodeCharacter{2026}{\\\\textellipsis}
 \\DeclareUnicodeCharacter{03B1}{\\ensuremath{\\\\alpha}}
 \\DeclareUnicodeCharacter{03B2}{\\ensuremath{\\\\beta}}
 \\DeclareUnicodeCharacter{03C0}{\\ensuremath{\\\\pi}}
@@ -207,6 +207,23 @@ function preamble(options) {
 \\DeclareUnicodeCharacter{00D7}{\\ensuremath{\\\\times}}
 \\DeclareUnicodeCharacter{00F7}{\\ensuremath{\\\\div}}
 \\DeclareUnicodeCharacter{00B7}{\\ensuremath{\\\\cdot}}
+\\DeclareUnicodeCharacter{2208}{\\ensuremath{\\\\in}}
+\\DeclareUnicodeCharacter{2209}{\\ensuremath{\\\\notin}}
+\\DeclareUnicodeCharacter{2286}{\\ensuremath{\\\\subseteq}}
+\\DeclareUnicodeCharacter{2282}{\\ensuremath{\\\\subset}}
+\\DeclareUnicodeCharacter{222A}{\\ensuremath{\\\\cup}}
+\\DeclareUnicodeCharacter{2229}{\\ensuremath{\\\\cap}}
+\\DeclareUnicodeCharacter{2211}{\\ensuremath{\\\\sum}}
+\\DeclareUnicodeCharacter{220F}{\\ensuremath{\\\\prod}}
+\\DeclareUnicodeCharacter{221A}{\\ensuremath{\\\\sqrt}}
+\\DeclareUnicodeCharacter{2248}{\\ensuremath{\\\\approx}}
+\\DeclareUnicodeCharacter{2261}{\\ensuremath{\\\\equiv}}
+\\DeclareUnicodeCharacter{21D2}{\\ensuremath{\\\\Rightarrow}}
+\\DeclareUnicodeCharacter{21D4}{\\ensuremath{\\\\Leftrightarrow}}
+\\DeclareUnicodeCharacter{2295}{\\ensuremath{\\\\oplus}}
+\\DeclareUnicodeCharacter{2297}{\\ensuremath{\\\\otimes}}
+\\DeclareUnicodeCharacter{2713}{\\ensuremath{\\\\checkmark}}
+\\DeclareUnicodeCharacter{2714}{\\ensuremath{\\\\checkmark}}
 
 \\definecolor{kw}{rgb}{${c.kw}}
 \\definecolor{kwtwo}{rgb}{${c.kw2}}
@@ -238,13 +255,13 @@ function preamble(options) {
   belowskip=6pt,
   extendedchars=true,
   literate=
-    {—}{{\\textemdash}}1
-    {–}{{\\textendash}}1
-    {’}{{\\textquoteright}}1
-    {‘}{{\\textquoteleft}}1
-    {“}{{\\textquotedblleft}}1
-    {”}{{\\textquotedblright}}1
-    {…}{{\\textellipsis}}1
+    {—}{{\\\\textemdash}}1
+    {–}{{\\\\textendash}}1
+    {’}{{\\\\textquoteright}}1
+    {‘}{{\\\\textquoteleft}}1
+    {“}{{\\\\textquotedblleft}}1
+    {”}{{\\\\textquotedblright}}1
+    {…}{{\\\\textellipsis}}1
     {≤}{{$\\\\le$}}1
     {≥}{{$\\\\ge$}}1
     {≠}{{$\\\\neq$}}1
@@ -260,7 +277,24 @@ function preamble(options) {
     {±}{{$\\\\pm$}}1
     {×}{{$\\\\times$}}1
     {÷}{{$\\\\div$}}1
-    {·}{{$\\\\cdot$}}1,
+    {·}{{$\\\\cdot$}}1
+    {∈}{{$\\\\in$}}1
+    {∉}{{$\\\\notin$}}1
+    {⊆}{{$\\\\subseteq$}}1
+    {⊂}{{$\\\\subset$}}1
+    {∪}{{$\\\\cup$}}1
+    {∩}{{$\\\\cap$}}1
+    {∑}{{$\\\\sum$}}1
+    {∏}{{$\\\\prod$}}1
+    {√}{{$\\\\sqrt$}}1
+    {≈}{{$\\\\approx$}}1
+    {≡}{{$\\\\equiv$}}1
+    {⇒}{{$\\\\Rightarrow$}}1
+    {⇔}{{$\\\\Leftrightarrow$}}1
+    {⊕}{{$\\\\oplus$}}1
+    {⊗}{{$\\\\otimes$}}1
+    {✓}{{$\\\\checkmark$}}1
+    {✔}{{$\\\\checkmark$}}1,
   morekeywords=[2]{${TYPE_KEYWORDS}},
 }
 \\lstset{style=ref}

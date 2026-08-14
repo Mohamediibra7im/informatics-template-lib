@@ -17,13 +17,13 @@ WORKDIR /app
 COPY package.json ./
 COPY server.js latex.js selfcheck.js ./
 
-# Warm the tectonic package cache into the image so runtime compiles are
-# offline & fast. Runs the self-check as a build-time smoke test.
-RUN node selfcheck.js
-
-# non-root
+# non-root user appuser
 RUN useradd -m appuser && chown -R appuser /app
 USER appuser
+
+# Warm the tectonic package cache into /home/appuser/.cache/tectonic so runtime compiles
+# run by appuser are offline & fast without making network requests.
+RUN node selfcheck.js
 
 ENV PORT=8080
 # Container is fronted by the platform proxy (Fly/Railway) — bind all interfaces.

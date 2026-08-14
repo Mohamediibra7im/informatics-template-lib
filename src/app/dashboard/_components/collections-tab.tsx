@@ -15,9 +15,12 @@ import {
   Plus,
   ChevronRight,
   Printer,
+  FolderDown,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 import { Collection, CollectionItem } from "./types";
 
 interface CollectionsTabProps {
@@ -67,6 +70,37 @@ export function CollectionsTab({
 }: CollectionsTabProps) {
   const [newCollName, setNewCollName] = useState("");
   const [newCollDesc, setNewCollDesc] = useState("");
+  const [downloadingCollId, setDownloadingCollId] = useState<number | null>(null);
+
+  const handleDownloadCppZip = async (collectionId: number, collectionName: string) => {
+    try {
+      setDownloadingCollId(collectionId);
+      toast.loading("Preparing C++ collection ZIP...", { id: `download-${collectionId}` });
+
+      const res = await fetch(`/api/users/collections/${collectionId}/download`);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: "Failed to download collection" }));
+        throw new Error(data.error || "Failed to download collection");
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const sanitizedName = collectionName.replace(/[/\\?%*:|"<>]/g, "_").replace(/\s+/g, "_");
+      a.download = `${sanitizedName}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.success("C++ folder ZIP downloaded!", { id: `download-${collectionId}` });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to download C++ collection ZIP", { id: `download-${collectionId}` });
+    } finally {
+      setDownloadingCollId(null);
+    }
+  };
 
   const handleCreate = () => {
     if (!newCollName.trim()) return;
@@ -90,6 +124,20 @@ export function CollectionsTab({
                 <span>Back to all collections</span>
               </button>
               <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleDownloadCppZip(activeCollection.id, activeCollection.name)}
+                  disabled={downloadingCollId === activeCollection.id}
+                  className="font-mono text-[10px] uppercase font-extrabold h-7.5 px-3 border-primary/40 hover:bg-primary/10 text-primary cursor-pointer"
+                >
+                  {downloadingCollId === activeCollection.id ? (
+                    <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                  ) : (
+                    <FolderDown className="h-3.5 w-3.5 mr-1.5 text-primary" />
+                  )}
+                  Download C++ (.cpp)
+                </Button>
                 <Link href={`/editor?collectionId=${activeCollection.id}`}>
                   <Button
                     size="sm"
@@ -353,6 +401,22 @@ export function CollectionsTab({
                           {Number(c.itemCount || 0)} items
                         </button>
                         <div className="flex items-center gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              playClick();
+                              handleDownloadCppZip(c.id, c.name);
+                            }}
+                            disabled={downloadingCollId === c.id}
+                            className="text-muted-foreground/40 hover:text-primary transition-colors cursor-pointer p-1 disabled:opacity-50"
+                            title="Download C++ (.cpp) folder ZIP"
+                          >
+                            {downloadingCollId === c.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                            ) : (
+                              <FolderDown className="h-4 w-4" />
+                            )}
+                          </button>
                           <button
                             onClick={(e) => onStartEditCollection(c, e)}
                             className="text-muted-foreground/40 hover:text-primary transition-colors cursor-pointer p-1"
