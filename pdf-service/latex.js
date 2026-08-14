@@ -5,22 +5,71 @@
 
 const LATEX_SPECIAL_RE = /[\\&%$#_{}~^]/g;
 
+const UNICODE_MAP = [
+  [/—/g, "---"],
+  [/–/g, "--"],
+  [/’/g, "'"],
+  [/‘/g, "`"],
+  [/“/g, "``"],
+  [/”/g, "''"],
+  [/…/g, "\\dots "],
+  [/≤/g, "$\\le$"],
+  [/≥/g, "$\\ge$"],
+  [/≠/g, "$\\neq$"],
+  [/→/g, "$\\to$"],
+  [/←/g, "$\\leftarrow$"],
+  [/∞/g, "$\\infty$"],
+  [/α/g, "$\\alpha$"],
+  [/β/g, "$\\beta$"],
+  [/π/g, "$\\pi$"],
+  [/λ/g, "$\\lambda$"],
+  [/µ/g, "$\\mu$"],
+  [/°/g, "$^\\circ$"],
+  [/±/g, "$\\pm$"],
+  [/×/g, "$\\times$"],
+  [/÷/g, "$\\div$"],
+  [/·/g, "$\\cdot$"],
+  [/∈/g, "$\\in$"],
+  [/∉/g, "$\\notin$"],
+  [/⊆/g, "$\\subseteq$"],
+  [/⊂/g, "$\\subset$"],
+  [/∪/g, "$\\cup$"],
+  [/∩/g, "$\\cap$"],
+  [/∑/g, "$\\sum$"],
+  [/∏/g, "$\\prod$"],
+  [/√/g, "$\\sqrt$"],
+  [/≈/g, "$\\approx$"],
+  [/≡/g, "$\\equiv$"],
+  [/⇒/g, "$\\Rightarrow$"],
+  [/⇔/g, "$\\Leftrightarrow$"],
+  [/⊕/g, "$\\oplus$"],
+  [/⊗/g, "$\\otimes$"],
+  [/✓/g, "$\\checkmark$"],
+  [/✔/g, "$\\checkmark$"],
+];
+
 function esc(s) {
-  return String(s ?? "").replace(LATEX_SPECIAL_RE, (m) => {
-    switch (m) {
-      case "\\": return "\\textbackslash{}";
-      case "&": return "\\&";
-      case "%": return "\\%";
-      case "$": return "\\$";
-      case "#": return "\\#";
-      case "_": return "\\_";
-      case "{": return "\\{";
-      case "}": return "\\}";
-      case "~": return "\\textasciitilde{}";
-      case "^": return "\\textasciicircum{}";
-      default: return m;
-    }
-  });
+  let str = String(s ?? "")
+    .replace(/[\u0001-\u0008\u000B\u000C\u000E-\u001F]/g, "")
+    .replace(LATEX_SPECIAL_RE, (m) => {
+      switch (m) {
+        case "\\": return "\\textbackslash{}";
+        case "&": return "\\&";
+        case "%": return "\\%";
+        case "$": return "\\$";
+        case "#": return "\\#";
+        case "_": return "\\_";
+        case "{": return "\\{";
+        case "}": return "\\}";
+        case "~": return "\\textasciitilde{}";
+        case "^": return "\\textasciicircum{}";
+        default: return m;
+      }
+    });
+  for (const [re, rep] of UNICODE_MAP) {
+    str = str.replace(re, rep);
+  }
+  return str;
 }
 
 // Convert note Markdown (+ inline $math$) to LaTeX.
@@ -191,13 +240,13 @@ function preamble(options) {
 \\DeclareUnicodeCharacter{2192}{\\ensuremath{\\\\to}}
 \\DeclareUnicodeCharacter{2190}{\\ensuremath{\\\\leftarrow}}
 \\DeclareUnicodeCharacter{221E}{\\ensuremath{\\\\infty}}
-\\DeclareUnicodeCharacter{2014}{\\\\textemdash}
-\\DeclareUnicodeCharacter{2013}{\\\\textendash}
-\\DeclareUnicodeCharacter{2018}{\\\\textquoteleft}
-\\DeclareUnicodeCharacter{2019}{\\\\textquoteright}
-\\DeclareUnicodeCharacter{201C}{\\\\textquotedblleft}
-\\DeclareUnicodeCharacter{201D}{\\\\textquotedblright}
-\\DeclareUnicodeCharacter{2026}{\\\\textellipsis}
+\\DeclareUnicodeCharacter{2014}{---}
+\\DeclareUnicodeCharacter{2013}{--}
+\\DeclareUnicodeCharacter{2018}{\\textquoteleft}
+\\DeclareUnicodeCharacter{2019}{\\textquoteright}
+\\DeclareUnicodeCharacter{201C}{\\textquotedblleft}
+\\DeclareUnicodeCharacter{201D}{\\textquotedblright}
+\\DeclareUnicodeCharacter{2026}{\\dots}
 \\DeclareUnicodeCharacter{03B1}{\\ensuremath{\\\\alpha}}
 \\DeclareUnicodeCharacter{03B2}{\\ensuremath{\\\\beta}}
 \\DeclareUnicodeCharacter{03C0}{\\ensuremath{\\\\pi}}
@@ -255,13 +304,13 @@ function preamble(options) {
   belowskip=6pt,
   extendedchars=true,
   literate=
-    {—}{{\\\\textemdash}}1
-    {–}{{\\\\textendash}}1
-    {’}{{\\\\textquoteright}}1
-    {‘}{{\\\\textquoteleft}}1
-    {“}{{\\\\textquotedblleft}}1
-    {”}{{\\\\textquotedblright}}1
-    {…}{{\\\\textellipsis}}1
+    {—}{{---}}1
+    {–}{{--}}1
+    {’}{{\\textquoteright}}1
+    {‘}{{\\textquoteleft}}1
+    {“}{{\\textquotedblleft}}1
+    {”}{{\\textquotedblright}}1
+    {…}{{\\dots}}1
     {≤}{{$\\\\le$}}1
     {≥}{{$\\\\ge$}}1
     {≠}{{$\\\\neq$}}1
