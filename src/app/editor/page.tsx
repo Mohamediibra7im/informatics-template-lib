@@ -724,7 +724,7 @@ function EditorPageContent() {
   );
 
   return (
-    <div className="min-h-screen font-mono flex flex-col bg-[#06141B] text-[#CCD0CF]">
+    <div className="h-screen max-h-screen font-mono flex flex-col bg-[#06141B] text-[#CCD0CF] overflow-hidden">
       {/* ─── Ultra-Premium Cybernetic Control Header ─── */}
       <header className="sticky top-0 z-40 border-b border-primary/20 bg-[#06141B]/95 backdrop-blur-xl px-2.5 sm:px-4 py-1.5 sm:py-2.5 shadow-[0_4px_25px_rgba(0,0,0,0.6)] font-mono">
         {/* Desktop Layout (md+) */}
@@ -945,7 +945,7 @@ function EditorPageContent() {
       {/* ─── Two-Pane Studio Workspace ─── */}
       <div className="flex-1 flex overflow-hidden">
         {/* ── Left Sidebar Pane (Desktop) ── */}
-        <aside className="hidden md:flex w-80 border-r border-border/60 bg-[#06141B]/95 flex-col shrink-0 overflow-y-auto p-3.5 space-y-4">
+        <aside className="hidden md:flex w-80 border-r border-border/60 bg-[#06141B]/95 flex-col shrink-0 p-3.5 h-full overflow-hidden">
           {renderCategorySidebar()}
         </aside>
 

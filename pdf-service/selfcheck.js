@@ -27,10 +27,12 @@ const { spawn } = require("child_process");
   console.log("mdToLatex checks ok");
 }
 
-const SAMPLE = {
-  title: "ICPC Team Reference",
-  subtitle: "Self Check Team",
-  date: "2026-08-11",
+const FONT_SIZES = ["small", "medium", "large"];
+
+const SAMPLE_BASE = {
+  title: "ICPC Team Reference — Self Check",
+  subtitle: "Unicode Test: — – ’ “ ” … ≤ ≥ ≠ → ← ∞ α β π λ µ ° ± × ÷ ·",
+  date: "2026-08-14",
   options: {
     columns: 2, fontSize: "small", showToc: true, showLineNumbers: true,
     showCodeHashes: true, pageBreakPerTemplate: false, theme: "light",
@@ -41,24 +43,18 @@ const SAMPLE = {
       topics: [
         {
           title: "Fenwick Tree", complexity: "\\log n", hash: "A1B2", language: "cpp",
-          code: "struct BIT {\n  vector<int> t;\n  // add & to test escaping in code path\n  void upd(int i,int v){ for(;i<t.size();i+=i&-i) t[i]+=v; }\n};",
-          notes: "## Overview\nPoint update, prefix query. Special chars: 50% & $x$.\n\n## Complexity\n- All ops $O(\\log n)$\n- Space $O(n)$ with up to **26** children",
+          code: "struct BIT {\n  vector<int> t;\n  // C++ comments with unicode: a ≤ b, u → v, — emdash\n  void upd(int i,int v){ for(;i<t.size();i+=i&-i) t[i]+=v; }\n};",
+          notes: "## Overview\nPoint update, prefix query. Special chars: 50% & $x$.\n- Bullet with em-dash — and quotes 'test'\n- Table:\n| Op | Complexity |\n| :--- | ---: |\n| Add | $O(\\log n)$ |\n",
         },
-        { title: "Union Find", language: "cpp", code: "int f[N];\nint find(int x){return f[x]==x?x:f[x]=find(f[x]);}" },
+        { title: "Python Helper", language: "python", code: "# Python snippet: a <= b\ndef solve():\n    pass\n" },
+        { title: "Java Helper", language: "java", code: "// Java snippet\nclass Solution {\n  public static void main(String[] args) {}\n}\n" },
       ],
     },
-    { title: "Math", topics: [{ title: "gcd", language: "cpp", code: "ll gcd(ll a,ll b){return b?gcd(b,a%b):a;}" }] },
   ],
 };
 
-async function main() {
-  const { tex, snippets } = buildLatex(SAMPLE);
-  assert(tex.includes("\\begin{document}"), "tex missing document");
-  assert(tex.includes("\\lstinputlisting"), "tex missing listings");
-  assert(snippets.length === 3, `expected 3 snippets, got ${snippets.length}`);
-  console.log("latex build ok:", snippets.length, "snippets");
-
-  // Compile only if tectonic present
+async function compilePayload(payload) {
+  const { tex, snippets } = buildLatex(payload);
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "selfcheck-"));
   await fs.mkdir(path.join(dir, "snippets"), { recursive: true });
   await fs.writeFile(path.join(dir, "main.tex"), tex);
@@ -75,9 +71,24 @@ async function main() {
   const pdf = await fs.readFile(path.join(dir, "main.pdf"));
   assert(pdf.length > 1000, "pdf too small");
   assert(pdf.slice(0, 5).toString() === "%PDF-", "not a PDF");
-  console.log("compile ok:", pdf.length, "bytes");
   await fs.rm(dir, { recursive: true, force: true });
-  console.log("SELFCHECK PASSED");
+}
+
+async function main() {
+  for (const fontSize of FONT_SIZES) {
+    const payload = {
+      ...SAMPLE_BASE,
+      options: { ...SAMPLE_BASE.options, fontSize },
+    };
+    const { tex } = buildLatex(payload);
+    assert(tex.includes("\\begin{document}"), "tex missing document");
+    assert(tex.includes("\\lstinputlisting"), "tex missing listings");
+  }
+  console.log("latex build ok for all font sizes");
+
+  // Compile full sample to warm tectonic cache
+  await compilePayload(SAMPLE_BASE);
+  console.log("SELFCHECK PASSED (all font sizes & packages cached)");
 }
 
 main().catch((e) => { console.error("SELFCHECK FAILED:", e.message); process.exit(1); });

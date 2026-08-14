@@ -191,12 +191,13 @@ function preamble(options) {
 \\DeclareUnicodeCharacter{2192}{\\ensuremath{\\\\to}}
 \\DeclareUnicodeCharacter{2190}{\\ensuremath{\\\\leftarrow}}
 \\DeclareUnicodeCharacter{221E}{\\ensuremath{\\\\infty}}
-\\DeclareUnicodeCharacter{2014}{\\textdash}
-\\DeclareUnicodeCharacter{2013}{\\textdash}
-\\DeclareUnicodeCharacter{2019}{'}
+\\DeclareUnicodeCharacter{2014}{\\textemdash}
+\\DeclareUnicodeCharacter{2013}{\\textendash}
+\\DeclareUnicodeCharacter{2018}{\\textquoteleft}
+\\DeclareUnicodeCharacter{2019}{\\textquoteright}
 \\DeclareUnicodeCharacter{201C}{\\textquotedblleft}
 \\DeclareUnicodeCharacter{201D}{\\textquotedblright}
-\\DeclareUnicodeCharacter{2026}{\\dots}
+\\DeclareUnicodeCharacter{2026}{\\textellipsis}
 \\DeclareUnicodeCharacter{03B1}{\\ensuremath{\\\\alpha}}
 \\DeclareUnicodeCharacter{03B2}{\\ensuremath{\\\\beta}}
 \\DeclareUnicodeCharacter{03C0}{\\ensuremath{\\\\pi}}
@@ -237,12 +238,13 @@ function preamble(options) {
   belowskip=6pt,
   extendedchars=true,
   literate=
-    {—}{{\\textendash}}1
+    {—}{{\\textemdash}}1
     {–}{{\\textendash}}1
-    {’}{{'}}1
+    {’}{{\\textquoteright}}1
+    {‘}{{\\textquoteleft}}1
     {“}{{\\textquotedblleft}}1
     {”}{{\\textquotedblright}}1
-    {…}{{\\dots}}1
+    {…}{{\\textellipsis}}1
     {≤}{{$\\\\le$}}1
     {≥}{{$\\\\ge$}}1
     {≠}{{$\\\\neq$}}1

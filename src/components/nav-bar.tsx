@@ -123,6 +123,7 @@ function NavSearch({ autoFocus }: { autoFocus?: boolean }) {
 
 export function NavBar() {
   const pathname = usePathname();
+  if (pathname === "/editor" || pathname?.startsWith("/editor/")) return null;
   const {
     sound,
     setSound,

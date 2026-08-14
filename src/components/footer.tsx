@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Clock, ArrowUpRight } from "lucide-react";
 import { useTerminalTheme } from "./theme-provider";
 import { BrandLogo } from "./brand-logo";
 
 export function Footer() {
+  const pathname = usePathname();
+  if (pathname === "/editor" || pathname?.startsWith("/editor/")) return null;
   const year = new Date().getFullYear();
   const { playClick } = useTerminalTheme();
   const [time, setTime] = useState<string>("");
